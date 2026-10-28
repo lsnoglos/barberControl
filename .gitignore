@@ -1,0 +1,13 @@
+# Identificadores y credenciales locales
+**/.clasp.json
+**/.clasprc.json
+**/.env
+**/.env.*
+!**/.env.example
+
+# Archivos de dependencias/editores
+node_modules/
+.DS_Store
+.vscode/
+.idea/
+dist/
