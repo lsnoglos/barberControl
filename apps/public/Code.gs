@@ -4,7 +4,7 @@
  * No incorporar aqui funciones que modifiquen precios, horarios ni permisos.
  */
 function doGet(){
-  return HtmlService.createHtmlOutputFromFile('Index')
+  return HtmlService.createTemplateFromFile('Index').evaluate()
     .setTitle('BarberControl | Reserva tu corte')
     .addMetaTag('viewport','width=device-width,initial-scale=1');
 }
@@ -24,4 +24,9 @@ function doPost(e) {
   }
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function incluirCatalogoPublico_(name) {
+  if(name!=='GaleriaPublica')throw new Error('Plantilla no permitida.');
+  return HtmlService.createHtmlOutputFromFile(name).getContent();
 }

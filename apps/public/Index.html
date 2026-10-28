@@ -24,9 +24,10 @@ footer{margin-top:40px;color:#a4a7ad;text-align:center;font-size:.8rem}
 <p>Elige un servicio, consulta los horarios disponibles y confirma tu reserva sin crear una cuenta.</p>
 <a href="#servicios" style="color:#eed09b">Explorar los servicios ↓</a></div>
 <section id="servicios"><h2>1. Elige tu servicio</h2><div id="catalogo" class="grid"><p>Cargando servicios…</p></div></section>
+<?!= incluirCatalogoPublico_('GaleriaPublica'); ?>
 <section id="calendario"><h2>2. Elige fecha y hora</h2>
 <label>Fecha<input type="date" id="fecha"></label><p id="ayuda" class="muted">Selecciona primero un servicio.</p>
-<div id="horarios" class="slots"></div></section>
+<div id="horarios" class="slots"></div><p id="bcReferenciaElegida" class="bc-visual-summary"></p></section>
 <section id="datos" class="hidden"><h2>3. Datos para tu reservación</h2>
 <form id="formulario" onsubmit="confirmar(event)">
 <div class="grid"><label>Nombre completo<input id="nombre" maxlength="90" minlength="3" required autocomplete="name"></label>
@@ -47,18 +48,19 @@ function api(nombre,args,ok){google.script.run.withSuccessHandler(ok).withFailur
 function cargar(){
   const hoy=new Date();const fechaLocal=new Date(hoy.getTime()-hoy.getTimezoneOffset()*60000).toISOString().slice(0,10);
   $('fecha').min=fechaLocal;$('fecha').value=fechaLocal;
+  if(window.bcVisualInit)window.bcVisualInit();
   api('obtenerCatalogoPublico',[],data=>{
     $('negocio').textContent=data.negocio;
-    catalogo=data.servicios||[];
+    catalogo=data.servicios||[];window.bcServiciosDisponibles=catalogo;
     $('catalogo').innerHTML='';
     if(!catalogo.length){$('catalogo').textContent=data.mensaje||'Aún no hay servicios disponibles. Vuelve pronto.';return;}
     catalogo.forEach(s=>{
-      const b=document.createElement('button');b.type='button';b.className='service';
+      const b=document.createElement('button');b.type='button';b.className='service';b.dataset.serviceId=s.id;
       const nombre=document.createElement('strong');nombre.textContent=s.nombre;b.append(nombre);
       const meta=document.createElement('span');meta.textContent=s.duracion+' min · C$'+s.precio;b.append(meta);
       const desc=document.createElement('span');desc.textContent=s.descripcion||'';b.append(desc);
       b.onclick=()=>{
-        seleccion=s;hora=null;
+        seleccion=s;hora=null;window.bcReferenciaReserva={estiloId:'',galeriaId:''};
         document.querySelectorAll('.service').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');
         $('datos').classList.add('hidden');$('exito').classList.add('hidden');buscarHorarios();
         $('calendario').scrollIntoView({behavior:'smooth',block:'start'});
@@ -85,13 +87,23 @@ function buscarHorarios(){
   });
  });
 }
+window.bcElegirReferenciaVisual=function(servicioId,estiloId,galeriaId){
+ const match=document.querySelector('.service[data-service-id="'+String(servicioId).replace(/[^A-Za-z0-9_-]/g,'')+'"]');
+ if(!match)return false;
+ match.click();window.bcReferenciaReserva={estiloId:estiloId||'',galeriaId:galeriaId||''};
+ const info=document.getElementById('bcReferenciaElegida');
+ if(info)info.textContent='Referencia elegida: '+(estiloId?'estilo '+estiloId:'')+(galeriaId?' · trabajo '+galeriaId:'');
+ document.getElementById('calendario').scrollIntoView({behavior:'smooth',block:'start'});
+ return true;
+};
 function confirmar(e){
  e.preventDefault();if(!seleccion||!hora){err({message:'Selecciona primero el horario.'});return;}
  $('confirmar').disabled=true;$('mensaje').textContent='Registrando la cita…';
  if(!idempotencia){idempotencia=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});}
  api('reservarCita',[{servicioId:seleccion.id,fecha:$('fecha').value,inicio:hora.inicio,
-  nombre:$('nombre').value,telefono:$('telefono').value,comentario:$('comentario').value,idempotencia}],r=>{
+  nombre:$('nombre').value,telefono:$('telefono').value,comentario:$('comentario').value,
+  estiloId:(window.bcReferenciaReserva||{}).estiloId||'',galeriaId:(window.bcReferenciaReserva||{}).galeriaId||'',idempotencia}],r=>{
   $('mensaje').textContent='';$('datos').classList.add('hidden');
   $('exito').classList.remove('hidden');
   $('comprobante').textContent='Reserva '+r.codigo+' · '+r.servicio+' · '+r.fecha+' · '+r.inicio+' a '+r.fin+' · C$'+r.precio;

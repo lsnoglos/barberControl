@@ -1,0 +1,174 @@
+<style>
+.bc-visual-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bc-visual-title p{margin:0}
+.bc-styles-grid,.bc-work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(245px,100%),1fr));gap:16px}
+.bc-visual-card{background:#22252b;border:1px solid #41434b;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.bc-visual-photo{width:100%;aspect-ratio:4/3;object-fit:cover;background:linear-gradient(130deg,#393c43,#1c1f23);display:block;min-height:160px}
+.bc-visual-card-body{padding:16px;display:grid;gap:9px;flex:1}
+.bc-visual-card h3{margin:0;font-size:1.1rem}
+.bc-visual-card p{font-size:.88rem;margin:0;line-height:1.5}
+.bc-visual-card .primary{margin-top:auto}
+.bc-visual-tag{font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:#e6c589}
+.bc-visual-thumbs{display:flex;overflow-x:auto;gap:6px;padding:8px 12px;background:#171a1f}
+.bc-visual-thumbs img{width:70px;height:62px;object-fit:cover;border-radius:7px;cursor:pointer;flex-shrink:0;background:#333}
+.bc-visual-frame{aspect-ratio:16/9;width:100%;border:0;border-radius:10px;background:#0a0c11}
+.bc-visual-video{border:1px solid #41434b;border-radius:10px;overflow:hidden}
+.bc-visual-video button{border:0;background:#2a2f39;color:#f1d29b;width:100%;padding:10px;cursor:pointer}
+.bc-visual-summary{font-size:.83rem;color:#c3b48e}
+.bc-visual-ghost{padding:22px;text-align:center;color:#aab0ba;background:#20242a;border-radius:12px}
+.bc-visual-filters{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.bc-visual-filters select{width:auto;border:1px solid #565b65;border-radius:9px;padding:10px;background:#14161a;color:#eee}
+</style>
+<section id="estilos">
+ <div class="bc-visual-title"><h2>Estilos de corte</h2><span class="bc-visual-tag">Elige tu próximo look</span></div>
+ <p class="muted">Conoce cada estilo, su técnica e historia. Puedes pasar directamente a reservarlo.</p>
+ <div class="bc-visual-filters"><label>Filtrar por servicio
+  <select id="bcFiltroEstilos"><option value="">Todos</option></select></label></div>
+ <div id="bcEstilosPublicos" class="bc-styles-grid"><p class="muted">Cargando estilos…</p></div>
+</section>
+<section id="galeria">
+ <div class="bc-visual-title"><h2>Galería de trabajos</h2><span class="bc-visual-tag">Resultados reales</span></div>
+ <p class="muted">Fotografías de trabajos autorizados y videos de YouTube cuando estén disponibles.</p>
+ <div id="bcGaleriaPublica" class="bc-work-grid"><p class="muted">Cargando galería…</p></div>
+</section>
+<script>
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+const toText=value=>String(value===undefined||value===null?'':value);
+let visual={estilos:[],trabajos:[]};
+let imageObserver=null;
+function appendText(tag,text,classname){
+ const node=document.createElement(tag);
+ if(classname)node.className=classname;
+ node.textContent=toText(text);
+ return node;
+}
+function button(text,action){
+ const b=document.createElement('button');b.type='button';b.className='primary';
+ b.textContent=text;b.onclick=action;return b;
+}
+function image(tipo,id,mediaId,alt){
+ const img=document.createElement('img');
+ img.className='bc-visual-photo';img.alt=alt;img.loading='lazy';
+ img.dataset.bcTipo=tipo;img.dataset.bcId=id;img.dataset.bcMedio=mediaId||'';
+ if(imageObserver)imageObserver.observe(img);else loadPhoto(img);
+ return img;
+}
+function loadPhoto(img){
+ if(img.dataset.bcLoading)return;
+ img.dataset.bcLoading='1';
+ google.script.run.withSuccessHandler(uri=>{img.src=uri;})
+   .withFailureHandler(()=>{img.alt='No se pudo cargar la foto';})
+   .obtenerImagenPublica(img.dataset.bcTipo,img.dataset.bcId,img.dataset.bcMedio);
+}
+if('IntersectionObserver' in window){
+ imageObserver=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+   if(entry.isIntersecting){imageObserver.unobserve(entry.target);loadPhoto(entry.target);}
+  });
+ },{rootMargin:'200px'});
+}
+function referenceBooking(servicioId,estiloId,galeriaId){
+ const service=window.bcElegirReferenciaVisual;
+ if(typeof service==='function'){
+  const ok=service(servicioId,estiloId||'',galeriaId||'');
+  if(!ok)alert('Este servicio no está disponible para nuevas reservas.');
+ }else alert('El catálogo de servicios todavía se está cargando.');
+}
+function showStyles(){
+ const container=el('bcEstilosPublicos');
+ container.textContent='';
+ const filtro=el('bcFiltroEstilos').value;
+ const rows=visual.estilos.filter(e=>!filtro||e.servicioId===filtro);
+ if(!rows.length){container.append(appendText('p','Aún no hay estilos publicados.','bc-visual-ghost'));return;}
+ rows.forEach(e=>{
+  const article=document.createElement('article');article.className='bc-visual-card';
+  if(e.tieneImagen)article.append(image('ESTILO',e.id,'',e.nombre));
+  const body=document.createElement('div');body.className='bc-visual-card-body';
+  body.append(appendText('div','Estilo de corte','bc-visual-tag'),appendText('h3',e.nombre));
+  if(e.descripcion)body.append(appendText('p',e.descripcion,'muted'));
+  if(e.origen)body.append(appendText('p','Origen e historia: '+e.origen,'muted'));
+  if(e.tecnica)body.append(appendText('p','Técnica: '+e.tecnica,'muted'));
+  const b=button(e.reservable?'Reservar este estilo':'No disponible para reservar',
+    ()=>referenceBooking(e.servicioId,e.id,''));
+  b.disabled=!e.reservable;body.append(b);article.append(body);container.append(article);
+ });
+}
+function youtubePlayer(video){
+ const content=document.createElement('div');content.className='bc-visual-video';
+ const b=appendText('button','▶ Ver procedimiento en YouTube');
+ b.type='button';
+ b.onclick=()=>{
+  const frame=document.createElement('iframe');
+  frame.className='bc-visual-frame';frame.loading='lazy';
+  frame.referrerPolicy='strict-origin-when-cross-origin';
+  frame.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  frame.allowFullscreen=true;frame.title='Video de corte de cabello';
+  // El servidor entrega IDs verificados de 11 caracteres, nunca URLs arbitrarias.
+  frame.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(video.youtubeId)+'?rel=0';
+  content.replaceChildren(frame);
+ };
+ content.append(b);
+ if(video.descripcion)content.append(appendText('p',video.descripcion,'muted'));
+ return content;
+}
+function showGallery(){
+ const container=el('bcGaleriaPublica');container.textContent='';
+ if(!visual.trabajos.length){
+  container.append(appendText('p','Aún no se han publicado trabajos realizados.','bc-visual-ghost'));return;
+ }
+ visual.trabajos.forEach(g=>{
+  const card=document.createElement('article');card.className='bc-visual-card';
+  const photos=g.medios.filter(m=>m.tipo==='FOTO');
+  const videos=g.medios.filter(m=>m.tipo==='YOUTUBE'&&m.youtubeId);
+  if(photos.length){
+   const main=image('GALERIA',g.id,photos[0].id,g.titulo);
+   card.append(main);
+   if(photos.length>1){
+    const thumbs=document.createElement('div');thumbs.className='bc-visual-thumbs';
+    photos.forEach(m=>{
+      const thumb=image('GALERIA',g.id,m.id,g.titulo);
+      thumb.className='';
+      thumb.title='Ver foto';
+      thumb.addEventListener('click',()=>{
+       if(thumb.src&&thumb.src.startsWith('data:'))main.src=thumb.src;
+      });
+      thumbs.append(thumb);
+    });
+    card.append(thumbs);
+   }
+  }
+  const body=document.createElement('div');body.className='bc-visual-card-body';
+  if(g.destacado)body.append(appendText('div','Trabajo destacado','bc-visual-tag'));
+  body.append(appendText('h3',g.titulo));
+  if(g.descripcion)body.append(appendText('p',g.descripcion,'muted'));
+  videos.forEach(v=>body.append(youtubePlayer(v)));
+  const styleOk=visual.estilos.some(s=>s.id===g.estiloId);
+  const b=button(g.reservable?'Quiero este corte':'Servicio no reservable',
+    ()=>referenceBooking(g.servicioId,styleOk?g.estiloId:'',g.id));
+  b.disabled=!g.reservable;
+  body.append(b);card.append(body);container.append(card);
+ });
+}
+function init(){
+ google.script.run.withSuccessHandler(result=>{
+  visual=result||{estilos:[],trabajos:[]};
+  const filter=el('bcFiltroEstilos');
+  const services={};
+  visual.estilos.forEach(s=>{services[s.servicioId]=true;});
+  const catalogo=window.bcServiciosDisponibles||[];
+  catalogo.filter(s=>services[s.id]).forEach(s=>{
+   const option=document.createElement('option');
+   option.value=s.id;option.textContent=s.nombre;filter.append(option);
+  });
+  showStyles();showGallery();
+ }).withFailureHandler(err=>{
+  el('bcEstilosPublicos').textContent='Error al consultar estilos: '+err.message;
+  el('bcGaleriaPublica').textContent='Error al consultar galería.';
+ }).obtenerCatalogoVisualPublico();
+}
+el('bcFiltroEstilos').addEventListener('change',showStyles);
+window.bcVisualInit=init;
+})();
+</script>
