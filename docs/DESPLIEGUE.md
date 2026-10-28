@@ -1,69 +1,106 @@
-# Guía de despliegue: dos proyectos Apps Script
+# Guía de despliegue: dos Apps Script
 
-## Requisitos
+**Objetivo:** crear dos proyectos Apps Script en la **cuenta de Google propietaria de la barbería**, sincronizados con dos carpetas distintas del repositorio GitHub.
 
-- Cuenta de Google del **propietario** de la barbería (será quien despliegue ambas aplicaciones).
-- Dos proyectos nuevos en [script.google.com](https://script.google.com/).
-- Si se despliega desde Git: Node.js, herramienta [clasp](https://github.com/google/clasp) y Apps Script API habilitada en su cuenta.
+## A. Crear los proyectos en Google
 
-## Paso 1. Crear proyectos en Google
+1. Iniciar sesión en [script.google.com](https://script.google.com) usando la cuenta del propietario.
+2. Crear un proyecto nuevo llamado **BarberControl - Admin**.
+3. Crear otro proyecto independiente llamado **BarberControl - Publico**.
+4. Abrir **Configuración del proyecto** de cada uno y copiar su **ID de secuencia de comandos (Script ID)**.
 
-Desde la cuenta propietaria, crear **dos proyectos Apps Script independientes**:
+No uses el mismo Script ID para ambos: son despliegues con permisos y funciones diferentes.
 
-1. `BarberControl - Publico`.
-2. `BarberControl - Admin`.
+## B. Subir el código
 
-Copiar de la configuración de cada uno su **Script ID**. **No** son los URLs de despliegue web.
-
-## Paso 2. Vincular las carpetas del repositorio
-
-Instalar clasp e iniciar sesión en la cuenta propietaria:
+Requisitos: Node.js, [clasp](https://github.com/google/clasp), Apps Script API activada en la cuenta y el repositorio descargado.
 
 ```bash
 npm install -g @google/clasp
 clasp login
 ```
 
-En la carpeta `apps/public`, copiar `.clasp.json.example` a `.clasp.json` y sustituir `scriptId` por el ID del proyecto **PÚBLICO**.
+Crear el archivo `.clasp.json` en **cada** directorio utilizando su plantilla:
 
-En la carpeta `apps/admin`, repetir el proceso, usando el ID del proyecto **ADMIN**.
+```text
+apps/admin/.clasp.json
+apps/public/.clasp.json
+```
 
-Las configuraciones `.clasp.json` reales están excluidas de Git por `.gitignore`.
+Cada archivo contiene el `scriptId` de su proyecto correspondiente. Estos archivos están excluidos de Git por seguridad.
 
-## Paso 3. Sincronizar cada proyecto por separado
-
-Desde la raíz del repositorio:
+Sincronizar por separado:
 
 ```bash
-cd apps/public
+cd apps/admin
 clasp push
-cd ../admin
+cd ../public
 clasp push
 ```
 
-**Atención:** `clasp push` reemplaza el contenido del proyecto remoto correspondiente. Verificar siempre el `scriptId` de la carpeta antes de ejecutarlo.
+No ejecutar `clasp push` desde la raíz del repositorio. Comprueba siempre el ID antes de subir.
 
-Alternativamente, copiar manualmente `Code.gs`, `Index.html` y la configuración de `appsscript.json` de cada carpeta a su respectivo proyecto.
+## C. Implementar Admin y ejecutar el instalador
 
-## Paso 4. Publicar dos URLs
+En el editor de **BarberControl - Admin** → **Implementar** → **Nueva implementación** → **Aplicación web**.
 
-Dentro de cada editor Apps Script: **Deploy / Implementar → New deployment / Nueva implementación → Web app / Aplicación web**.
+- Ejecutar como: **Yo** (propietario).
+- Quién tiene acceso: **Solo yo**.
 
-- **Público**: ejecutar como propietario, acceso **cualquier persona, incluso anónima**.
-- **Admin**: ejecutar como propietario, acceso **solo yo**.
+Abre la URL privada `/exec` desde la cuenta propietaria. Autoriza los servicios de Google solicitados y pulsa **Preparar BarberControl en Google**.
 
-Estos permisos también están descritos en `appsscript.json`, pero **comprobarlos expresamente en el diálogo de despliegue**.
+El instalador:
+- crea/reutiliza `BarberControl` en Drive;
+- crea/reutiliza `BarberControl_DB` en Sheets con pestañas y encabezados;
+- configura horarios de ejemplo;
+- crea/reutiliza el calendario `BarberControl - Citas`;
+- genera `BRIDGE_SECRET` en propiedades privadas;
+- devuelve los identificadores requeridos para el proyecto público.
 
-Verificar por separado en ventana incógnita:
-- URL pública: debe mostrar la página inicial sin cuenta Google.
-- URL privada: no debe admitir un usuario distinto del propietario.
+Al instalar de nuevo, reutilizará los recursos registrados y no eliminará las citas.
 
-**No enviar jamás la URL privada a clientes.**
+**Antes de compartir con clientes**: cambia el nombre del negocio, revisa horarios, registra los servicios y define los precios reales.
 
-## Paso 5. Configurar recursos de datos (futuro)
+## D. Conectar y desplegar Público
 
-Todavía no se crearán automáticamente Sheets, Calendar ni Drive, porque el **instalador aún no está programado**. El instalador se incorporará en `apps/admin` y sincronizará los IDs necesarios entre los dos proyectos sin compartir acceso administrativo.
+En el editor de **BarberControl - Publico**, abre **Configuración del proyecto → Propiedades de secuencia de comandos (Script Properties)**.
 
-## Recordatorio
+Agrega exactamente estas tres claves con los valores mostrados en el panel Admin:
 
-El repositorio tiene dos puntos de partida, pero todavía **no permite reservar**. Se requerirán las siguientes etapas de desarrollo antes de operar con clientes.
+```text
+SPREADSHEET_ID   = (ID del archivo BarberControl_DB)
+CALENDAR_ID      = (ID del calendario BarberControl - Citas)
+BRIDGE_SECRET    = (clave secreta generada en Admin)
+```
+
+No copies los valores reales al repositorio GitHub.
+
+Despliega **BarberControl - Publico** como **Aplicación web**:
+- Ejecutar como: **Yo** (propietario).
+- Quién tiene acceso: **Cualquier persona**, incluso anónima.
+
+Autoriza los permisos del proyecto con la cuenta propietaria y verifica la URL `/exec` desde una ventana de incógnito **sin iniciar sesión**.
+
+## E. Terminar la conexión del puente
+
+Vuelve al panel Admin. En **Conexión con el proyecto público**, pega la URL `/exec` del despliegue público y pulsa **Vincular URL pública**.
+
+Después, crea un bloqueo de prueba de 12:00 a 12:30 en el panel privado. Vuelve a la página pública y confirma que esa franja no es reservable.
+
+## F. Pruebas antes de recibir clientes
+
+- En incógnito, comprobar que Público abre sin inicio de sesión.
+- Con una cuenta distinta, verificar que Admin no permite acceso.
+- Comprobar que el catálogo solo devuelve servicios activos/visibles/reservables.
+- Crear una cita y verificar el evento Calendar y la fila Sheets.
+- Abrir dos ventanas y tratar de reservar exactamente el mismo intervalo simultáneamente: solo una debe confirmarse.
+- Crear un bloqueo desde Admin e intentar reservar esa franja.
+- Simular errores para verificar que no quedan citas huérfanas.
+- Comprobar configuraciones regionales, teléfono, privacidad y disponibilidad en móvil.
+- Antes de producción, incorporar antispam, observabilidad y rutina de conciliación.
+
+## G. Qué NO hay todavía
+
+No hay carga de fotografías, estilos/galería visual, videos YouTube, recordatorios automáticos, cancelación desde cliente ni panel avanzado de atención de citas. Las pestañas para esos módulos ya están creadas por el instalador para su futuro desarrollo.
+
+Los proyectos Google **no se crean al subir código a GitHub**: deben existir previamente en la cuenta del propietario (o crearse mediante una integración autorizada con la Apps Script API). Tampoco basta con editar el manifiesto: comprueba los permisos reales en **Implementar**.

@@ -1,49 +1,54 @@
-# BarberControl
+# BarberControl ✂
 
-Aplicación web para una barbería, desarrollada con **Google Apps Script**, **Google Sheets**, **Google Calendar** y **Google Drive**.
+Sistema de reservas de barbería con **dos aplicaciones Google Apps Script independientes** y recursos compartidos de **Google Sheets, Google Calendar y Google Drive**.
 
-## Organización del repositorio
-
-Este repositorio contiene **dos proyectos de Google Apps Script independientes**. No se debe copiar todo el repositorio a un único proyecto de Apps Script.
+## Estructura
 
 ```text
 barberControl/
 ├── apps/
-│   ├── public/                 # Proyecto Apps Script PÚBLICO
-│   │   ├── Code.gs             # doGet y funciones públicas
-│   │   ├── Index.html          # Sitio visible para los clientes
-│   │   ├── appsscript.json     # Acceso anónimo, ejecución como propietario
-│   │   ├── .clasp.json.example # Configuración de sincronización (ejemplo)
-│   │   └── README.md
-│   └── admin/                  # Proyecto Apps Script PRIVADO
-│       ├── Code.gs             # doGet y funciones administrativas
-│       ├── Index.html          # Panel exclusivo del propietario
-│       ├── appsscript.json     # Acceso solo del propietario
-│       ├── .clasp.json.example
-│       └── README.md
+│   ├── public/            # Proyecto Apps Script PUBLICO, sin login
+│   │   ├── Code.gs        # Página web / doPost firmado
+│   │   ├── Datos.gs       # Consultas públicas a Sheets
+│   │   ├── Disponibilidad.gs
+│   │   ├── Reservas.gs    # Confirmaciones con revalidación
+│   │   ├── Puente.gs      # Bloqueos administrativos HMAC
+│   │   ├── Index.html
+│   │   └── appsscript.json
+│   └── admin/             # Proyecto Apps Script PRIVADO, propietario
+│       ├── Code.gs
+│       ├── Instalador.gs  # Crea recursos Google automáticamente
+│       ├── Gestion.gs     # Servicios, horarios y puente
+│       ├── Index.html
+│       └── appsscript.json
 ├── docs/
 │   ├── ARQUITECTURA.md
 │   └── DESPLIEGUE.md
-└── .gitignore
+└── tests/
+    └── validate.js
 ```
 
-## ¿Cuál código va en cada proyecto?
+## Funciones implementadas
 
-| Proyecto | Carpeta | Visitantes | Responsabilidades |
-|---|---|---|---|
-| BarberControl Público | `apps/public/` | Clientes, sin login | Información comercial, servicios y estilos publicados, fotos públicas, consulta de disponibilidad y solicitud de citas |
-| BarberControl Admin | `apps/admin/` | Solo propietario autorizado | Instalación inicial, configuración, administración del catálogo, archivos, precios, agenda y bloqueos |
+**Privado**: instalación idempotente; creación de pestañas Sheets, estructura Drive y calendario; cambio del nombre de negocio, intervalo, servicios, precios, duración, estado activo/visible/reservable, horarios semanales y bloqueos recurrentes o por fecha a través de un puente autenticado.
 
-Los dos proyectos se conectarán **a los mismos recursos de datos**, pero se desplegarán por separado y tendrán **URLs distintas**.
+**Público**: lectura de servicios permitidos; selección de fecha; cálculo de intervalos según duración, calendario, citas, bloqueos, horario y anticipación; registro de reservas con revalidación y bloqueo; creación de eventos en Calendar; confirmación de la reserva al cliente.
 
-### Importante sobre seguridad
+Ambas interfaces están diseñadas como **primera versión funcional de desarrollo**, pendientes de despliegue, autorizaciones, pruebas integrales y endurecimiento antes de usarse con clientes reales.
 
-El proyecto público **no incluye operaciones de administración**. La separación de las interfaces no reemplaza la validación de permisos: todas las operaciones sensibles deberán realizarse en el proyecto privado. No se debe desplegar `apps/admin` con acceso `ANYONE` o `ANYONE_ANONYMOUS`.
+## Pendiente para próximas iteraciones
 
-La autenticación de clientes **no será obligatoria**. Los clientes no deben autorizar Google Drive, Sheets o Calendar.
+Catálogo de estilos, galería de fotos Drive, videos de YouTube, carga de medios, gestión/cancelación de citas desde Admin, enlaces privados de cancelación para clientes, recordatorios, pruebas de concurrencia reales, controles contra bots, respaldos programados y conciliación de errores externos.
 
-### Estado actual
+## ¡No mezcles proyectos!
 
-**Estructura inicial de dos proyectos creada.** Los HTML y `Code.gs` son esqueletos de inicio, **no** una aplicación de reservas lista para producción. Aún faltan el instalador, los catálogos, el motor de disponibilidad, la creación de citas, el panel real y las pruebas de concurrencia.
+- Código de `apps/public` → despliegue accesible para cualquiera (sin autorizar Google).
+- Código de `apps/admin` → despliegue `MYSELF`, exclusivamente del propietario.
+- **Nunca** copies `Gestion.gs` ni `Instalador.gs` al proyecto público.
+- `BRIDGE_SECRET` y los identificadores reales se almacenan en **Script Properties**, no en Git.
 
-Siguiente paso: [DESPLIEGUE.md](docs/DESPLIEGUE.md) para vincular cada carpeta con su propio proyecto Apps Script y [ARQUITECTURA.md](docs/ARQUITECTURA.md) para conocer los límites de seguridad y de concurrencia.
+## Inicio
+
+Sigue [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md), después [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+
+**Estado en Google:** el repositorio GitHub contiene código; por sí solo no crea proyectos Apps Script en la cuenta del propietario. Debe crear dos proyectos y autorizar los permisos de Google como se describe en la guía.

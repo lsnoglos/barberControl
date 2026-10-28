@@ -1,39 +1,56 @@
-# Arquitectura de BarberControl
+# Arquitectura y seguridad de BarberControl
 
-## 1. Dos proyectos Apps Script, no dos copias iguales
+## Responsabilidades
 
-1. **Público**: proyecto y despliegue web independiente; funciones públicas mínimas (lectura del catálogo, horarios disponibles y alta validada de reservas).
-2. **Admin**: proyecto y despliegue web independiente; acceso restringido a la cuenta propietaria; instalación y funciones administrativas.
+**Admin** (`apps/admin`): editor de recursos y catálogos, instalación inicial, configuración y solicitudes firmadas de bloqueos de agenda. Se despliega como `MYSELF`, ejecutado por el propietario.
 
-Ambos proyectos consultarán el mismo archivo Sheets y calendario de trabajo, pero **no** se deben incluir archivos `Admin.gs` dentro del proyecto público. Los datos compartidos no implican código compartido indiscriminado.
+**Público** (`apps/public`): presentación, catálogo visible, disponibilidad, reservas y controlador firmado de bloqueos. Se despliega como `ANYONE_ANONYMOUS`, ejecutado por el propietario.
 
-En el futuro pueden extraerse funciones puras comunes y utilizar un paso de compilación que incorpore solo los módulos necesarios a cada proyecto; por ahora cada proyecto tiene su propio código y no hay un tercer proyecto de biblioteca.
+No se crean dos proyectos idénticos: los archivos y permisos de cada carpeta son diferentes. **Los proyectos no comparten Script Properties**. Deben recibir sus propios valores de configuración.
 
-## 2. Fuente y recursos de Google
+## Recursos compartidos
 
-- **Sheets**: configuración, servicios, estilos, medios, galería, bloqueos, reservas y auditoría.
-- **Calendar**: ocupaciones reales, eventos de reservas y posibles citas manuales.
-- **Drive**: imágenes originales, miniaturas, portadas, archivos de respaldo.
-- **Apps Script**: vistas web, validaciones, control de acceso y lógica de negocio.
-- **YouTube**: videos públicos o no listados permitidos para insertar.
+- `BarberControl_DB` (Sheets), creado automáticamente por el instalador Admin.
+- `BarberControl - Citas` (Calendar), creado automáticamente por el instalador Admin.
+- Carpeta `BarberControl` (Drive) con `Imagenes`, `Videos` y `Respaldos`.
 
-El instalador deberá crear los recursos una vez y guardar sus IDs mediante `PropertiesService`. **Importante:** cada proyecto tiene sus propias Script Properties. El instalador deberá configurar los identificadores de los recursos compartidos en ambos, sin exponerlos innecesariamente al cliente.
+Sheets contiene: `Configuracion`, `Horarios`, `Bloqueos`, `Servicios`, `Estilos`, `Galeria`, `Medios`, `Reservas` y `Auditoria`.
 
-## 3. Seguridad
+## Motor de reservas
 
-- El enlace público no requiere login y no ofrece operaciones administrativas.
-- El enlace admin solo será accesible a quien desplegó la aplicación con `MYSELF`.
-- `google.script.run` permite invocar funciones de servidor accesibles; ocultar botones o pantallas no es una barrera de seguridad. Funciones privadas terminadas en `_` sirven para ocultarlas de `google.script.run`, pero no sustituyen el control de acceso.
-- El proyecto público nunca debe devolver datos de otros clientes, identificadores secretos ni tokens OAuth.
-- Los campos de reserva siempre se validan en servidor: servicio activo, precio oficial, duración, fecha, teléfono y disponibilidad.
-- La publicación de imágenes de clientes debe contar con consentimiento.
+1. Selecciona un servicio visible, activo y reservable.
+2. Verifica fecha, apertura, cierre, duración y anticipación mínima.
+3. Consulta reglas de bloqueo y reservas en Sheets y eventos de Calendar.
+4. Calcula horas libres, sin revelar el nombre ni teléfono de clientes anteriores.
+5. Antes de confirmar, obtiene `LockService.getScriptLock()` en el proyecto público y **recalcula la disponibilidad**.
+6. Crea el evento Calendar, luego registra en Sheets. Si falla Sheets, intenta eliminar el evento Calendar creado.
+7. Devuelve número de cita y token privado (futura consulta/cancelación).
 
-## 4. Coordinación de reservas: asunto pendiente de diseño
+El número de confirmaciones por mismo teléfono y día está limitado a 2 (medida básica, **no es una protección antibots suficiente**). Una clave de idempotencia evita enviar la misma solicitud dos veces.
 
-**Advertencia:** `LockService` sincroniza ejecuciones del mismo proyecto de Apps Script, pero no crea un bloqueo transaccional común entre dos proyectos distintos. Compartir Sheets y Calendar no resuelve por sí solo las carreras entre una reserva pública y un cambio administrativo simultáneo.
+**Advertencia importante:** no existe transacción atómica entre Google Calendar y Sheets. Si el rollback de Calendar falla, se necesita reconciliación manual. Los eventos creados directamente desde Calendar tampoco participan en el bloqueo de Apps Script, aunque sí se consultan. Por tanto, antes de producción deben realizarse pruebas reales y añadirse monitoreo/reconciliación.
 
-Antes de habilitar reservas reales se debe definir un **único coordinador de las operaciones de agenda** (o un backend con transacciones) para que las escrituras no compitan, más reconciliación entre Sheets y Calendar y pruebas de concurrencia. No se debe prometer ausencia total de duplicados con la estructura actual.
+## Cómo se coordinan los bloqueos Admin
 
-## 5. Estado de implementación
+Ambos proyectos son Apps Script independientes. No comparten `LockService`.
 
-El código presente es un **esqueleto verificable**, con sendos `doGet()` y vistas HTML. Aún no se ha implementado el instalador, la disponibilidad ni la persistencia.
+Para evitar que una reserva pública compita con un bloqueo administrativo, **Admin no escribe directamente los bloqueos**. Firma una solicitud HMAC-SHA256 y la envía al despliegue público mediante `UrlFetchApp`.
+
+`apps/public/Puente.gs` valida la firma HMAC (clave solo en Script Properties), sello temporal, nonce y acción; obtiene **el mismo ScriptLock** que `Reservas.gs` y realiza el cambio en Sheets.
+
+Esto coordina las escrituras realizadas por estas dos rutas del código; **no garantiza serialización respecto a modificaciones manuales en Calendar o Sheets**, ni sustituye un almacenamiento transaccional para un negocio de alto volumen.
+
+La clave `BRIDGE_SECRET` se genera en la instalación y el propietario la copia a Script Properties de la aplicación pública. Nunca debe almacenarse en HTML ni en el repositorio.
+
+## Acceso
+
+- Los clientes no necesitan Google, correo ni login.
+- El admin se despliega con acceso solo del propietario: la URL por sí sola no permite entrar.
+- No confiar en ocultar botones ni en `Session.getActiveUser().getEmail()` dentro de un despliegue público ejecutado como propietario.
+- Los archivos de clientes, teléfonos, comentarios y tokens se consideran privados.
+- Las fotos publicadas de clientes requieren consentimiento expreso.
+- Los campos de texto recibidos por el público deben neutralizar entradas que pudieran interpretarse como fórmulas en Sheets.
+
+## Limitaciones de esta iteración
+
+No hay instalador ejecutado todavía en una cuenta Google, ni catálogo multimedia completo. Tampoco hay pruebas de integración real con permisos OAuth, comprobación de acceso anónimo en entornos Google Workspace ni pruebas de reserva simultánea con varias personas. No se debe considerar listo para producción hasta realizar estas comprobaciones.
