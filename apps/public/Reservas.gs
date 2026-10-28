@@ -6,6 +6,11 @@
  * LockService. No habilitar escrituras administrativas simultaneas
  * sin un coordinador unico. Ver docs/ARQUITECTURA.md.
  */
+function textoSeguroHoja_(value) {
+  const text=String(value||'');
+  return /^[=+@\-]/.test(text) ? "'"+text : text;
+}
+
 function reservarCita(solicitud) {
   if(!solicitud||typeof solicitud!=='object')throw new Error('Solicitud invalida.');
   const nombre=String(solicitud.nombre||'').trim();
@@ -45,8 +50,8 @@ function reservarCita(solicitud) {
     });
     try{
       dbPublica_().getSheetByName('Reservas').appendRow([
-        id,new Date(),fecha,inicio,slot.fin,nombre,telefono,servicioId,'','',
-        comentario,'CONFIRMADA',ev.getId(),clave,calculo.servicio.precio,
+        id,new Date(),fecha,inicio,slot.fin,textoSeguroHoja_(nombre),telefono,servicioId,'','',
+        textoSeguroHoja_(comentario),'CONFIRMADA',ev.getId(),clave,calculo.servicio.precio,
         calculo.servicio.duracion,hash
       ]);
       SpreadsheetApp.flush();

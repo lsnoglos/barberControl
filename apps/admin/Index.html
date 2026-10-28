@@ -34,7 +34,11 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <label>Duración (min)<input id="sDuracion" type="number" min="10" max="360" value="45" required></label>
 <label>Precio (C$)<input id="sPrecio" type="number" min="0" step=".01" required></label>
 </div><p><label>Descripción<textarea id="sDescripcion" rows="2"></textarea></label></p>
-<div class="row"><button type="submit">Guardar servicio</button><button type="button" onclick="limpiarServicio()" style="background:#464a53;color:#fff">Nuevo</button></div></form>
+<div class="row">
+<label><input style="width:auto" type="checkbox" id="sActivo" checked> Servicio activo</label>
+<label><input style="width:auto" type="checkbox" id="sVisible" checked> Visible</label>
+<label><input style="width:auto" type="checkbox" id="sReservable" checked> Reservable</label>
+</div><div class="row"><button type="submit">Guardar servicio</button><button type="button" onclick="limpiarServicio()" style="background:#464a53;color:#fff">Nuevo</button></div></form>
 <div id="listaServicios" class="list" style="margin-top:15px"></div></section>
 <section><h2>4. Horarios de atención</h2><div id="listaHorarios" class="list"></div></section>
 <section><h2>5. Bloquear horarios</h2>
@@ -106,9 +110,11 @@ function guardarConfig(){const c=Object.fromEntries(panel.configuracion.map(x=>[
 }
 function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
  id:$('sId').value,nombre:$('sNombre').value,categoria:$('sCategoria').value,
- descripcion:$('sDescripcion').value,duracion:Number($('sDuracion').value),precio:Number($('sPrecio').value)
+ descripcion:$('sDescripcion').value,duracion:Number($('sDuracion').value),precio:Number($('sPrecio').value),
+ activo:$('sActivo').checked,visible:$('sVisible').checked,reservable:$('sReservable').checked
 }],r=>{limpiarServicio();render(r);});}
-function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
+function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;
+ $('sActivo').checked=String(s.Activo).toLowerCase()==='true';$('sVisible').checked=String(s.Visible).toLowerCase()==='true';$('sReservable').checked=String(s.Reservable).toLowerCase()==='true';window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
 function limpiarServicio(){$('servicioForm').reset();$('sId').value='';$('sCategoria').value='Cabello';$('sDuracion').value='45';}
 
 function guardarUrlPublica(){llamar('configurarPuenteAdmin',[$('urlPublica').value],render);}
