@@ -1,38 +1,96 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BarberControl | Administración</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: dark; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; background: #101215; color: #f7f7f7; display: grid; place-items: center; }
-    main { width: min(92vw, 650px); padding: 40px 30px; border: 1px solid #34373c; border-radius: 22px; background: #1b1e23; }
-    .eyebrow { color: #d8b875; letter-spacing: .15em; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-    h1 { font-size: clamp(2rem, 6vw, 3rem); margin: .5rem 0; }
-    p { line-height: 1.6; color: #c5c7cb; }
-    .note { display: inline-block; padding: 8px 12px; background: #34312a; border-radius: 8px; color: #f0d39d; margin-top: 16px; }
-  </style>
-</head>
-<body>
-  <main>
-    <div class="eyebrow">Acceso reservado al propietario</div>
-    <h1>Panel de BarberControl</h1>
-    <p>Desde este panel administrarás los servicios, sus precios, la galería, el horario laboral y las citas de tu barbería.</p>
-    <p>Esta pantalla es un esqueleto. Aún no permite gestionar información ni ejecutar el instalador automático.</p>
-    <div class="note" id="estado">Cargando estado…</div>
-  </main>
-  <script>
-    google.script.run
-      .withSuccessHandler(function(resultado) {
-        document.getElementById('estado').textContent = resultado.mensaje;
-      })
-      .withFailureHandler(function() {
-        document.getElementById('estado').textContent = 'No se pudo consultar el estado.';
-      })
-      .obtenerEstadoAdmin();
-  </script>
-</body>
-</html>
+<html lang="es"><head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BarberControl Admin</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{background:#0f1115;color:#f5f4f1;margin:0}main{width:min(1100px,94vw);margin:auto;padding:25px 0 60px}
+header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding-bottom:20px;border-bottom:1px solid #30343a}
+h1{margin:0;font-size:1.8rem}h2{font-size:1.2rem}.muted{color:#adb2ba;font-size:.9rem}.pill{background:#373126;color:#eed099;padding:8px 12px;border-radius:20px}
+section{background:#1b1e24;border:1px solid #333740;border-radius:16px;margin:20px 0;padding:20px}
+button,input,select,textarea{font:inherit}button{background:#d9b879;color:#181818;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;font-weight:650}button:disabled{opacity:.5;cursor:wait}
+input,select,textarea{background:#101217;color:#f4f4f4;border:1px solid #434750;border-radius:9px;padding:10px;min-width:0}
+label{display:flex;flex-direction:column;gap:6px;color:#d5d6d8;font-size:.9rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.list{display:grid;gap:10px}.item{border:1px solid #343740;border-radius:12px;padding:12px}
+small{color:#bac0c8}a{color:#f2cd88}.alert{background:#402a29;color:#ffd6cf;padding:14px;border-radius:9px}.ok{color:#a8e5b1}
+pre{white-space:pre-wrap;word-break:break-all;background:#111318;padding:12px;border-radius:10px;font-size:.78rem}
+table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{border-bottom:1px solid #343840;padding:10px;text-align:left;white-space:nowrap}
+.hidden{display:none}
+</style></head><body><main>
+<header><div><div class="muted">PANEL PRIVADO · PROPIETARIO</div><h1>✂ BarberControl</h1></div><span class="pill">Administrador</span></header>
+<p id="mensaje" role="status" class="muted">Cargando…</p>
+<section id="instalacion"><h2>1. Instalación automática</h2>
+<p class="muted">Creará o reutilizará un archivo Google Sheets, un calendario de citas y las carpetas de Google Drive. No borra los registros existentes.</p>
+<button id="instalar" onclick="instalar()">Preparar BarberControl en Google</button>
+<div id="resultado"></div>
+</section>
+<div id="gestion" class="hidden">
+<section><h2>2. Configuración del negocio</h2>
+<div class="grid"><label>Nombre comercial<input id="nombreNegocio" maxlength="80"></label><label>Intervalo de reservas (min)<select id="intervalo"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option><option>60</option></select></label></div>
+<p><button onclick="guardarConfig()">Guardar configuración</button></p></section>
+<section><h2>3. Servicios y precios</h2><p class="muted">Los servicios nuevos estarán disponibles después de guardarlos. Configura precios y duraciones reales antes de compartir la web.</p>
+<form id="servicioForm" onsubmit="guardarServicio(event)">
+<input type="hidden" id="sId"><div class="grid">
+<label>Nombre<input id="sNombre" required minlength="3" maxlength="100" placeholder="Corte degradado"></label>
+<label>Categoría<input id="sCategoria" value="Cabello"></label>
+<label>Duración (min)<input id="sDuracion" type="number" min="10" max="360" value="45" required></label>
+<label>Precio (C$)<input id="sPrecio" type="number" min="0" step=".01" required></label>
+</div><p><label>Descripción<textarea id="sDescripcion" rows="2"></textarea></label></p>
+<div class="row"><button type="submit">Guardar servicio</button><button type="button" onclick="limpiarServicio()" style="background:#464a53;color:#fff">Nuevo</button></div></form>
+<div id="listaServicios" class="list" style="margin-top:15px"></div></section>
+<section><h2>4. Horarios de atención</h2><div id="listaHorarios" class="list"></div></section>
+<section><h2>5. Reservaciones registradas</h2><div id="reservas" class="muted"></div></section>
+<section><h2>Conexión con el proyecto público</h2><p class="muted">Copia los identificadores a las Script Properties del proyecto Apps Script público. No compartas esta pantalla con clientes.</p>
+<pre id="conexion"></pre></section>
+</div>
+</main>
+<script>
+let panel=null;
+const $=id=>document.getElementById(id);
+const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function llamar(nombre,args,ok){$('mensaje').textContent='Procesando…';const runner=google.script.run.withSuccessHandler(r=>{$('mensaje').textContent='Operación completada.';ok(r);}).withFailureHandler(e=>{$('mensaje').textContent='Error: '+e.message;});runner[nombre](...(args||[]));}
+function cargar(){llamar('obtenerPanelAdmin',[],render);}
+function instalar(){$('instalar').disabled=true;llamar('instalarBarberControl',[],()=>{cargar();$('instalar').disabled=false;});}
+function render(data){
+ panel=data; const instalado=data.estado.instalado;
+ $('resultado').innerHTML=instalado?'<p class="ok">✓ Recursos conectados correctamente.</p>':'<p class="muted">Aún no se ha ejecutado el instalador.</p>';
+ $('gestion').classList.toggle('hidden',!instalado);
+ if(!instalado)return;
+ const c=Object.fromEntries(data.configuracion.map(x=>[x.Clave,x.Valor]));
+ $('nombreNegocio').value=c.NOMBRE_NEGOCIO||'';
+ $('intervalo').value=c.INTERVALO_MIN||'15';
+ $('conexion').textContent=JSON.stringify(data.estado.propiedadesPublicas,null,2);
+ $('listaServicios').innerHTML='';
+ data.servicios.forEach(s=>{
+   const div=document.createElement('div');div.className='item';
+   const titulo=document.createElement('strong');titulo.textContent=s.Nombre;div.append(titulo);
+   const p=document.createElement('p');p.className='muted';p.textContent='C$'+s.Precio+' · '+s.DuracionMin+' minutos · '+(s.Activo==='TRUE'||s.Activo==='true'?'Activo':'Inactivo');div.append(p);
+   const b=document.createElement('button');b.textContent='Editar';b.onclick=()=>editar(s);div.append(b);$('listaServicios').append(div);
+ });
+ if(!data.servicios.length)$('listaServicios').textContent='Todavía no se han agregado servicios.';
+ $('listaHorarios').innerHTML='';
+ data.horarios.forEach(h=>{
+  const dia=Number(h.DiaSemana);const abierto=String(h.Abierto).toLowerCase()==='true';
+  const div=document.createElement('div');div.className='item row';
+  const nombre=document.createElement('strong');nombre.style.minWidth='100px';nombre.textContent=dias[dia];div.append(nombre);
+  const sel=document.createElement('input');sel.type='checkbox';sel.checked=abierto;sel.title='Atiende este día';div.append(sel);
+  const ini=document.createElement('input');ini.type='time';ini.value=h.Inicio||'08:00';div.append(ini);
+  const fin=document.createElement('input');fin.type='time';fin.value=h.Fin||'18:00';div.append(fin);
+  const b=document.createElement('button');b.textContent='Guardar';b.onclick=()=>llamar('guardarHorarioAdmin',[{dia:dia,abierto:sel.checked,inicio:ini.value,fin:fin.value}],render);div.append(b);
+  $('listaHorarios').append(div);
+ });
+ $('reservas').textContent=data.reservas.length?data.reservas.map(r=>r.Fecha+' '+r.Inicio+' · '+r.Cliente+' · '+r.Estado).join(' | '):'Aún no hay citas registradas.';
+}
+function guardarConfig(){const c=Object.fromEntries(panel.configuracion.map(x=>[x.Clave,x.Valor]));
+ const nombre=$('nombreNegocio').value.trim(), intervalo=$('intervalo').value;
+ if(c.NOMBRE_NEGOCIO!==nombre){llamar('guardarConfiguracionAdmin',['NOMBRE_NEGOCIO',nombre],r=>{
+   if(c.INTERVALO_MIN!==intervalo)llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',intervalo],render);else render(r);
+ });}else llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',intervalo],render);
+}
+function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
+ id:$('sId').value,nombre:$('sNombre').value,categoria:$('sCategoria').value,
+ descripcion:$('sDescripcion').value,duracion:Number($('sDuracion').value),precio:Number($('sPrecio').value)
+}],r=>{limpiarServicio();render(r);});}
+function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
+function limpiarServicio(){$('servicioForm').reset();$('sId').value='';$('sCategoria').value='Cabello';$('sDuracion').value='45';}
+cargar();
+</script></body></html>
