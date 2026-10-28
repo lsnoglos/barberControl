@@ -1,38 +1,103 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BarberControl | Reservas</title>
-  <style>
-    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: dark; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; background: #101215; color: #f7f7f7; display: grid; place-items: center; }
-    main { width: min(92vw, 650px); padding: 40px 30px; border: 1px solid #34373c; border-radius: 22px; background: #1b1e23; }
-    .eyebrow { color: #d8b875; letter-spacing: .15em; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-    h1 { font-size: clamp(2rem, 6vw, 3rem); margin: .5rem 0; }
-    p { line-height: 1.6; color: #c5c7cb; }
-    .tag { display: inline-block; padding: 8px 12px; background: #293029; border-radius: 8px; color: #bddcbf; margin-top: 16px; }
-  </style>
-</head>
-<body>
-  <main>
-    <div class="eyebrow">Sitio público de la barbería</div>
-    <h1>BarberControl</h1>
-    <p>Próximamente podrás consultar los estilos, descubrir trabajos realizados y reservar tu próximo corte sin iniciar sesión.</p>
-    <p>Esta pantalla es la base del proyecto público. La agenda y el catálogo aún no están implementados.</p>
-    <div class="tag" id="estado">Preparando la aplicación…</div>
-  </main>
-  <script>
-    google.script.run
-      .withSuccessHandler(function(resultado) {
-        document.getElementById('estado').textContent = resultado.mensaje;
-      })
-      .withFailureHandler(function() {
-        document.getElementById('estado').textContent = 'No se pudo consultar el estado.';
-      })
-      .obtenerEstadoPublico();
-  </script>
-</body>
-</html>
+<html lang="es"><head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BarberControl | Reserva tu corte</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
+*{box-sizing:border-box}body{background:#101115;color:#f6f5f2;margin:0}main{max-width:980px;margin:0 auto;padding:0 18px 65px}
+.hero{background:linear-gradient(120deg,#292b30,#111216 70%);border:1px solid #35373a;border-radius:22px;padding:38px 28px;margin-top:22px}
+h1{font-size:clamp(2rem,6vw,3.3rem);margin:.2em 0}h2{font-size:1.4rem}
+.eyebrow{color:#e4c488;letter-spacing:.15em;text-transform:uppercase;font-size:.8rem;font-weight:700}
+p,.muted{color:#b7bbc2;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.card,section{background:#1b1e23;border:1px solid #34363c;border-radius:18px;padding:22px;margin-top:18px}
+.service{background:#21242b;border:1px solid #454851;text-align:left;color:#f8f8f8;padding:18px;border-radius:13px;cursor:pointer}
+.service.selected{outline:2px solid #e7c58c}.service span{display:block;margin-top:9px;color:#bfc2c8;font-size:.85rem}
+label{display:flex;flex-direction:column;gap:7px;margin:10px 0;color:#ddd}input,textarea{width:100%;padding:12px;border:1px solid #555963;background:#111318;border-radius:10px;color:#fff;font:inherit}
+button{font:inherit;cursor:pointer}.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.slot,.primary{border:1px solid #d3b57e;border-radius:10px;padding:12px;background:transparent;color:#e4c58c}
+.slot.active,.primary{background:#ddbc7f;color:#181818;font-weight:700}.primary{width:100%;margin-top:12px}
+.primary:disabled,.slot:disabled{opacity:.4;cursor:not-allowed}.hidden{display:none}
+.badge{display:inline-flex;padding:7px 10px;border-radius:25px;background:#2b352c;color:#b9e6bd}
+#mensaje{min-height:24px}.error{color:#ffb1a5}.summary{border:1px solid #395841;border-radius:13px;background:#1b2a21;padding:18px;margin:12px 0;overflow-wrap:anywhere}
+footer{margin-top:40px;color:#a4a7ad;text-align:center;font-size:.8rem}
+</style></head><body><main>
+<div class="hero"><div class="eyebrow">Agenda tu próximo estilo</div><h1 id="negocio">BarberControl</h1>
+<p>Elige un servicio, consulta los horarios disponibles y confirma tu reserva sin crear una cuenta.</p>
+<a href="#servicios" style="color:#eed09b">Explorar los servicios ↓</a></div>
+<section id="servicios"><h2>1. Elige tu servicio</h2><div id="catalogo" class="grid"><p>Cargando servicios…</p></div></section>
+<section id="calendario"><h2>2. Elige fecha y hora</h2>
+<label>Fecha<input type="date" id="fecha"></label><p id="ayuda" class="muted">Selecciona primero un servicio.</p>
+<div id="horarios" class="slots"></div></section>
+<section id="datos" class="hidden"><h2>3. Datos para tu reservación</h2>
+<form id="formulario" onsubmit="confirmar(event)">
+<div class="grid"><label>Nombre completo<input id="nombre" maxlength="90" minlength="3" required autocomplete="name"></label>
+<label>WhatsApp<input id="telefono" type="tel" placeholder="88888888" required minlength="8" maxlength="20" autocomplete="tel"></label></div>
+<label>Comentario para el barbero (opcional)<textarea id="comentario" maxlength="500" rows="3" placeholder="Cuéntanos cómo deseas tu corte"></textarea></label>
+<p id="resumen" class="muted"></p><button id="confirmar" class="primary" type="submit">Confirmar cita</button></form>
+</section>
+<section id="exito" class="hidden" aria-live="polite"><h2>✓ Reserva confirmada</h2><div class="summary" id="comprobante"></div><p class="muted">Guarda esta información. El barbero visualizará tu cita en su calendario.</p>
+<button class="primary" onclick="location.reload()">Hacer otra reserva</button></section>
+<p id="mensaje" role="status"></p>
+<footer>BarberControl · Reservas en línea</footer>
+<script>
+let catalogo=[],seleccion=null,hora=null,idempotencia='';
+const $=id=>document.getElementById(id);
+const limpiar=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function err(e){$('mensaje').className='error';$('mensaje').textContent=e.message||String(e);$('confirmar').disabled=false;}
+function api(nombre,args,ok){google.script.run.withSuccessHandler(ok).withFailureHandler(err)[nombre](...(args||[]));}
+function cargar(){
+  const hoy=new Date();const fechaLocal=new Date(hoy.getTime()-hoy.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $('fecha').min=fechaLocal;$('fecha').value=fechaLocal;
+  api('obtenerCatalogoPublico',[],data=>{
+    $('negocio').textContent=data.negocio;
+    catalogo=data.servicios||[];
+    $('catalogo').innerHTML='';
+    if(!catalogo.length){$('catalogo').textContent=data.mensaje||'Aún no hay servicios disponibles. Vuelve pronto.';return;}
+    catalogo.forEach(s=>{
+      const b=document.createElement('button');b.type='button';b.className='service';
+      const nombre=document.createElement('strong');nombre.textContent=s.nombre;b.append(nombre);
+      const meta=document.createElement('span');meta.textContent=s.duracion+' min · C$'+s.precio;b.append(meta);
+      const desc=document.createElement('span');desc.textContent=s.descripcion||'';b.append(desc);
+      b.onclick=()=>{
+        seleccion=s;hora=null;
+        document.querySelectorAll('.service').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');
+        $('datos').classList.add('hidden');$('exito').classList.add('hidden');buscarHorarios();
+        $('calendario').scrollIntoView({behavior:'smooth',block:'start'});
+      };$('catalogo').append(b);
+    });
+  });
+}
+function buscarHorarios(){
+ hora=null;$('datos').classList.add('hidden');$('horarios').innerHTML='';
+ if(!seleccion){$('ayuda').textContent='Selecciona primero un servicio.';return;}
+ if(!$('fecha').value){$('ayuda').textContent='Selecciona una fecha.';return;}
+ $('ayuda').textContent='Buscando disponibilidad…';$('mensaje').textContent='';
+ const fechaSolicitada=$('fecha').value, id=seleccion.id;
+ api('obtenerDisponibilidad',[fechaSolicitada,id],data=>{
+  if(id!==seleccion.id||fechaSolicitada!==$('fecha').value)return;
+  $('ayuda').textContent=data.horarios.length? 'Selecciona una hora de inicio:' : 'No hay horarios disponibles para ese día.';
+  data.horarios.forEach(h=>{
+   const b=document.createElement('button');b.type='button';b.className='slot';b.textContent=h.inicio;
+   b.onclick=()=>{hora=h;document.querySelectorAll('.slot').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    $('datos').classList.remove('hidden');
+    $('resumen').textContent=seleccion.nombre+' · '+fechaSolicitada+' · '+h.inicio+'–'+h.fin;
+    $('datos').scrollIntoView({behavior:'smooth',block:'start'});
+   };$('horarios').append(b);
+  });
+ });
+}
+function confirmar(e){
+ e.preventDefault();if(!seleccion||!hora){err({message:'Selecciona primero el horario.'});return;}
+ $('confirmar').disabled=true;$('mensaje').textContent='Registrando la cita…';
+ if(!idempotencia){idempotencia=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});}
+ api('reservarCita',[{servicioId:seleccion.id,fecha:$('fecha').value,inicio:hora.inicio,
+  nombre:$('nombre').value,telefono:$('telefono').value,comentario:$('comentario').value,idempotencia}],r=>{
+  $('mensaje').textContent='';$('datos').classList.add('hidden');
+  $('exito').classList.remove('hidden');
+  $('comprobante').textContent='Reserva '+r.codigo+' · '+r.servicio+' · '+r.fecha+' · '+r.inicio+' a '+r.fin+' · C$'+r.precio;
+  $('exito').scrollIntoView({behavior:'smooth'});idempotencia='';$('confirmar').disabled=false;
+ });
+}
+$('fecha').addEventListener('change',buscarHorarios);cargar();
+</script>
+</main></body></html>
