@@ -20,6 +20,8 @@ function reservarCita(solicitud) {
   const inicio=String(solicitud.inicio||'');
   const servicioId=String(solicitud.servicioId||'');
   const clave=String(solicitud.idempotencia||'');
+  const estiloId=String(solicitud.estiloId||'').trim();
+  const galeriaId=String(solicitud.galeriaId||'').trim();
   if(nombre.length<3||nombre.length>90)throw new Error('Introduce un nombre valido.');
   if(!/^\+?[0-9]{8,15}$/.test(telefono))throw new Error('Introduce un telefono de 8 a 15 digitos.');
   if(!/^[0-9a-fA-F-]{20,80}$/.test(clave))throw new Error('Identificador de solicitud invalido.');
@@ -36,6 +38,18 @@ function reservarCita(solicitud) {
     if(confirmadas.length>=2)throw new Error('Este telefono ya tiene el maximo de reservas para ese dia.');
     // Reconsultar dentro del bloqueo: el horario pudo ocuparse mientras
     // se completaba el formulario.
+    // Los IDs de referencias vienen del navegador y deben verificarse de nuevo.
+    if(estiloId){
+      const estilo=estiloVisibleCatalogo_(estiloId);
+      if(!estilo || estilo.ServicioId!==servicioId)
+        throw new Error('El estilo elegido no pertenece al servicio reservado.');
+    }
+    if(galeriaId){
+      const trabajo=trabajoVisibleCatalogo_(galeriaId);
+      if(!trabajo || trabajo.ServicioId!==servicioId ||
+        (estiloId && trabajo.EstiloId && trabajo.EstiloId!==estiloId))
+        throw new Error('La fotografía de referencia no está disponible para este servicio.');
+    }
     const calculo=calcularIntervalos_(fecha,servicioId);
     const slot=calculo.horarios.find(function(h){return h.inicio===inicio;});
     if(!slot)throw new Error('Ese horario dejo de estar disponible. Selecciona otro.');
@@ -46,11 +60,11 @@ function reservarCita(solicitud) {
     const calendar=calendarioPublico_();
     const ev=calendar.createEvent('BarberControl: '+calculo.servicio.nombre,
       fechaLocal_(fecha,inicio),fechaLocal_(fecha,slot.fin),{
-      description:'Reserva: '+id+'\nCliente: '+nombre+'\nTelefono: '+telefono+'\nComentario: '+comentario
+      description:'Reserva: '+id+'\nCliente: '+nombre+'\nTelefono: '+telefono+'\nEstilo: '+(estiloId||'Sin referencia')+'\nTrabajo: '+(galeriaId||'Sin referencia')+'\nComentario: '+comentario
     });
     try{
       dbPublica_().getSheetByName('Reservas').appendRow([
-        id,new Date(),fecha,inicio,slot.fin,textoSeguroHoja_(nombre),telefono,servicioId,'','',
+        id,new Date(),fecha,inicio,slot.fin,textoSeguroHoja_(nombre),telefono,servicioId,estiloId,galeriaId,
         textoSeguroHoja_(comentario),'CONFIRMADA',ev.getId(),clave,calculo.servicio.precio,
         calculo.servicio.duracion,hash
       ]);
