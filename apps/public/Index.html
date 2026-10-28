@@ -29,11 +29,11 @@ footer{margin-top:40px;color:#a4a7ad;text-align:center;font-size:.8rem}
 <label>Fecha<input type="date" id="fecha"></label><p id="ayuda" class="muted">Selecciona primero un servicio.</p>
 <div id="horarios" class="slots"></div><p id="bcReferenciaElegida" class="bc-visual-summary"></p></section>
 <section id="datos" class="hidden"><h2>3. Datos para tu reservación</h2>
-<form id="formulario" onsubmit="confirmar(event)">
+<form id="formulario" onsubmit="event.preventDefault(); return false;">
 <div class="grid"><label>Nombre completo<input id="nombre" maxlength="90" minlength="3" required autocomplete="name"></label>
 <label>WhatsApp<input id="telefono" type="tel" placeholder="88888888" required minlength="8" maxlength="20" autocomplete="tel"></label></div>
 <label>Comentario para el barbero (opcional)<textarea id="comentario" maxlength="500" rows="3" placeholder="Cuéntanos cómo deseas tu corte"></textarea></label>
-<p id="resumen" class="muted"></p><button id="confirmar" class="primary" type="submit">Confirmar cita</button></form>
+<p id="resumen" class="muted"></p><button id="confirmar" class="primary" type="button">Confirmar cita</button></form>
 </section>
 <section id="exito" class="hidden" aria-live="polite"><h2>✓ Reserva confirmada</h2><div class="summary" id="comprobante"></div><p class="muted">Guarda esta información. El barbero visualizará tu cita en su calendario.</p>
 <button class="primary" onclick="location.reload()">Hacer otra reserva</button></section>
@@ -96,8 +96,8 @@ window.bcElegirReferenciaVisual=function(servicioId,estiloId,galeriaId){
  document.getElementById('calendario').scrollIntoView({behavior:'smooth',block:'start'});
  return true;
 };
-function confirmar(e){
- e.preventDefault();if(!seleccion||!hora){err({message:'Selecciona primero el horario.'});return;}
+function confirmar(){
+ if(!seleccion||!hora){err({message:'Selecciona primero el horario.'});return;}
  $('confirmar').disabled=true;$('mensaje').textContent='Registrando la cita…';
  if(!idempotencia){idempotencia=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});}
@@ -110,6 +110,11 @@ function confirmar(e){
   $('exito').scrollIntoView({behavior:'smooth'});idempotencia='';$('confirmar').disabled=false;
  });
 }
-$('fecha').addEventListener('change',buscarHorarios);cargar();
+$('fecha').addEventListener('change',buscarHorarios);
+$('confirmar').addEventListener('click',function(){
+ try{confirmar();}
+ catch(e){err(e);$('mensaje').textContent='No se pudo enviar: '+(e.message||e);}
+});
+cargar();
 </script>
 </main></body></html>
