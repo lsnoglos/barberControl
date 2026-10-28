@@ -13,3 +13,5 @@ jobs:
           node-version: '22'
       - name: Validar sintaxis y separación de proyectos
         run: node tests/validate.js
+      - name: Probar catálogos, videos y privacidad
+        run: node tests/catalogos.test.js
