@@ -48,10 +48,10 @@ function api(nombre,args,ok){google.script.run.withSuccessHandler(ok).withFailur
 function cargar(){
   const hoy=new Date();const fechaLocal=new Date(hoy.getTime()-hoy.getTimezoneOffset()*60000).toISOString().slice(0,10);
   $('fecha').min=fechaLocal;$('fecha').value=fechaLocal;
-  if(window.bcVisualInit)window.bcVisualInit();
   api('obtenerCatalogoPublico',[],data=>{
     $('negocio').textContent=data.negocio;
     catalogo=data.servicios||[];window.bcServiciosDisponibles=catalogo;
+    if(window.bcVisualInit)window.bcVisualInit();
     $('catalogo').innerHTML='';
     if(!catalogo.length){$('catalogo').textContent=data.mensaje||'Aún no hay servicios disponibles. Vuelve pronto.';return;}
     catalogo.forEach(s=>{

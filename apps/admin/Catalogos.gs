@@ -135,6 +135,8 @@ function subirPortadaAdmin(data) {
   const nombre=data.tipo==='ESTILO'?'Estilos':'Servicios';
   const id=String(data.id||'').trim();
   const found=buscarFilaCatalogo_(nombre,id);
+  if(data.autorizacion!==true)
+    throw new Error('Confirma que tienes los derechos o autorización para publicar la imagen.');
   const bytes=prepararImagenCatalogo_(data.imagen);
   const fileName=(data.tipo==='ESTILO'?'estilo_':'servicio_')+
     id.replace(/[^A-Za-z0-9_-]/g,'').slice(0,40)+'_'+Utilities.getUuid().slice(0,8)+'.jpg';
@@ -185,9 +187,15 @@ function guardarVideoTrabajoAdmin(data) {
   buscarFilaCatalogo_('Galeria',id);
   const videoId=extraerYoutubeIdCatalogo_(data.url);
   const sheet=obtenerDbAdmin_().getSheetByName('Medios');
-  const mediaId='MED-'+Utilities.getUuid().slice(0,10).toUpperCase();
-  sheet.appendRow([mediaId,id,'YOUTUBE','',videoId,
-    nombreEstilo_(data,'descripcion',500),sheet.getLastRow(),true]);
+  const existing=sheet.getDataRange().getValues();
+  const found=existing.findIndex(function(row,i){
+    return i>0&&String(row[1])===id&&String(row[2])==='YOUTUBE';
+  });
+  const mediaId=found>0?String(existing[found][0]):'MED-'+Utilities.getUuid().slice(0,10).toUpperCase();
+  const row=[mediaId,id,'YOUTUBE','',videoId,
+    nombreEstilo_(data,'descripcion',500),found>0?existing[found][6]:sheet.getLastRow(),true];
+  if(found>0)sheet.getRange(found+1,1,1,row.length).setValues([row]);
+  else sheet.appendRow(row);
   auditarAdmin_('VIDEO','Galeria',id,videoId);
   return {id:mediaId,galeriaId:id,youtubeId:videoId};
 }
