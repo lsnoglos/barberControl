@@ -37,9 +37,25 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <div class="row"><button type="submit">Guardar servicio</button><button type="button" onclick="limpiarServicio()" style="background:#464a53;color:#fff">Nuevo</button></div></form>
 <div id="listaServicios" class="list" style="margin-top:15px"></div></section>
 <section><h2>4. Horarios de atención</h2><div id="listaHorarios" class="list"></div></section>
-<section><h2>5. Reservaciones registradas</h2><div id="reservas" class="muted"></div></section>
+<section><h2>5. Bloquear horarios</h2>
+<p class="muted">Primero configura la URL pública y BRIDGE_SECRET. El bloqueo se procesa en el mismo coordinador que las reservas.</p>
+<form onsubmit="guardarBloqueo(event)">
+<div class="grid">
+<label>Tipo<select id="bTipo"><option value="SEMANAL">Cada semana</option><option value="DIARIO">Cada día</option><option value="UNICO">Fecha puntual</option><option value="RANGO">Rango de fechas</option></select></label>
+<label>Día de la semana (si aplica)<select id="bDia"><option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6" selected>Sábado</option></select></label>
+<label>Fecha inicial (si aplica)<input id="bFecha" type="date"></label>
+<label>Fecha final (para rango)<input id="bFechaFin" type="date"></label>
+<label>Inicio<input id="bInicio" type="time" value="12:00" required></label>
+<label>Fin<input id="bFin" type="time" value="12:30" required></label>
+<label>Motivo<input id="bMotivo" maxlength="100" value="Descanso"></label>
+</div><p><button>Agregar bloqueo</button></p></form>
+<div id="bloqueos"></div></section>
+<section><h2>6. Reservaciones registradas</h2><div id="reservas" class="muted"></div></section>
 <section><h2>Conexión con el proyecto público</h2><p class="muted">Copia los identificadores a las Script Properties del proyecto Apps Script público. No compartas esta pantalla con clientes.</p>
-<pre id="conexion"></pre></section>
+<pre id="conexion"></pre>
+<label>URL de aplicación pública /exec<input id="urlPublica" placeholder="https://script.google.com/macros/s/.../exec"></label>
+<button onclick="guardarUrlPublica()">Vincular URL pública</button>
+<p class="muted">La clave BRIDGE_SECRET únicamente se copia a las Script Properties del proyecto público, nunca a GitHub.</p></section>
 </div>
 </main>
 <script>
@@ -59,6 +75,8 @@ function render(data){
  $('nombreNegocio').value=c.NOMBRE_NEGOCIO||'';
  $('intervalo').value=c.INTERVALO_MIN||'15';
  $('conexion').textContent=JSON.stringify(data.estado.propiedadesPublicas,null,2);
+ $('urlPublica').value=data.estado.publicWebappUrl||'';
+ mostrarBloqueos(data.bloqueos);
  $('listaServicios').innerHTML='';
  data.servicios.forEach(s=>{
    const div=document.createElement('div');div.className='item';
@@ -92,5 +110,29 @@ function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
 }],r=>{limpiarServicio();render(r);});}
 function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
 function limpiarServicio(){$('servicioForm').reset();$('sId').value='';$('sCategoria').value='Cabello';$('sDuracion').value='45';}
+
+function guardarUrlPublica(){llamar('configurarPuenteAdmin',[$('urlPublica').value],render);}
+function guardarBloqueo(e){
+ e.preventDefault();
+ const d={tipo:$('bTipo').value,diaSemana:Number($('bDia').value),
+ fechaInicio:$('bFecha').value,fechaFin:$('bFechaFin').value,
+ inicio:$('bInicio').value,fin:$('bFin').value,motivo:$('bMotivo').value};
+ if(['UNICO','RANGO'].includes(d.tipo)&&!d.fechaInicio){alert('Indica la fecha inicial.');return;}
+ if(d.tipo==='RANGO'&&!d.fechaFin){alert('Indica la fecha final.');return;}
+ llamar('guardarBloqueoAdmin',[d],render);
+}
+function mostrarBloqueos(list){
+ $('bloqueos').innerHTML='';
+ (list||[]).forEach(b=>{
+  const p=document.createElement('p');
+  p.textContent=b.Tipo+' '+(b.Tipo==='SEMANAL'?'Día '+b.DiaSemana:b.FechaInicio)+' '+b.Inicio+'–'+b.Fin+' ('+b.Motivo+') ';
+  if(String(b.Activo).toLowerCase()==='true'){
+   const btn=document.createElement('button');btn.textContent='Desactivar';
+   btn.onclick=()=>llamar('desactivarBloqueoAdmin',[b.ID],render);
+   p.appendChild(btn);
+  }$('bloqueos').appendChild(p);
+ });
+}
+
 cargar();
 </script></body></html>
