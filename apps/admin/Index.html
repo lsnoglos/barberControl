@@ -61,6 +61,7 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <button onclick="guardarUrlPublica()">Vincular URL pública</button>
 <p class="muted">La clave BRIDGE_SECRET únicamente se copia a las Script Properties del proyecto público, nunca a GitHub.</p></section>
 </div>
+<?!= incluirCatalogoAdmin_('CatalogoPanel'); ?>
 </main>
 <script>
 let panel=null;
@@ -101,6 +102,7 @@ function render(data){
   $('listaHorarios').append(div);
  });
  $('reservas').textContent=data.reservas.length?data.reservas.map(r=>r.Fecha+' '+r.Inicio+' · '+r.Cliente+' · '+r.Estado).join(' | '):'Aún no hay citas registradas.';
+ if(window.bcMediaRefresh)window.bcMediaRefresh();
 }
 function guardarConfig(){const c=Object.fromEntries(panel.configuracion.map(x=>[x.Clave,x.Valor]));
  const nombre=$('nombreNegocio').value.trim(), intervalo=$('intervalo').value;

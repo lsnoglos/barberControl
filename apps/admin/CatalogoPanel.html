@@ -1,0 +1,277 @@
+<style>
+.bc-media-layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(310px,100%),1fr));gap:16px}
+.bc-media-panel{background:#111418;border:1px solid #373b44;border-radius:14px;padding:17px}
+.bc-media-panel h3{margin:4px 0 12px;font-size:1.06rem}
+.bc-media-panel label{margin-bottom:8px}
+.bc-media-panel select,.bc-media-panel input,.bc-media-panel textarea{width:100%}
+.bc-media-panel input[type="checkbox"]{width:auto;accent-color:#d9b879}
+.bc-media-panel input[type=file]{padding:8px;max-width:100%}
+.bc-media-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.bc-media-muted{color:#abb1bc;font-size:.86rem}
+.bc-media-preview{width:90px;height:90px;object-fit:cover;border-radius:11px;background:#33363c}
+.bc-media-item{display:flex;gap:12px;align-items:flex-start;background:#1c2127;border:1px solid #393e47;padding:10px;border-radius:12px;margin:10px 0}
+.bc-media-item main{flex:1;min-width:0}
+.bc-media-item strong{display:block;overflow-wrap:anywhere}
+.bc-media-item button{font-size:.83rem;padding:8px 10px}
+.bc-media-checkbox{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:7px;margin:7px 12px 7px 0}
+.bc-media-status{min-height:24px;color:#e9c78a;margin-top:10px}
+.bc-media-samples{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.bc-media-samples img{width:78px;height:78px;object-fit:cover;border-radius:9px}
+.bc-media-card{margin-bottom:12px;border-bottom:1px solid #3a3e45;padding:9px 0}
+</style>
+<section id="bcMediaSection">
+  <h2>7. Catálogo de estilos y galería multimedia</h2>
+  <p class="muted">Los archivos se guardan en Google Drive; los nombres, descripciones, relaciones y enlaces de YouTube se registran en Google Sheets. Todas las fotografías se comprimen antes de subirlas.</p>
+  <div id="bcMediaStatus" class="bc-media-status" role="status">Esperando conexión con la base de datos…</div>
+  <div class="bc-media-layout">
+    <div class="bc-media-panel">
+      <h3>Agregar o editar estilo de corte</h3>
+      <form id="bcEstiloForm">
+        <input id="bcEstiloId" type="hidden">
+        <label>Nombre del estilo<input id="bcEstiloNombre" minlength="3" maxlength="100" placeholder="Low Fade" required></label>
+        <label>Servicio y precio asociados<select id="bcEstiloServicio" required></select></label>
+        <label>Descripción<textarea id="bcEstiloDescripcion" rows="2" maxlength="1200" placeholder="Características del corte"></textarea></label>
+        <label>Origen o historia<textarea id="bcEstiloOrigen" rows="2" maxlength="1200" placeholder="Contexto del estilo (opcional)"></textarea></label>
+        <label>Técnica de realización<textarea id="bcEstiloTecnica" rows="2" maxlength="1200" placeholder="Máquinas, tijeras, degradado…"></textarea></label>
+        <label>Fotografía de referencia<input id="bcEstiloFoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"></label>
+        <label class="bc-media-checkbox"><input id="bcEstiloAutorizacion" type="checkbox"> Tengo autorización o derechos para publicar esta fotografía</label>
+        <div class="bc-media-actions">
+          <label class="bc-media-checkbox"><input id="bcEstiloActivo" type="checkbox" checked> Activo</label>
+          <label class="bc-media-checkbox"><input id="bcEstiloVisible" type="checkbox" checked> Visible</label>
+        </div>
+        <div class="bc-media-actions">
+          <button type="submit">Guardar estilo</button>
+          <button type="button" onclick="bcMediaResetEstilo()" style="background:#41454f;color:white">Nuevo</button>
+        </div>
+      </form>
+    </div>
+    <div class="bc-media-panel">
+      <h3>Estilos registrados</h3>
+      <div id="bcEstilosLista" class="bc-media-muted">Sin registros.</div>
+    </div>
+  </div>
+  <div class="bc-media-layout" style="margin-top:18px">
+    <div class="bc-media-panel">
+      <h3>Publicar un trabajo realizado</h3>
+      <form id="bcTrabajoForm">
+        <input id="bcTrabajoId" type="hidden">
+        <label>Título de la publicación<input id="bcTrabajoTitulo" maxlength="130" minlength="3" required placeholder="Transformación Mid Fade"></label>
+        <label>Servicio<select id="bcTrabajoServicio" required></select></label>
+        <label>Estilo relacionado (opcional)<select id="bcTrabajoEstilo"></select></label>
+        <label>Descripción del trabajo<textarea id="bcTrabajoDescripcion" rows="3" maxlength="1500" placeholder="Antes, después, técnica utilizada…"></textarea></label>
+        <label>Agregar fotos (hasta 8 a la vez)<input id="bcTrabajoFotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple></label>
+        <label>Video de YouTube (opcional)<input id="bcTrabajoYoutube" type="url" placeholder="https://youtu.be/..." inputmode="url"></label>
+        <label>Texto descriptivo del video (opcional)<input id="bcTrabajoVideoDesc" maxlength="500" placeholder="Proceso de corte en hiperlapso"></label>
+        <label class="bc-media-checkbox"><input id="bcTrabajoConsentimiento" type="checkbox"> Confirmo la autorización del cliente para publicar fotos y videos</label>
+        <div class="bc-media-actions">
+          <label class="bc-media-checkbox"><input id="bcTrabajoPublicado" type="checkbox" checked> Publicar</label>
+          <label class="bc-media-checkbox"><input id="bcTrabajoDestacado" type="checkbox"> Destacado</label>
+        </div>
+        <p class="bc-media-muted">Si no tienes fotografías o video todavía, puedes guardar la publicación sin marcar «Publicar» y completarla después.</p>
+        <div class="bc-media-actions">
+          <button type="submit">Guardar publicación y archivos</button>
+          <button type="button" onclick="bcMediaResetTrabajo()" style="background:#41454f;color:white">Nueva</button>
+        </div>
+      </form>
+    </div>
+    <div class="bc-media-panel">
+      <h3>Trabajos de la galería</h3>
+      <div id="bcTrabajosLista" class="bc-media-muted">Sin registros.</div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+'use strict';
+const get=id=>document.getElementById(id);
+let state={servicios:[],estilos:[],trabajos:[],medios:[]};
+let processing=false;
+function safe(s){return String(s===null||s===undefined?'':s);}
+function yes(v){return String(v).toLowerCase()==='true';}
+function message(s,bad){
+ const el=get('bcMediaStatus'); el.textContent=s;el.style.color=bad?'#ffaaa2':'#e9c78a';
+}
+function call(name,...args){
+ return new Promise((resolve,reject)=>{
+  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
+ });
+}
+function option(parent,id,title){const el=document.createElement('option');el.value=id;el.textContent=title;parent.appendChild(el);}
+function fillService(select,selected){
+ select.textContent=''; option(select,'','Selecciona un servicio');
+ state.servicios.forEach(s=>option(select,s.ID,s.Nombre+' · C$'+s.Precio+' · '+s.DuracionMin+' min'));
+ if(selected) select.value=selected;
+}
+function fillStyles(serviceId,selected){
+ const list=get('bcTrabajoEstilo');list.textContent='';option(list,'','Ninguno / sin estilo');
+ state.estilos.filter(s=>s.ServicioId===serviceId).forEach(s=>option(list,s.ID,s.Nombre));
+ if(selected)list.value=selected;
+}
+function mediaPreview(tipo,id,mediaId,img){
+ call('obtenerImagenAdmin',tipo,id,mediaId).then(data=>{img.src=data;img.hidden=false;})
+ .catch(()=>{img.hidden=true;});
+}
+function makeImage(tipo,id,mediaId){
+ const img=document.createElement('img');img.className='bc-media-preview';img.alt='Miniatura del trabajo';img.loading='lazy';
+ mediaPreview(tipo,id,mediaId,img);return img;
+}
+function makeButton(text,handler){
+ const b=document.createElement('button');b.type='button';b.textContent=text;b.onclick=handler;return b;
+}
+function paint(){
+ fillService(get('bcEstiloServicio'),get('bcEstiloServicio').value);
+ fillService(get('bcTrabajoServicio'),get('bcTrabajoServicio').value);
+ fillStyles(get('bcTrabajoServicio').value,get('bcTrabajoEstilo').value);
+ const estilos=get('bcEstilosLista'),galeria=get('bcTrabajosLista');
+ estilos.textContent='';galeria.textContent='';
+ if(!state.estilos.length)estilos.textContent='Todavía no hay estilos.';
+ state.estilos.slice().reverse().forEach(s=>{
+   const item=document.createElement('div');item.className='bc-media-item';
+   if(s.ImagenId)item.append(makeImage('ESTILO',s.ID,''));
+   const content=document.createElement('main');
+   const title=document.createElement('strong');title.textContent=s.Nombre;content.append(title);
+   const meta=document.createElement('p');meta.className='bc-media-muted';
+   meta.textContent=(state.servicios.find(x=>x.ID===s.ServicioId)||{}).Nombre||s.ServicioId;
+   meta.textContent+=' · '+(yes(s.Activo)&&yes(s.Visible)?'Visible':'Oculto');
+   content.append(meta,makeButton('Editar',()=>window.bcMediaEditEstilo(s.ID)));
+   item.append(content);estilos.append(item);
+ });
+ if(!state.trabajos.length)galeria.textContent='Todavía no hay trabajos.';
+ state.trabajos.slice().reverse().forEach(g=>{
+  const card=document.createElement('div');card.className='bc-media-card';
+  const t=document.createElement('strong');t.textContent=g.Titulo;card.append(t);
+  const p=document.createElement('p');p.className='bc-media-muted';
+  const photos=state.medios.filter(m=>m.GaleriaId===g.ID&&m.Tipo==='FOTO');
+  const videos=state.medios.filter(m=>m.GaleriaId===g.ID&&m.Tipo==='YOUTUBE');
+  p.textContent=photos.length+' fotos · '+videos.length+' video(s) · '+(yes(g.Publicado)?'Publicado':'Borrador');
+  card.append(p);
+  const minis=document.createElement('div');minis.className='bc-media-samples';
+  photos.slice(0,3).forEach(m=>minis.append(makeImage('GALERIA',g.ID,m.ID)));
+  card.append(minis,makeButton('Editar / añadir medios',()=>window.bcMediaEditTrabajo(g.ID)));
+  const toggle=document.createElement('div');toggle.className='bc-media-actions';
+  state.medios.filter(m=>m.GaleriaId===g.ID).forEach(m=>{
+    const b=makeButton((yes(m.Publicado)?'Ocultar ':'Publicar ')+(m.Tipo==='FOTO'?'foto':'video'),
+      async()=>{try{message('Actualizando archivo…');state=await call('cambiarEstadoMedioAdmin',m.ID,!yes(m.Publicado));paint();message('Archivo actualizado.');}catch(e){message(e.message,true);}});
+    toggle.append(b);
+  });
+  card.append(toggle);galeria.append(card);
+ });
+}
+async function reload(){
+ state=await call('listarCatalogosAdmin');paint();
+}
+function scrollToMedia(){get('bcMediaSection').scrollIntoView({behavior:'smooth',block:'start'});}
+window.bcMediaEditEstilo=function(id){
+ const s=state.estilos.find(x=>x.ID===id);if(!s)return;
+ get('bcEstiloId').value=s.ID;get('bcEstiloNombre').value=s.Nombre;
+ get('bcEstiloServicio').value=s.ServicioId;
+ get('bcEstiloDescripcion').value=s.Descripcion;
+ get('bcEstiloOrigen').value=s.Origen;get('bcEstiloTecnica').value=s.Tecnica;
+ get('bcEstiloActivo').checked=yes(s.Activo);get('bcEstiloVisible').checked=yes(s.Visible);
+ get('bcEstiloFoto').value='';get('bcEstiloAutorizacion').checked=false;scrollToMedia();
+};
+window.bcMediaResetEstilo=function(){
+ get('bcEstiloForm').reset();get('bcEstiloId').value='';get('bcEstiloActivo').checked=true;
+ get('bcEstiloVisible').checked=true;
+};
+window.bcMediaEditTrabajo=function(id){
+ const g=state.trabajos.find(x=>x.ID===id);if(!g)return;
+ get('bcTrabajoId').value=g.ID;get('bcTrabajoTitulo').value=g.Titulo;
+ get('bcTrabajoServicio').value=g.ServicioId;
+ fillStyles(g.ServicioId,g.EstiloId);
+ get('bcTrabajoDescripcion').value=g.Descripcion;get('bcTrabajoDestacado').checked=yes(g.Destacado);
+ get('bcTrabajoPublicado').checked=yes(g.Publicado);get('bcTrabajoConsentimiento').checked=yes(g.Consentimiento);
+ get('bcTrabajoFotos').value='';get('bcTrabajoYoutube').value='';
+ get('bcTrabajoVideoDesc').value='';
+ scrollToMedia();
+};
+window.bcMediaResetTrabajo=function(){
+ get('bcTrabajoForm').reset();get('bcTrabajoId').value='';get('bcTrabajoPublicado').checked=true;
+ fillStyles(get('bcTrabajoServicio').value,'');
+};
+async function jpeg(file){
+ if(!file||!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)&&!/\.(jpe?g|png|webp|hei[cf])$/i.test(file.name))
+   throw new Error('Selecciona una fotografía JPEG, PNG, WebP o HEIC.');
+ const url=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{
+   const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('No se pudo abrir la imagen en el navegador. Si es HEIC, conviértela a JPEG.'));i.src=url;
+  });
+  const max=1000,ratio=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));
+  canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const encoded=canvas.toDataURL('image/jpeg',0.74);
+  if(encoded.length>1700000)throw new Error('La fotografía es demasiado grande aun después de comprimirla.');
+  return encoded;
+ }finally{URL.revokeObjectURL(url);}
+}
+function busy(flag){processing=flag;
+ Array.from(get('bcMediaSection').querySelectorAll('button[type="submit"]')).forEach(b=>b.disabled=flag);
+}
+get('bcEstiloForm').addEventListener('submit',async function(event){
+ event.preventDefault();if(processing)return;
+ const file=get('bcEstiloFoto').files[0];
+ if(file&&!get('bcEstiloAutorizacion').checked){message('Confirma que tienes autorización para publicar la fotografía.',true);return;}
+ busy(true);
+ try{
+  message('Guardando estilo…');
+  const data={id:get('bcEstiloId').value,nombre:get('bcEstiloNombre').value,
+   servicioId:get('bcEstiloServicio').value,descripcion:get('bcEstiloDescripcion').value,
+   origen:get('bcEstiloOrigen').value,tecnica:get('bcEstiloTecnica').value,
+   activo:get('bcEstiloActivo').checked,visible:get('bcEstiloVisible').checked};
+  const result=await call('guardarEstiloAdmin',data);
+  get('bcEstiloId').value=result.id;
+  if(file){
+   message('Subiendo y comprimiendo portada…');
+   const dataUrl=await jpeg(file);
+   await call('subirPortadaAdmin',{tipo:'ESTILO',id:result.id,imagen:dataUrl,autorizacion:true});
+  }
+  await reload();message('Estilo guardado correctamente.');
+  get('bcEstiloFoto').value='';
+ }catch(e){message('Error: '+e.message,true);}finally{busy(false);}
+});
+get('bcTrabajoForm').addEventListener('submit',async function(event){
+ event.preventDefault();if(processing)return;
+ const photos=Array.from(get('bcTrabajoFotos').files);
+ const url=get('bcTrabajoYoutube').value.trim();
+ if(photos.length>8){message('Puedes agregar como máximo 8 fotos por operación.',true);return;}
+ if((photos.length||url||get('bcTrabajoPublicado').checked)&&!get('bcTrabajoConsentimiento').checked){
+  message('Confirma la autorización del cliente para publicar el material.',true);return;
+ }
+ busy(true);
+ try{
+  message('Guardando publicación…');
+  const data={id:get('bcTrabajoId').value,titulo:get('bcTrabajoTitulo').value,
+   servicioId:get('bcTrabajoServicio').value,estiloId:get('bcTrabajoEstilo').value,
+   descripcion:get('bcTrabajoDescripcion').value,
+   publicado:get('bcTrabajoPublicado').checked, destacado:get('bcTrabajoDestacado').checked,
+   consentimiento:get('bcTrabajoConsentimiento').checked};
+  const result=await call('guardarTrabajoAdmin',data);
+  get('bcTrabajoId').value=result.id;
+  for(let i=0;i<photos.length;i++){
+   message('Comprimiendo y subiendo fotografía '+(i+1)+' de '+photos.length+'…');
+   await call('subirFotoTrabajoAdmin',{
+    galeriaId:result.id,imagen:await jpeg(photos[i]),
+    descripcion:photos[i].name.slice(0,100)
+   });
+  }
+  if(url){message('Vinculando video de YouTube…');
+   await call('guardarVideoTrabajoAdmin',{
+    galeriaId:result.id,url:url,descripcion:get('bcTrabajoVideoDesc').value
+   });
+  }
+  await reload();message('Publicación y archivos guardados correctamente.');
+  get('bcTrabajoFotos').value='';get('bcTrabajoYoutube').value='';
+ }catch(e){message('Error: '+e.message+' Si hubo archivos subidos, verifica la publicación antes de repetir.',true);}
+ finally{busy(false);}
+});
+get('bcTrabajoServicio').addEventListener('change',()=>fillStyles(get('bcTrabajoServicio').value,''));
+window.bcMediaRefresh=async function(){
+ try{await reload();message('Estilos y galería listos para gestionar.');}
+ catch(e){message('Error de catálogos: '+e.message,true);}
+};
+})();
+</script>
