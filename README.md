@@ -12,13 +12,13 @@ barberControl/
 │   │   ├── Datos.gs       # Consultas públicas a Sheets
 │   │   ├── Disponibilidad.gs
 │   │   ├── Reservas.gs    # Confirmaciones con revalidación
-│   │   ├── Puente.gs      # Bloqueos administrativos HMAC
+│   │   ├── Puente.gs      # Bloqueos administrativos HMAC\n│   │   ├── Catalogo.gs    # Catálogos y fotografías públicas\n│   │   ├── GaleriaPublica.html
 │   │   ├── Index.html
 │   │   └── appsscript.json
 │   └── admin/             # Proyecto Apps Script PRIVADO, propietario
 │       ├── Code.gs
 │       ├── Instalador.gs  # Crea recursos Google automáticamente
-│       ├── Gestion.gs     # Servicios, horarios y puente
+│       ├── Gestion.gs     # Servicios, horarios y puente\n│       ├── Catalogos.gs   # Estilos, trabajos, fotos y videos\n│       ├── CatalogoPanel.html
 │       ├── Index.html
 │       └── appsscript.json
 ├── docs/
@@ -36,9 +36,17 @@ barberControl/
 
 Ambas interfaces están diseñadas como **primera versión funcional de desarrollo**, pendientes de despliegue, autorizaciones, pruebas integrales y endurecimiento antes de usarse con clientes reales.
 
+## Catálogos, fotos y videos (implementados en código)
+
+- **Admin:** `Catalogos.gs` y `CatalogoPanel.html` crean/actualizan estilos, portadas y publicaciones con fotos y YouTube.
+- **Público:** `Catalogo.gs` y `GaleriaPublica.html` presentan solo medios publicados y permiten reservar desde un estilo/trabajo.
+- **Integración:** `Reservas.gs` guarda los identificadores del estilo y de la fotografía de referencia.
+
+Para incorporar esta mejora a tus proyectos ya creados, consulta **[ACTUALIZAR-CATALOGOS.md](docs/ACTUALIZAR-CATALOGOS.md)**.
+
 ## Pendiente para próximas iteraciones
 
-Catálogo de estilos, galería de fotos Drive, videos de YouTube, carga de medios, gestión/cancelación de citas desde Admin, enlaces privados de cancelación para clientes, recordatorios, pruebas de concurrencia reales, controles contra bots, respaldos programados y conciliación de errores externos.
+Gestión/cancelación de citas desde Admin, enlaces privados de cancelación para clientes, recordatorios, pruebas reales de concurrencia, controles contra bots, respaldos programados, conciliación de errores externos y optimización adicional de imágenes para catálogos muy grandes.
 
 ## ¡No mezcles proyectos!
 
