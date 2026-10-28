@@ -65,6 +65,13 @@ function instalarBarberControl() {
         }
       }
     });
+    // Mantener fechas, horas y teléfonos como texto en Sheets.
+    ss.getSheetByName('Reservas').getRange('A:A').setNumberFormat('@');
+    ss.getSheetByName('Reservas').getRange('C:E').setNumberFormat('@');
+    ss.getSheetByName('Reservas').getRange('G:G').setNumberFormat('@');
+    ss.getSheetByName('Reservas').getRange('N:N').setNumberFormat('@');
+    ss.getSheetByName('Horarios').getRange('C:D').setNumberFormat('@');
+    ss.getSheetByName('Bloqueos').getRange('D:G').setNumberFormat('@');
     const defaults = [
       ['NOMBRE_NEGOCIO','Mi Barberia','Nombre comercial'],
       ['MONEDA','NIO','Moneda de precios'],
@@ -94,6 +101,9 @@ function instalarBarberControl() {
         throw new Error('El calendario configurado no es accesible. Comprueba CALENDAR_ID.');
       }
     }
+    if (!props.getProperty('BRIDGE_SECRET')) {
+      props.setProperty('BRIDGE_SECRET',Utilities.getUuid()+Utilities.getUuid());
+    }
     return obtenerEstadoInstalacion_();
   } finally {
     lock.releaseLock();
@@ -111,9 +121,11 @@ function obtenerEstadoInstalacion_() {
     rootFolderId: props.getProperty('ROOT_FOLDER_ID') || '',
     spreadsheetUrl: spreadsheetId ? 'https://docs.google.com/spreadsheets/d/'+spreadsheetId+'/edit' : '',
     carpetaUrl: props.getProperty('ROOT_FOLDER_ID') ? 'https://drive.google.com/drive/folders/'+props.getProperty('ROOT_FOLDER_ID') : '',
+    publicWebappUrl: props.getProperty('PUBLIC_WEBAPP_URL') || '',
     propiedadesPublicas: spreadsheetId && calendarId ? {
       SPREADSHEET_ID: spreadsheetId,
-      CALENDAR_ID: calendarId
+      CALENDAR_ID: calendarId,
+      BRIDGE_SECRET: props.getProperty('BRIDGE_SECRET') || ''
     } : null
   };
 }

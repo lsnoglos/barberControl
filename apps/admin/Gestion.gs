@@ -31,8 +31,14 @@ function guardarServicioAdmin(data) {
   let index=-1;
   for(let i=1;i<rows.length;i++) if(String(rows[i][0])===id){index=i+1;break;}
   if (data.id && index===-1) throw new Error('No existe el servicio que intentas editar.');
-  const row=[id,nombre,categoria,descripcion,duracion,precio,'NIO',String(data.imagenId||'').trim(),
-    data.activo!==false,data.visible!==false,data.reservable!==false,Number(data.orden)||0];
+  const previous=index>0?rows[index-1]:null;
+  const bool=(v)=>v===true||String(v).toLowerCase()==='true';
+  const row=[id,nombre,categoria,descripcion,duracion,precio,'NIO',
+    String(data.imagenId===undefined?(previous?previous[7]:''):data.imagenId).trim(),
+    data.activo===undefined?(previous?bool(previous[8]):true):data.activo===true,
+    data.visible===undefined?(previous?bool(previous[9]):true):data.visible===true,
+    data.reservable===undefined?(previous?bool(previous[10]):true):data.reservable===true,
+    data.orden===undefined?(previous?Number(previous[11])||0:0):Number(data.orden)||0];
   if(index>0) sheet.getRange(index,1,1,row.length).setValues([row]); else sheet.appendRow(row);
   auditarAdmin_(index>0?'MODIFICAR':'CREAR','Servicio',id,nombre);
   return obtenerPanelAdmin();
@@ -88,7 +94,43 @@ function guardarHorarioAdmin(data) {
 }
 
 /**
- * ATENCION: antes de habilitar operativamente bloqueos desde Admin,
- * coordinar las escrituras con el motor del proyecto Publico.
- * No exponer un guardado no transaccional de bloqueos en esta fase.
+ * El panel privado firma las operaciones de bloqueo y las envía
+ * al coordinador del proyecto público. Nada sensible va en Git.
  */
+function configurarPuenteAdmin(url){
+  const u=String(url||'').trim();
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u))
+    throw new Error('Ingresa la URL /exec del despliegue público.');
+  PropertiesService.getScriptProperties().setProperty('PUBLIC_WEBAPP_URL',u);
+  return obtenerPanelAdmin();
+}
+function enviarAlPuenteAdmin_(action,data){
+  const props=PropertiesService.getScriptProperties();
+  const url=props.getProperty('PUBLIC_WEBAPP_URL');
+  const secret=props.getProperty('BRIDGE_SECRET');
+  if(!url||!secret)throw new Error('Primero configura el enlace público y la clave compartida.');
+  const body={action:action,data:data};
+  const ts=Date.now(),nonce=Utilities.getUuid();
+  const text=ts+'.'+nonce+'.'+JSON.stringify(body);
+  const signature=Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(
+    text,secret,Utilities.Charset.UTF_8
+  ));
+  const response=UrlFetchApp.fetch(url,{
+    method:'post',contentType:'application/json',
+    payload:JSON.stringify({ts:ts,nonce:nonce,body:body,signature:signature}),
+    muteHttpExceptions:true,followRedirects:true
+  });
+  let result;
+  try{result=JSON.parse(response.getContentText());}
+  catch(e){throw new Error('El proyecto público no respondió JSON. Verifica su URL y despliegue.');}
+  if(!result.ok)throw new Error(result.error||'Operación rechazada.');
+  return result.data;
+}
+function guardarBloqueoAdmin(data){
+  enviarAlPuenteAdmin_('crearBloqueo',data);
+  return obtenerPanelAdmin();
+}
+function desactivarBloqueoAdmin(id){
+  enviarAlPuenteAdmin_('desactivarBloqueo',{id:id});
+  return obtenerPanelAdmin();
+}
