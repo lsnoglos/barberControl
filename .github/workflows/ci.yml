@@ -15,3 +15,5 @@ jobs:
         run: node tests/validate.js
       - name: Probar catálogos, videos y privacidad
         run: node tests/catalogos.test.js
+      - name: Probar escaparate, WhatsApp, estilos y calendario
+        run: node tests/escaparate.test.js
