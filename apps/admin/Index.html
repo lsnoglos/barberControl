@@ -103,7 +103,21 @@ function render(data){
   $('listaHorarios').append(div);
  });
  const nombresEstilos=Object.fromEntries((data.estilos||[]).map(e=>[e.ID,e.Nombre]));
- $('reservas').textContent=data.reservas.length?data.reservas.map(r=>r.Fecha+' '+r.Inicio+' · '+r.Cliente+' · '+(nombresEstilos[r.EstiloId]||r.EstiloId||'Sin estilo')+' · '+r.Estado).join(' | '):'Aún no hay citas registradas.';
+ const listaReservas=$('reservas');listaReservas.textContent='';
+ if(!data.reservas.length){listaReservas.textContent='Todavía no hay citas registradas.';}
+ else data.reservas.forEach(r=>{
+   const card=document.createElement('article');card.className='item';
+   const title=document.createElement('strong');title.textContent=r.Fecha+' · '+r.Inicio+'–'+r.Fin+' | '+(r.Estilo||r.Servicio);card.append(title);
+   const detail=document.createElement('p');detail.className='muted';
+   detail.textContent='Cliente: '+r.Cliente+' · '+r.Servicio+' · Estado: '+r.Estado;card.append(detail);
+   if(r.Comentario){const note=document.createElement('p');note.textContent='Indicaciones: '+r.Comentario;card.append(note);}
+   const digits=String(r.Telefono||'').replace(/\D/g,'');
+   if(digits.length>=8&&digits.length<=15){const wa=document.createElement('a');wa.href='https://wa.me/'+(digits.length===8?'505'+digits:digits);
+    wa.target='_blank';wa.rel='noopener noreferrer';wa.textContent='Contactar por WhatsApp';card.append(wa);}
+   if(r.CalendarUrl){const a=document.createElement('a');a.href=r.CalendarUrl;a.target='_blank';
+    a.rel='noopener noreferrer';a.textContent=' · Abrir Google Calendar';card.append(a);}
+   listaReservas.append(card);
+ });
  if(window.bcMediaRefresh)window.bcMediaRefresh();
 }
 function guardarConfig(){
