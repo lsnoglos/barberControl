@@ -4,12 +4,13 @@
  */
 function obtenerPanelAdmin() {
   const estado=obtenerEstadoInstalacion_();
-  if (!estado.instalado) return {estado:estado,configuracion:[],horarios:[],servicios:[],bloqueos:[],reservas:[]};
+  if (!estado.instalado) return {estado:estado,configuracion:[],horarios:[],servicios:[],estilos:[],bloqueos:[],reservas:[]};
   return {
     estado:estado,
     configuracion:leerFilasAdmin_('Configuracion'),
     horarios:leerFilasAdmin_('Horarios'),
     servicios:leerFilasAdmin_('Servicios'),
+    estilos:leerFilasAdmin_('Estilos'),
     bloqueos:leerFilasAdmin_('Bloqueos'),
     reservas:leerFilasAdmin_('Reservas').slice(-60).reverse()
   };
@@ -20,6 +21,10 @@ function guardarServicioAdmin(data) {
   const nombre=String(data.nombre||'').trim().slice(0,100);
   const categoria=String(data.categoria||'Cabello').trim().slice(0,60);
   const descripcion=String(data.descripcion||'').trim().slice(0,800);
+  const categoriaActiva=leerFilasAdmin_('Categorias').some(function(c){
+    return c.Nombre===categoria && String(c.Activa).toLowerCase()==='true';
+  });
+  if(!categoriaActiva)throw new Error('Selecciona una categoría activa del catálogo.');
   const duracion=Number(data.duracion);
   const precio=Number(data.precio);
   if (nombre.length<3) throw new Error('El nombre debe tener al menos 3 caracteres.');
