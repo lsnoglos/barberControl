@@ -1,62 +1,60 @@
 # BarberControl ✂
 
-Sistema de reservas de barbería con **dos aplicaciones Google Apps Script independientes** y recursos compartidos de **Google Sheets, Google Calendar y Google Drive**.
+Sistema de reservas para barbería, construido con **dos proyectos Google Apps Script independientes**, Google Sheets, Google Calendar y Google Drive.
 
-## Estructura
+## Versión actual: escaparate móvil de estilos
+
+La interfaz pública ahora muestra **únicamente estilos y servicios**: portada con fotografía destacada de los cortes reales, logotipo del negocio, WhatsApp, buscador, filtros por categoría, ordenamiento, precios, duración y botón **Reservar** en cada tarjeta. Ya no se muestra la galería general de trabajos (los registros y archivos existentes se conservan).
+
+Al elegir un estilo, el cliente pasa a la agenda interactiva, selecciona fecha y hora y confirma sin iniciar sesión. El nombre del estilo queda tanto en la fila de Sheets como en el título del **nuevo evento** de Google Calendar.
+
+El administrador puede configurar nombre, eslogan, WhatsApp, logotipo PNG transparente y categorías (Cabello, Barba, Combos, Masajes, Diseños, Tratamientos y las nuevas que cree). Cada estilo se relaciona con un servicio que define el precio y la duración.
+
+## Actualización de los proyectos que ya creaste
+
+**[Guía paso a paso: ACTUALIZAR-ESCAPARATE.md](docs/ACTUALIZAR-ESCAPARATE.md)**
+
+Primero se actualiza **Barber Admin**, luego se ejecuta una vez el instalador actualizado para crear `Categorias` y los nuevos campos de configuración (sin borrar citas). Después se reemplazan los archivos indicados en **Barber Public** y se publican nuevas versiones de ambos despliegues.
+
+## Organización del repositorio
 
 ```text
 barberControl/
 ├── apps/
-│   ├── public/            # Proyecto Apps Script PUBLICO, sin login
-│   │   ├── Code.gs        # Página web / doPost firmado
-│   │   ├── Datos.gs       # Consultas públicas a Sheets
-│   │   ├── Disponibilidad.gs
-│   │   ├── Reservas.gs    # Confirmaciones con revalidación
-│   │   ├── Puente.gs      # Bloqueos administrativos HMAC\n│   │   ├── Catalogo.gs    # Catálogos y fotografías públicas\n│   │   ├── GaleriaPublica.html
+│   ├── admin/                  # Proyecto Apps Script PRIVADO
+│   │   ├── Code.gs
+│   │   ├── Instalador.gs       # Idempotente: crea o reutiliza recursos
+│   │   ├── Gestion.gs          # Servicios, horarios, bloqueos y agenda
+│   │   ├── Marca.gs            # Nombre, WhatsApp, logo y categorías
+│   │   ├── MarcaPanel.html     # Identidad y categorías en Admin
+│   │   ├── Catalogos.gs       # Almacenamiento multimedia y estilos
+│   │   ├── CatalogoPanel.html  # Solo gestión de estilos
 │   │   ├── Index.html
 │   │   └── appsscript.json
-│   └── admin/             # Proyecto Apps Script PRIVADO, propietario
+│   └── public/                 # Proyecto Apps Script PÚBLICO
 │       ├── Code.gs
-│       ├── Instalador.gs  # Crea recursos Google automáticamente
-│       ├── Gestion.gs     # Servicios, horarios y puente\n│       ├── Catalogos.gs   # Estilos, trabajos, fotos y videos\n│       ├── CatalogoPanel.html
-│       ├── Index.html
+│       ├── Datos.gs
+│       ├── Escaparate.gs       # Marca y productos por categorías
+│       ├── Catalogo.gs        # Validación y entrega privada de imágenes
+│       ├── Disponibilidad.gs
+│       ├── Reservas.gs        # Refleja el estilo en Google Calendar
+│       ├── Puente.gs
+│       ├── Index.html         # Catálogo móvil + reservas
+│       ├── GaleriaPublica.html # Histórico, ya NO se incorpora a la interfaz
 │       └── appsscript.json
 ├── docs/
-│   ├── ARQUITECTURA.md
-│   └── DESPLIEGUE.md
 └── tests/
-    └── validate.js
 ```
 
-## Funciones implementadas
+## Seguridad y datos
 
-**Privado**: instalación idempotente; creación de pestañas Sheets, estructura Drive y calendario; cambio del nombre de negocio, intervalo, servicios, precios, duración, estado activo/visible/reservable, horarios semanales y bloqueos recurrentes o por fecha a través de un puente autenticado.
+- La web pública se ejecuta sin login; el panel Admin debe desplegarse como **Solo yo**.
+- No se publican credenciales, ID de Drive del logo, datos personales ni fotos privadas sin autorización.
+- Los datos de reservas y la galería anterior permanecen en Sheets/Drive. El instalador no debe ejecutarse en una cuenta distinta a la propietaria.
+- Apps Script tiene cuotas y Google Sheets/Calendar no comparten una transacción atómica: aún faltan pruebas reales de concurrencia, monitoreo y recuperación de errores antes de escalar.
 
-**Público**: lectura de servicios permitidos; selección de fecha; cálculo de intervalos según duración, calendario, citas, bloqueos, horario y anticipación; registro de reservas con revalidación y bloqueo; creación de eventos en Calendar; confirmación de la reserva al cliente.
+## Estado de pruebas
 
-Ambas interfaces están diseñadas como **primera versión funcional de desarrollo**, pendientes de despliegue, autorizaciones, pruebas integrales y endurecimiento antes de usarse con clientes reales.
+CI valida sintaxis y lógica de catálogo, consentimiento, privacidad, identidad y reserva con estilo utilizando simulaciones. **No equivale a pruebas reales en la cuenta de Google.** Confirma el flujo completo en tus dos implementaciones antes de compartir el enlace a clientes.
 
-## Catálogos, fotos y videos (implementados en código)
-
-- **Admin:** `Catalogos.gs` y `CatalogoPanel.html` crean/actualizan estilos, portadas y publicaciones con fotos y YouTube.
-- **Público:** `Catalogo.gs` y `GaleriaPublica.html` presentan solo medios publicados y permiten reservar desde un estilo/trabajo.
-- **Integración:** `Reservas.gs` guarda los identificadores del estilo y de la fotografía de referencia.
-
-Para incorporar esta mejora a tus proyectos ya creados, consulta **[ACTUALIZAR-CATALOGOS.md](docs/ACTUALIZAR-CATALOGOS.md)**.
-
-## Pendiente para próximas iteraciones
-
-Gestión/cancelación de citas desde Admin, enlaces privados de cancelación para clientes, recordatorios, pruebas reales de concurrencia, controles contra bots, respaldos programados, conciliación de errores externos y optimización adicional de imágenes para catálogos muy grandes.
-
-## ¡No mezcles proyectos!
-
-- Código de `apps/public` → despliegue accesible para cualquiera (sin autorizar Google).
-- Código de `apps/admin` → despliegue `MYSELF`, exclusivamente del propietario.
-- **Nunca** copies `Gestion.gs` ni `Instalador.gs` al proyecto público.
-- `BRIDGE_SECRET` y los identificadores reales se almacenan en **Script Properties**, no en Git.
-
-## Inicio
-
-Sigue [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md), después [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
-
-**Estado en Google:** el repositorio GitHub contiene código; por sí solo no crea proyectos Apps Script en la cuenta del propietario. Debe crear dos proyectos y autorizar los permisos de Google como se describe en la guía.
+[Arquitectura](docs/ARQUITECTURA.md) · [Despliegue inicial](docs/DESPLIEGUE.md) · [Actualización de esta versión](docs/ACTUALIZAR-ESCAPARATE.md)
