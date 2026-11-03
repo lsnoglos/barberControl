@@ -50,6 +50,8 @@ function reservarCita(solicitud) {
         (estiloId && trabajo.EstiloId && trabajo.EstiloId!==estiloId))
         throw new Error('La fotografía de referencia no está disponible para este servicio.');
     }
+    const estiloElegido=estiloId?estiloVisibleCatalogo_(estiloId):null;
+    const nombreEstilo=estiloElegido?String(estiloElegido.Nombre):'';
     const calculo=calcularIntervalos_(fecha,servicioId);
     const slot=calculo.horarios.find(function(h){return h.inicio===inicio;});
     if(!slot)throw new Error('Ese horario dejo de estar disponible. Selecciona otro.');
@@ -58,9 +60,9 @@ function reservarCita(solicitud) {
     const hash=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,token,Utilities.Charset.UTF_8)
       .map(function(b){return ('0'+(b&255).toString(16)).slice(-2);}).join('');
     const calendar=calendarioPublico_();
-    const ev=calendar.createEvent('BarberControl: '+calculo.servicio.nombre,
+    const ev=calendar.createEvent('✂ '+(nombreEstilo||calculo.servicio.nombre)+' | '+calculo.servicio.nombre,
       fechaLocal_(fecha,inicio),fechaLocal_(fecha,slot.fin),{
-      description:'Reserva: '+id+'\nCliente: '+nombre+'\nTelefono: '+telefono+'\nEstilo: '+(estiloId||'Sin referencia')+'\nTrabajo: '+(galeriaId||'Sin referencia')+'\nComentario: '+comentario
+      description:'Reserva: '+id+'\nCliente: '+nombre+'\nTelefono: '+telefono+'\nEstilo: '+(nombreEstilo||'Sin estilo')+(estiloId?' ['+estiloId+']':'')+'\nTrabajo: '+(galeriaId||'Sin referencia')+'\nComentario: '+comentario
     });
     try{
       dbPublica_().getSheetByName('Reservas').appendRow([
@@ -75,7 +77,7 @@ function reservarCita(solicitud) {
     }
     return {
       codigo:id,fecha:fecha,inicio:inicio,fin:slot.fin,
-      servicio:calculo.servicio.nombre,precio:calculo.servicio.precio,
+      servicio:calculo.servicio.nombre,estilo:nombreEstilo,precio:calculo.servicio.precio,
       token:token
     };
   }finally{lock.releaseLock();}
