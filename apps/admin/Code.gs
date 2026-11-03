@@ -6,7 +6,7 @@ function doGet() {
 }
 
 function incluirCatalogoAdmin_(nombre) {
-  if(nombre!=='CatalogoPanel')throw new Error('Plantilla no permitida.');
+  if(!['CatalogoPanel','MarcaPanel'].includes(nombre))throw new Error('Plantilla no permitida.');
   return HtmlService.createHtmlOutputFromFile(nombre).getContent();
 }
 
