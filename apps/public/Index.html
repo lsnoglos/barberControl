@@ -25,6 +25,8 @@ header{position:sticky;top:0;z-index:12;background:rgba(15,16,20,.96);border-bot
 .header-contact[hidden]{display:none}
 main{max-width:1120px;margin:0 auto;padding:0 18px 95px}
 .hero{position:relative;overflow:hidden;min-height:235px;background:radial-gradient(ellipse at 87% 18%,#484033 0,transparent 38%),linear-gradient(130deg,#26272b,#14161a 78%);border:1px solid var(--border);margin-top:16px;border-radius:24px;padding:29px 26px}
+.hero-image{position:absolute;inset:0 0 0 auto;height:100%;width:56%;object-fit:cover;opacity:.55;mask-image:linear-gradient(to right,transparent,#000 58%);-webkit-mask-image:linear-gradient(to right,transparent,#000 58%)}
+.hero>.eyebrow,.hero>h1,.hero>p,.hero>.hero-actions{position:relative;z-index:2}
 .hero::after{content:"✂";position:absolute;right:-10px;bottom:-50px;font-size:225px;transform:rotate(-18deg);opacity:.065;pointer-events:none}
 .eyebrow{color:var(--gold);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800}
 .hero h1{font-size:clamp(30px,6.5vw,53px);line-height:1.08;letter-spacing:-.045em;margin:12px 0;max-width:520px}
@@ -123,6 +125,7 @@ main{padding:0 11px 110px}.header-inner{padding:9px 12px}.brand-mark{width:43px;
 </header>
 <main>
  <div class="hero">
+  <img id="heroFoto" class="hero-image" alt="Estilo destacado de la barbería" hidden>
   <div class="eyebrow">✦ Elige tu próximo look</div>
   <h1>Un gran estilo empieza aquí.</h1>
   <p>Explora nuestros cortes y servicios, encuentra el que te gusta y reserva tu horario en minutos. Sin llamadas ni registros.</p>
@@ -211,6 +214,14 @@ function setupBrand(data){
    if(uri){$('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;}
   }).catch(()=>{});
  }
+}
+function showHeroImage(data){
+ const featured=(data.productos||[]).find(p=>p.tieneImagen&&p.tipoImagen==='ESTILO')||
+  (data.productos||[]).find(p=>p.tieneImagen);
+ if(!featured)return;
+ api('obtenerImagenPublica',[featured.tipoImagen,featured.id,'']).then(uri=>{
+  if(uri){$('heroFoto').src=uri;$('heroFoto').hidden=false;}
+ }).catch(()=>{});
 }
 function categoryButtons(){
  const list=['Todo',...(state.data.categorias||[])];
@@ -369,7 +380,7 @@ $('formularioReserva').addEventListener('submit',e=>e.preventDefault());
 (async()=>{
  try{
   const data=await api('obtenerEscaparatePublico',[]);
-  state.data=data;setupBrand(data);categoryButtons();renderProducts();
+  state.data=data;setupBrand(data);showHeroImage(data);categoryButtons();renderProducts();
   $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
  }catch(e){
   $('productos').textContent='';
