@@ -12,7 +12,7 @@ function obtenerPanelAdmin() {
     servicios:leerFilasAdmin_('Servicios'),
     estilos:leerFilasAdmin_('Estilos'),
     bloqueos:leerFilasAdmin_('Bloqueos'),
-    reservas:leerFilasAdmin_('Reservas').slice(-60).reverse()
+    reservas:obtenerReservasDetalladasAdmin_()
   };
 }
 
@@ -138,4 +138,23 @@ function guardarBloqueoAdmin(data){
 function desactivarBloqueoAdmin(id){
   enviarAlPuenteAdmin_('desactivarBloqueo',{id:id});
   return obtenerPanelAdmin();
+}
+
+/** Muestra estilo escogido y descripción del servicio en la agenda privada. */
+function obtenerReservasDetalladasAdmin_() {
+  const rows=leerFilasAdmin_('Reservas').slice(-150).reverse();
+  const services={}; leerFilasAdmin_('Servicios').forEach(function(s){services[s.ID]=s.Nombre;});
+  const styles={}; leerFilasAdmin_('Estilos').forEach(function(s){styles[s.ID]=s.Nombre;});
+  const calId=PropertiesService.getScriptProperties().getProperty('CALENDAR_ID');
+  return rows.map(function(r){
+    const serviceName=services[r.ServicioId]||r.ServicioId||'Servicio no especificado';
+    const styleName=r.EstiloId?(styles[r.EstiloId]||'Estilo archivado ('+r.EstiloId+')'):'';
+    return {
+      ID:r.ID,Fecha:r.Fecha,Inicio:r.Inicio,Fin:r.Fin,
+      Cliente:r.Cliente,Telefono:r.Telefono,Estado:r.Estado,
+      Servicio:serviceName,Estilo:styleName,Comentario:r.Comentario,
+      CalendarEventId:r.CalendarEventId,
+      CalendarUrl:calId&&r.CalendarEventId?'https://calendar.google.com/calendar/u/0/r/week':''
+    };
+  });
 }
