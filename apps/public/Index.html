@@ -113,6 +113,50 @@ main{padding:0 11px 110px}.header-inner{padding:9px 12px}.brand-mark{width:43px;
 .bottom-nav button,.bottom-nav a{border:0;background:transparent;color:#c6c5c3;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:11px;font-weight:750}
 .bottom-nav .nav-icon{font-size:20px;color:var(--gold)}
 }
+
+/* Identidad visual de la barbería: hero sin fotografías de estilos */
+.hero{
+  background:
+    radial-gradient(circle at 85% 25%,rgba(228,192,133,.18),transparent 38%),
+    linear-gradient(120deg,#171a23 0%,#24232a 49%,#11141c 100%);
+  padding-right:clamp(175px,31%,330px);
+}
+.hero-logo-panel{
+  position:absolute;right:0;top:0;bottom:0;
+  width:35%;display:flex;align-items:center;justify-content:center;
+  padding:22px;pointer-events:none;
+  background:radial-gradient(circle,rgba(220,174,103,.12),transparent 72%);
+}
+.hero-logo-frame{
+  width:min(100%,255px);aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:32px;border:1px solid rgba(238,203,149,.2);
+  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(9,10,15,.2));
+  box-shadow:0 16px 46px rgba(0,0,0,.25);
+  padding:18px;
+}
+.hero-logo-frame img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 16px rgba(0,0,0,.22))}
+#heroLogoFallback{font-size:88px;color:var(--gold)}
+.hero::after{display:none}
+.header-contact,.btn-whatsapp{
+  display:inline-flex;justify-content:center;align-items:center;gap:8px;
+  background:#168b49!important;border:1px solid #30bd72!important;
+  color:#fff!important;font-weight:800;
+}
+.header-contact:hover,.btn-whatsapp:hover{background:#10783c!important}
+.btn-whatsapp{padding:12px 17px;border-radius:13px;font-size:13px;min-height:44px}
+.whatsapp-icon{
+  width:20px;height:20px;display:inline-flex;align-items:center;
+  justify-content:center;border:1.4px solid currentColor;border-radius:50%;
+  font-size:14px;line-height:1;
+}
+@media(max-width:620px){
+  .hero{padding-right:18px;padding-bottom:155px}
+  .hero-logo-panel{top:auto;bottom:3px;height:145px;width:100%;padding:8px}
+  .hero-logo-frame{width:126px;border-radius:22px;padding:9px}
+  #heroLogoFallback{font-size:48px}
+}
+
 </style>
 </head>
 <body>
@@ -120,18 +164,23 @@ main{padding:0 11px 110px}.header-inner{padding:9px 12px}.brand-mark{width:43px;
 <div class="header-inner">
  <div class="brand-mark" id="marcaIcono"><span id="marcaIniciales">✂</span><img id="marcaLogo" alt="Logo de la barbería" hidden></div>
  <div class="brand-copy"><div id="marcaNombre" class="brand-name">BarberControl</div><div id="marcaSlogan" class="brand-sub">Tu estilo comienza aquí</div></div>
- <a id="whatsappTop" class="header-contact" href="#" target="_blank" rel="noopener noreferrer" hidden>✆ WhatsApp</a>
+ <a id="whatsappTop" class="header-contact" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="whatsapp-icon" aria-hidden="true">☎</span> WhatsApp</a>
 </div>
 </header>
 <main>
  <div class="hero">
-  <img id="heroFoto" class="hero-image" alt="Estilo destacado de la barbería" hidden>
+  <div class="hero-logo-panel" aria-label="Identidad de la barbería">
+    <div class="hero-logo-frame">
+      <img id="heroLogo" alt="Logotipo de la barbería" hidden>
+      <span id="heroLogoFallback" aria-hidden="true">✂</span>
+    </div>
+  </div>
   <div class="eyebrow">✦ Elige tu próximo look</div>
   <h1>Un gran estilo empieza aquí.</h1>
   <p>Explora nuestros cortes y servicios, encuentra el que te gusta y reserva tu horario en minutos. Sin llamadas ni registros.</p>
   <div class="hero-actions">
    <a href="#catalogo" class="btn-primary">Explorar estilos <span aria-hidden="true">↓</span></a>
-   <a id="whatsappHero" class="btn-outline" href="#" target="_blank" rel="noopener noreferrer" hidden>✆ Contactar</a>
+   <a id="whatsappHero" class="btn-whatsapp" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="whatsapp-icon" aria-hidden="true">☎</span> Contactar por WhatsApp</a>
   </div>
  </div>
 
@@ -211,17 +260,12 @@ function setupBrand(data){
  });
  if(data.tieneLogo){
   api('obtenerLogoPublico',[]).then(uri=>{
-   if(uri){$('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;}
+   if(uri){
+    $('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;
+    $('heroLogo').src=uri;$('heroLogo').hidden=false;$('heroLogoFallback').hidden=true;
+   }
   }).catch(()=>{});
  }
-}
-function showHeroImage(data){
- const featured=(data.productos||[]).find(p=>p.tieneImagen&&p.tipoImagen==='ESTILO')||
-  (data.productos||[]).find(p=>p.tieneImagen);
- if(!featured)return;
- api('obtenerImagenPublica',[featured.tipoImagen,featured.id,'']).then(uri=>{
-  if(uri){$('heroFoto').src=uri;$('heroFoto').hidden=false;}
- }).catch(()=>{});
 }
 function categoryButtons(){
  const list=['Todo',...(state.data.categorias||[])];
@@ -380,7 +424,7 @@ $('formularioReserva').addEventListener('submit',e=>e.preventDefault());
 (async()=>{
  try{
   const data=await api('obtenerEscaparatePublico',[]);
-  state.data=data;setupBrand(data);showHeroImage(data);categoryButtons();renderProducts();
+  state.data=data;setupBrand(data);categoryButtons();renderProducts();
   $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
  }catch(e){
   $('productos').textContent='';
