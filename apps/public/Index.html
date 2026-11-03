@@ -1,120 +1,384 @@
 <!DOCTYPE html>
-<html lang="es"><head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BarberControl | Reserva tu corte</title>
+<html lang="es">
+<head>
+<base target="_self">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111317">
+<title>Reserva tu próximo estilo | BarberControl</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}
-*{box-sizing:border-box}body{background:#101115;color:#f6f5f2;margin:0}main{max-width:980px;margin:0 auto;padding:0 18px 65px}
-.hero{background:linear-gradient(120deg,#292b30,#111216 70%);border:1px solid #35373a;border-radius:22px;padding:38px 28px;margin-top:22px}
-h1{font-size:clamp(2rem,6vw,3.3rem);margin:.2em 0}h2{font-size:1.4rem}
-.eyebrow{color:#e4c488;letter-spacing:.15em;text-transform:uppercase;font-size:.8rem;font-weight:700}
-p,.muted{color:#b7bbc2;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.card,section{background:#1b1e23;border:1px solid #34363c;border-radius:18px;padding:22px;margin-top:18px}
-.service{background:#21242b;border:1px solid #454851;text-align:left;color:#f8f8f8;padding:18px;border-radius:13px;cursor:pointer}
-.service.selected{outline:2px solid #e7c58c}.service span{display:block;margin-top:9px;color:#bfc2c8;font-size:.85rem}
-label{display:flex;flex-direction:column;gap:7px;margin:10px 0;color:#ddd}input,textarea{width:100%;padding:12px;border:1px solid #555963;background:#111318;border-radius:10px;color:#fff;font:inherit}
-button{font:inherit;cursor:pointer}.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
-.slot,.primary{border:1px solid #d3b57e;border-radius:10px;padding:12px;background:transparent;color:#e4c58c}
-.slot.active,.primary{background:#ddbc7f;color:#181818;font-weight:700}.primary{width:100%;margin-top:12px}
-.primary:disabled,.slot:disabled{opacity:.4;cursor:not-allowed}.hidden{display:none}
-.badge{display:inline-flex;padding:7px 10px;border-radius:25px;background:#2b352c;color:#b9e6bd}
-#mensaje{min-height:24px}.error{color:#ffb1a5}.summary{border:1px solid #395841;border-radius:13px;background:#1b2a21;padding:18px;margin:12px 0;overflow-wrap:anywhere}
-footer{margin-top:40px;color:#a4a7ad;text-align:center;font-size:.8rem}
-</style></head><body><main>
-<div class="hero"><div class="eyebrow">Agenda tu próximo estilo</div><h1 id="negocio">BarberControl</h1>
-<p>Elige un servicio, consulta los horarios disponibles y confirma tu reserva sin crear una cuenta.</p>
-<a href="#servicios" style="color:#eed09b">Explorar los servicios ↓</a></div>
-<section id="servicios"><h2>1. Elige tu servicio</h2><div id="catalogo" class="grid"><p>Cargando servicios…</p></div></section>
-<?!= incluirCatalogoPublico_('GaleriaPublica'); ?>
-<section id="calendario"><h2>2. Elige fecha y hora</h2>
-<label>Fecha<input type="date" id="fecha"></label><p id="ayuda" class="muted">Selecciona primero un servicio.</p>
-<div id="horarios" class="slots"></div><p id="bcReferenciaElegida" class="bc-visual-summary"></p></section>
-<section id="datos" class="hidden"><h2>3. Datos para tu reservación</h2>
-<form id="formulario" onsubmit="event.preventDefault(); return false;">
-<div class="grid"><label>Nombre completo<input id="nombre" maxlength="90" minlength="3" required autocomplete="name"></label>
-<label>WhatsApp<input id="telefono" type="tel" placeholder="88888888" required minlength="8" maxlength="20" autocomplete="tel"></label></div>
-<label>Comentario para el barbero (opcional)<textarea id="comentario" maxlength="500" rows="3" placeholder="Cuéntanos cómo deseas tu corte"></textarea></label>
-<p id="resumen" class="muted"></p><button id="confirmar" class="primary" type="button">Confirmar cita</button></form>
-</section>
-<section id="exito" class="hidden" aria-live="polite"><h2>✓ Reserva confirmada</h2><div class="summary" id="comprobante"></div><p class="muted">Guarda esta información. El barbero visualizará tu cita en su calendario.</p>
-<button class="primary" onclick="location.reload()">Hacer otra reserva</button></section>
-<p id="mensaje" role="status"></p>
-<footer>BarberControl · Reservas en línea</footer>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;--bg:#101115;--panel:#1c1e24;--panel2:#242730;--muted:#aaaeb8;--gold:#e6c38d;--border:#373b43;--ink:#f8f7f5}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:12;background:rgba(15,16,20,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
+.header-inner{max-width:1120px;margin:auto;padding:11px 19px;display:flex;align-items:center;gap:11px}
+.brand-mark{width:46px;height:46px;border-radius:13px;background:#292b31;display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:900;font-size:20px;overflow:hidden;flex-shrink:0}
+.brand-mark img{width:100%;height:100%;object-fit:contain}
+.brand-copy{flex:1;min-width:0}
+.brand-name{font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.header-contact{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;border-radius:12px;border:1px solid #417257;background:#163a2a;color:#bff4d1;font-size:12px;font-weight:750}
+.header-contact[hidden]{display:none}
+main{max-width:1120px;margin:0 auto;padding:0 18px 95px}
+.hero{position:relative;overflow:hidden;min-height:235px;background:radial-gradient(ellipse at 87% 18%,#484033 0,transparent 38%),linear-gradient(130deg,#26272b,#14161a 78%);border:1px solid var(--border);margin-top:16px;border-radius:24px;padding:29px 26px}
+.hero::after{content:"✂";position:absolute;right:-10px;bottom:-50px;font-size:225px;transform:rotate(-18deg);opacity:.065;pointer-events:none}
+.eyebrow{color:var(--gold);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800}
+.hero h1{font-size:clamp(30px,6.5vw,53px);line-height:1.08;letter-spacing:-.045em;margin:12px 0;max-width:520px}
+.hero p{color:#c3c4c9;line-height:1.48;max-width:480px;font-size:14px;margin-bottom:23px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;position:relative;z-index:1}
+.btn-primary,.btn-outline{border-radius:13px;padding:12px 18px;font-size:13px;font-weight:850;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-primary{background:var(--gold);border:1px solid var(--gold);color:#161514}
+.btn-outline{background:#24262d;border:1px solid #464950;color:var(--ink)}
+.btn-primary:disabled,.btn-outline:disabled{opacity:.45;cursor:not-allowed}
+section{scroll-margin-top:85px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 12px;gap:10px}
+.section-head h2{margin:0;font-size:clamp(22px,3.5vw,29px);letter-spacing:-.03em}
+.section-head small{display:block;color:var(--muted);margin-top:3px;font-size:12px}
+.section-count{font-size:12px;color:var(--gold);background:#353026;border:1px solid #5e4b31;border-radius:20px;padding:7px 10px;white-space:nowrap}
+.searchwrap{display:flex;align-items:center;background:var(--panel);border:1px solid #444850;border-radius:14px;margin:17px 0 13px;padding:0 14px;gap:10px}
+.searchwrap span{color:var(--gold);font-size:21px}
+.searchwrap input{height:47px;flex:1;width:100%;border:0;background:transparent;color:var(--ink);outline:none;font-size:14px}
+.categories{display:flex;gap:9px;overflow-x:auto;padding:1px 0 12px;scrollbar-width:none}
+.categories::-webkit-scrollbar{display:none}
+.category{flex-shrink:0;border:1px solid #41454d;border-radius:100px;padding:10px 15px;background:#22242a;color:#c4c6cb;font-size:13px;font-weight:700;white-space:nowrap}
+.category.active{background:var(--gold);border-color:var(--gold);color:#201b15}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0 12px}
+.toolbar small{font-size:12px;color:var(--muted)}
+.toolbar select{font-size:12px;background:var(--panel);border:1px solid var(--border);color:#ddd;padding:9px;border-radius:10px;max-width:170px}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.product{background:var(--panel);border:1px solid var(--border);border-radius:17px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.product-picture{height:auto;aspect-ratio:1/1;position:relative;background:linear-gradient(140deg,#35363b,#191b20);display:grid;place-items:center;overflow:hidden}
+.product-picture img{position:absolute;width:100%;height:100%;inset:0;object-fit:cover}
+.picture-placeholder{font-size:55px;opacity:.18}
+.product-label{position:absolute;bottom:9px;left:9px;background:rgba(17,18,21,.83);border:1px solid #606068;color:#eee;border-radius:9px;padding:5px 7px;font-size:10px}
+.product-body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.product-category{font-size:10px;color:var(--gold);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.product-title{font-size:14px;font-weight:800;line-height:1.23;min-height:33px;margin:0;overflow-wrap:anywhere}
+.product-desc{font-size:11px;color:#aeb0b7;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;margin:0}
+.product-foot{display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-top:auto}
+.product-price{font-size:19px;font-weight:900;letter-spacing:-.04em}
+.product-time{font-size:11px;color:#9fa2a8;white-space:nowrap}
+.product .btn-primary{width:100%;min-height:39px;padding:10px 5px;font-size:12px;border-radius:10px;margin-top:6px}
+.empty{padding:32px 17px;text-align:center;background:var(--panel);border-radius:15px;border:1px dashed #555963;color:#b9bdc5;grid-column:1/-1}
+.booking{margin-top:28px;border:1px solid #534734;border-radius:22px;background:linear-gradient(160deg,#25231f,#191b20 55%);padding:21px}
+.booking[hidden]{display:none}
+.booking h2{margin:0 0 5px;font-size:23px}
+.booking p{color:#b9bcc3;line-height:1.5}
+.step-label{font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.09em}
+.selected-style{display:flex;align-items:center;gap:13px;background:#121419;border:1px solid #4b4640;border-radius:14px;padding:14px;margin:15px 0}
+.selected-style strong{font-size:15px}
+.selected-style span{display:block;font-size:12px;color:#b6b7bc;margin-top:6px}
+.calendar-tools{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin:16px 0}
+.booking label{font-size:12px;color:#c4c6cc;display:flex;flex-direction:column;gap:6px}
+.booking input,.booking textarea{width:100%;color:#fff;background:#14161b;border:1px solid #555860;border-radius:11px;padding:12px;outline:none}
+.booking input:focus,.booking textarea:focus{border-color:var(--gold)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:12px 0 19px}
+.day{border-radius:11px;padding:9px 1px;min-height:61px;border:1px solid #47494e;background:#26272c;color:#e0e1e5;font-size:11px}
+.day b{display:block;font-size:17px;margin-top:5px}
+.day.active{background:var(--gold);color:#1b1a18;border-color:var(--gold)}
+.day:disabled{opacity:.25;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin:13px 0 18px}
+.slot{background:#22252a;color:#e1e2e4;border:1px solid #494d54;border-radius:11px;padding:12px;font-weight:750;font-size:13px}
+.slot.active{background:var(--gold);border-color:var(--gold);color:#141414}
+.book-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+.book-fields label:last-child{grid-column:1/-1}
+.booking-status{font-size:13px;color:#e7c48f;min-height:17px;white-space:pre-wrap}
+.booking-status.error{color:#ffb2a8}
+.booking .btn-primary{width:100%;margin-top:12px}
+.success{padding:22px;background:#14281d;border:1px solid #457255;border-radius:15px;margin-top:17px}
+.success[hidden]{display:none}
+.success h3{color:#beedcd;margin:0 0 8px}
+.success p{margin:8px 0}
+.footer{padding:30px 0;border-top:1px solid var(--border);margin-top:34px;color:#a8aab1;text-align:center;font-size:12px}
+.bottom-nav{display:none}
+[hidden]{display:none!important}
+@media(min-width:740px){.products{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.product-title{font-size:16px}.product-desc{font-size:12px}.product-price{font-size:22px}.product-body{padding:15px}.brand-name{font-size:19px}}
+@media(min-width:1020px){.products{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:620px){
+main{padding:0 11px 110px}.header-inner{padding:9px 12px}.brand-mark{width:43px;height:43px}
+.hero{margin-top:10px;padding:24px 18px;min-height:233px;border-radius:19px}.hero h1{font-size:32px}.hero p{font-size:13px}
+.section-head{margin-top:22px}
+.product-body{padding:10px}.product-price{font-size:17px}.product-time{font-size:10px}
+.product-title{font-size:13px}.product-desc{font-size:11px}
+.header-contact{font-size:11px;padding:9px 10px}
+.book-fields{grid-template-columns:1fr}.book-fields label:last-child{grid-column:auto}
+.booking{padding:16px}
+.bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);height:68px;bottom:0;left:0;right:0;z-index:15;background:#17191ef5;box-shadow:0 -6px 25px #0005;border-top:1px solid #41454c;padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav button,.bottom-nav a{border:0;background:transparent;color:#c6c5c3;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:11px;font-weight:750}
+.bottom-nav .nav-icon{font-size:20px;color:var(--gold)}
+}
+</style>
+</head>
+<body>
+<header id="inicio">
+<div class="header-inner">
+ <div class="brand-mark" id="marcaIcono"><span id="marcaIniciales">✂</span><img id="marcaLogo" alt="Logo de la barbería" hidden></div>
+ <div class="brand-copy"><div id="marcaNombre" class="brand-name">BarberControl</div><div id="marcaSlogan" class="brand-sub">Tu estilo comienza aquí</div></div>
+ <a id="whatsappTop" class="header-contact" href="#" target="_blank" rel="noopener noreferrer" hidden>✆ WhatsApp</a>
+</div>
+</header>
+<main>
+ <div class="hero">
+  <div class="eyebrow">✦ Elige tu próximo look</div>
+  <h1>Un gran estilo empieza aquí.</h1>
+  <p>Explora nuestros cortes y servicios, encuentra el que te gusta y reserva tu horario en minutos. Sin llamadas ni registros.</p>
+  <div class="hero-actions">
+   <a href="#catalogo" class="btn-primary">Explorar estilos <span aria-hidden="true">↓</span></a>
+   <a id="whatsappHero" class="btn-outline" href="#" target="_blank" rel="noopener noreferrer" hidden>✆ Contactar</a>
+  </div>
+ </div>
+
+ <section id="catalogo">
+  <div class="section-head"><div><h2>Explora nuestros estilos</h2><small>Encuentra el servicio ideal para ti</small></div><span class="section-count" id="catalogCount">Cargando…</span></div>
+  <div class="searchwrap"><span aria-hidden="true">⌕</span><input type="search" id="buscar" placeholder="Buscar degradado, barba, masaje…" aria-label="Buscar servicios y estilos"></div>
+  <nav id="categorias" class="categories" aria-label="Categorías"></nav>
+  <div class="toolbar"><small id="resultCount"></small><select id="orden" aria-label="Ordenar catálogo">
+    <option value="destacado">Recomendados</option><option value="precioAsc">Menor precio</option>
+    <option value="precioDesc">Mayor precio</option><option value="az">A a Z</option>
+  </select></div>
+  <div id="productos" class="products"><div class="empty">Preparando los estilos disponibles…</div></div>
+ </section>
+
+ <section class="booking" id="reservar" hidden>
+  <div class="step-label">Tu próxima cita · Paso 1 de 2</div>
+  <h2>Elige cuándo te atendemos</h2>
+  <p>Ya elegiste tu estilo. Selecciona un día y después la hora que mejor te funcione.</p>
+  <div class="selected-style"><div style="font-size:29px;color:var(--gold)">✂</div><div><strong id="estiloElegido"></strong><span id="detalleElegido"></span></div></div>
+  <div class="calendar-tools"><label>Fecha de atención<input id="fecha" type="date" required></label><span id="horarioInfo" style="font-size:12px;color:var(--muted);padding-bottom:12px">Horarios libres</span></div>
+  <div id="dias" class="days" aria-label="Próximos siete días"></div>
+  <div class="step-label">Horarios disponibles</div>
+  <div id="horarios" class="slots"><small>Elige primero una fecha.</small></div>
+  <div id="datosCliente" hidden>
+   <div class="step-label">Paso 2 de 2 · Tus datos</div>
+   <form id="formularioReserva" onsubmit="event.preventDefault();return false;">
+    <div class="book-fields">
+      <label>Nombre y apellido<input id="clienteNombre" type="text" required minlength="3" maxlength="90" autocomplete="name" placeholder="Tu nombre completo"></label>
+      <label>Número de WhatsApp<input id="clienteTelefono" type="tel" required minlength="8" maxlength="20" autocomplete="tel" placeholder="8888 8888"></label>
+      <label>Comentario (opcional)<textarea id="clienteComentario" maxlength="500" rows="2" placeholder="Detalles del corte o indicaciones adicionales"></textarea></label>
+    </div>
+    <div id="estadoReserva" class="booking-status" role="status"></div>
+    <button type="button" id="confirmarReserva" class="btn-primary">Confirmar mi cita</button>
+   </form>
+  </div>
+  <div id="reservaExitosa" class="success" hidden aria-live="polite">
+   <h3>✓ Tu cita está confirmada</h3>
+   <p id="comprobante"></p>
+   <p style="font-size:12px">Guarda tu código de reserva. Si necesitas comunicarte con la barbería, utiliza el botón de WhatsApp.</p>
+   <a id="waDespues" class="btn-outline" target="_blank" rel="noopener noreferrer" hidden>✆ Contactar barbería</a>
+  </div>
+ </section>
+
+ <footer class="footer"><span id="footerNombre">BarberControl</span> · Tu barbería, tu horario.</footer>
+</main>
+<nav class="bottom-nav" aria-label="Navegación inferior">
+ <button type="button" onclick="document.getElementById('inicio').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">⌂</span>Inicio</button>
+ <button type="button" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">✂</span>Estilos</button>
+ <button type="button" onclick="document.getElementById('reservar').hidden?document.getElementById('catalogo').scrollIntoView({behavior:'smooth'}):document.getElementById('reservar').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▦</span>Mi cita</button>
+ <a id="whatsappBottom" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="nav-icon">✆</span>Contacto</a>
+</nav>
 <script>
-let catalogo=[],seleccion=null,hora=null,idempotencia='';
+(function(){
+'use strict';
 const $=id=>document.getElementById(id);
-const limpiar=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function err(e){$('mensaje').className='error';$('mensaje').textContent=e.message||String(e);$('confirmar').disabled=false;}
-function api(nombre,args,ok){google.script.run.withSuccessHandler(ok).withFailureHandler(err)[nombre](...(args||[]));}
-function cargar(){
-  const hoy=new Date();const fechaLocal=new Date(hoy.getTime()-hoy.getTimezoneOffset()*60000).toISOString().slice(0,10);
-  $('fecha').min=fechaLocal;$('fecha').value=fechaLocal;
-  api('obtenerCatalogoPublico',[],data=>{
-    $('negocio').textContent=data.negocio;
-    catalogo=data.servicios||[];window.bcServiciosDisponibles=catalogo;
-    if(window.bcVisualInit)window.bcVisualInit();
-    $('catalogo').innerHTML='';
-    if(!catalogo.length){$('catalogo').textContent=data.mensaje||'Aún no hay servicios disponibles. Vuelve pronto.';return;}
-    catalogo.forEach(s=>{
-      const b=document.createElement('button');b.type='button';b.className='service';b.dataset.serviceId=s.id;
-      const nombre=document.createElement('strong');nombre.textContent=s.nombre;b.append(nombre);
-      const meta=document.createElement('span');meta.textContent=s.duracion+' min · C$'+s.precio;b.append(meta);
-      const desc=document.createElement('span');desc.textContent=s.descripcion||'';b.append(desc);
-      b.onclick=()=>{
-        seleccion=s;hora=null;window.bcReferenciaReserva={estiloId:'',galeriaId:''};
-        document.querySelectorAll('.service').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');
-        $('datos').classList.add('hidden');$('exito').classList.add('hidden');buscarHorarios();
-        $('calendario').scrollIntoView({behavior:'smooth',block:'start'});
-      };$('catalogo').append(b);
-    });
-  });
+const state={data:null,category:'Todo',sort:'destacado',query:'',selected:null,slot:null,requestId:'',seq:0};
+const currency=n=>'C$'+Number(n||0).toLocaleString('es-NI',{maximumFractionDigits:2});
+function api(name,args){return new Promise((resolve,reject)=>
+ google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...(args||[])));}
+function dateKey(date){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
+function safeDate(s){return new Date(String(s)+'T12:00:00');}
+function status(text,error){const el=$('estadoReserva');el.textContent=text;el.classList.toggle('error',Boolean(error));}
+function scroll(id){$(id).scrollIntoView({behavior:'smooth',block:'start'});}
+function whatsapp(){
+ const tel=state.data.telefono;
+ if(!/^\d{8,15}$/.test(tel||''))return '';
+ return 'https://wa.me/'+tel+'?text='+encodeURIComponent('Hola, quisiera información sobre los servicios de '+state.data.nombre+'.');
 }
-function buscarHorarios(){
- hora=null;$('datos').classList.add('hidden');$('horarios').innerHTML='';
- if(!seleccion){$('ayuda').textContent='Selecciona primero un servicio.';return;}
- if(!$('fecha').value){$('ayuda').textContent='Selecciona una fecha.';return;}
- $('ayuda').textContent='Buscando disponibilidad…';$('mensaje').textContent='';
- const fechaSolicitada=$('fecha').value, id=seleccion.id;
- api('obtenerDisponibilidad',[fechaSolicitada,id],data=>{
-  if(id!==seleccion.id||fechaSolicitada!==$('fecha').value)return;
-  $('ayuda').textContent=data.horarios.length? 'Selecciona una hora de inicio:' : 'No hay horarios disponibles para ese día.';
-  data.horarios.forEach(h=>{
-   const b=document.createElement('button');b.type='button';b.className='slot';b.textContent=h.inicio;
-   b.onclick=()=>{hora=h;document.querySelectorAll('.slot').forEach(x=>x.classList.remove('active'));b.classList.add('active');
-    $('datos').classList.remove('hidden');
-    $('resumen').textContent=seleccion.nombre+' · '+fechaSolicitada+' · '+h.inicio+'–'+h.fin;
-    $('datos').scrollIntoView({behavior:'smooth',block:'start'});
-   };$('horarios').append(b);
-  });
+function setupBrand(data){
+ $('marcaNombre').textContent=data.nombre;
+ $('marcaSlogan').textContent=data.eslogan||'Tu estilo comienza aquí';
+ $('footerNombre').textContent=data.nombre;
+ document.title=data.nombre+' | Reserva tu estilo';
+ const wa=whatsapp();
+ ['whatsappTop','whatsappHero','whatsappBottom','waDespues'].forEach(id=>{
+  $(id).hidden=!wa;if(wa)$(id).href=wa;
+ });
+ if(data.tieneLogo){
+  api('obtenerLogoPublico',[]).then(uri=>{
+   if(uri){$('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;}
+  }).catch(()=>{});
+ }
+}
+function categoryButtons(){
+ const list=['Todo',...(state.data.categorias||[])];
+ const existing=new Set(list);
+ state.data.productos.forEach(p=>{if(!existing.has(p.categoria)){list.push(p.categoria);existing.add(p.categoria);}});
+ const host=$('categorias');host.textContent='';
+ list.forEach(cat=>{
+  const b=document.createElement('button');b.type='button';b.className='category';
+  b.textContent=cat;b.classList.toggle('active',state.category===cat);
+  b.addEventListener('click',()=>{state.category=cat;categoryButtons();renderProducts();});
+  host.append(b);
  });
 }
-window.bcElegirReferenciaVisual=function(servicioId,estiloId,galeriaId){
- const match=document.querySelector('.service[data-service-id="'+String(servicioId).replace(/[^A-Za-z0-9_-]/g,'')+'"]');
- if(!match)return false;
- match.click();window.bcReferenciaReserva={estiloId:estiloId||'',galeriaId:galeriaId||''};
- const info=document.getElementById('bcReferenciaElegida');
- if(info)info.textContent='Referencia elegida: '+(estiloId?'estilo '+estiloId:'')+(galeriaId?' · trabajo '+galeriaId:'');
- document.getElementById('calendario').scrollIntoView({behavior:'smooth',block:'start'});
- return true;
-};
-function confirmar(){
- if(!seleccion||!hora){err({message:'Selecciona primero el horario.'});return;}
- $('confirmar').disabled=true;$('mensaje').textContent='Registrando la cita…';
- if(!idempotencia){idempotencia=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});}
- api('reservarCita',[{servicioId:seleccion.id,fecha:$('fecha').value,inicio:hora.inicio,
-  nombre:$('nombre').value,telefono:$('telefono').value,comentario:$('comentario').value,
-  estiloId:(window.bcReferenciaReserva||{}).estiloId||'',galeriaId:(window.bcReferenciaReserva||{}).galeriaId||'',idempotencia}],r=>{
-  $('mensaje').textContent='';$('datos').classList.add('hidden');
-  $('exito').classList.remove('hidden');
-  $('comprobante').textContent='Reserva '+r.codigo+' · '+r.servicio+' · '+r.fecha+' · '+r.inicio+' a '+r.fin+' · C$'+r.precio;
-  $('exito').scrollIntoView({behavior:'smooth'});idempotencia='';$('confirmar').disabled=false;
- });
+function card(item){
+ const article=document.createElement('article');article.className='product';
+ const picture=document.createElement('div');picture.className='product-picture';
+ const placeholder=document.createElement('span');placeholder.className='picture-placeholder';placeholder.textContent='✂';
+ picture.append(placeholder);
+ if(item.tieneImagen){
+  const img=document.createElement('img');img.alt='Estilo '+item.nombre;img.loading='lazy';img.decoding='async';
+  img.dataset.tipo=item.tipoImagen;img.dataset.id=item.id;
+  img.addEventListener('error',()=>img.remove());
+  picture.append(img);
+  if(observer)observer.observe(img);else loadImage(img);
+ }
+ const label=document.createElement('span');label.className='product-label';
+ label.textContent=item.duracion+' min';picture.append(label);article.append(picture);
+ const body=document.createElement('div');body.className='product-body';
+ const cat=document.createElement('div');cat.className='product-category';cat.textContent=item.categoria;body.append(cat);
+ const title=document.createElement('h3');title.className='product-title';title.textContent=item.nombre;body.append(title);
+ const desc=document.createElement('p');desc.className='product-desc';
+ desc.textContent=item.descripcion||item.servicioNombre||'Servicio personalizado';body.append(desc);
+ const foot=document.createElement('div');foot.className='product-foot';
+ const price=document.createElement('span');price.className='product-price';price.textContent=currency(item.precio);
+ const duration=document.createElement('span');duration.className='product-time';duration.textContent=item.duracion+' min';
+ foot.append(price,duration);body.append(foot);
+ const b=document.createElement('button');b.type='button';b.className='btn-primary';
+ b.textContent=item.reservable?'Reservar este estilo':'No disponible';
+ b.disabled=!item.reservable;
+ b.onclick=()=>choose(item);body.append(b);article.append(body);
+ return article;
 }
-$('fecha').addEventListener('change',buscarHorarios);
-$('confirmar').addEventListener('click',function(){
- try{confirmar();}
- catch(e){err(e);$('mensaje').textContent='No se pudo enviar: '+(e.message||e);}
-});
-cargar();
+function loadImage(img){
+ if(img.dataset.loading)return;img.dataset.loading='1';
+ api('obtenerImagenPublica',[img.dataset.tipo,img.dataset.id,''])
+  .then(uri=>{if(img.isConnected&&uri)img.src=uri;})
+  .catch(()=>{if(img.isConnected)img.remove()});
+}
+const observer=('IntersectionObserver' in window)?new IntersectionObserver(entries=>{
+ entries.forEach(e=>{if(e.isIntersecting){observer.unobserve(e.target);loadImage(e.target);}});
+},{rootMargin:'150px'}):null;
+function renderProducts(){
+ if(!state.data)return;
+ const q=state.query.toLocaleLowerCase('es').trim();
+ let products=state.data.productos.filter(p=>
+   (state.category==='Todo'||p.categoria===state.category) &&
+   (!q||[p.nombre,p.categoria,p.descripcion,p.servicioNombre,p.tecnica].join(' ').toLocaleLowerCase('es').includes(q)));
+ if(state.sort==='precioAsc')products.sort((a,b)=>a.precio-b.precio);
+ else if(state.sort==='precioDesc')products.sort((a,b)=>b.precio-a.precio);
+ else if(state.sort==='az')products.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ const host=$('productos');host.textContent='';
+ $('catalogCount').textContent=state.data.productos.length+' estilos';
+ $('resultCount').textContent=products.length+' resultado'+(products.length===1?'':'s');
+ if(!products.length){const el=document.createElement('div');el.className='empty';el.textContent='Todavía no hay estilos en esta categoría. Prueba con otra.';host.append(el);return;}
+ products.forEach(p=>host.append(card(p)));
+}
+function choose(item){
+ state.selected=item;state.slot=null;state.requestId='';
+ $('reservar').hidden=false;$('reservaExitosa').hidden=true;$('datosCliente').hidden=true;
+ $('estiloElegido').textContent=item.nombre;
+ $('detalleElegido').textContent=item.servicioNombre+' · '+currency(item.precio)+' · '+item.duracion+' minutos';
+ const now=new Date();
+ if(!$('fecha').value||$('fecha').value<dateKey(now))$('fecha').value=dateKey(now);
+ renderDays();availability();scroll('reservar');
+}
+function renderDays(){
+ const host=$('dias');host.textContent='';
+ const selected=$('fecha').value||dateKey(new Date());
+ const first=safeDate(selected);
+ const today=dateKey(new Date());
+ for(let i=0;i<7;i++){
+  const d=new Date(first);d.setDate(d.getDate()+i);
+  const key=dateKey(d);
+  const b=document.createElement('button');b.type='button';b.className='day';
+  const weekday=document.createElement('span');weekday.textContent=new Intl.DateTimeFormat('es',{weekday:'short'}).format(d);
+  const num=document.createElement('b');num.textContent=d.getDate();
+  b.append(weekday,num);b.classList.toggle('active',i===0);
+  b.disabled=key<today;
+  b.onclick=()=>{$('fecha').value=key;renderDays();availability();};
+  host.append(b);
+ }
+}
+async function availability(){
+ if(!state.selected)return;
+ state.slot=null;state.requestId='';$('datosCliente').hidden=true;
+ const host=$('horarios');host.textContent='';
+ $('horarioInfo').textContent='Consultando horarios…';
+ const seq=++state.seq,fecha=$('fecha').value,service=state.selected.servicioId;
+ try{
+  const response=await api('obtenerDisponibilidad',[fecha,service]);
+  if(seq!==state.seq||fecha!==$('fecha').value)return;
+  $('horarioInfo').textContent=response.horarios.length+' horarios libres';
+  if(!response.horarios.length){
+   const info=document.createElement('div');info.className='empty';
+   info.textContent='No quedan horarios para ese día. Selecciona otra fecha.';host.append(info);
+  }
+  response.horarios.forEach(item=>{
+   const b=document.createElement('button');b.type='button';b.className='slot';b.textContent=item.inicio;
+   b.onclick=()=>{
+    state.slot=item;
+    host.querySelectorAll('.slot').forEach(x=>x.classList.toggle('active',x===b));
+    $('datosCliente').hidden=false;status('Horario elegido: '+item.inicio+' a '+item.fin);
+    $('datosCliente').scrollIntoView({behavior:'smooth',block:'nearest'});
+   };host.append(b);
+  });
+ }catch(e){if(seq===state.seq){$('horarioInfo').textContent='No se pudo consultar la agenda';status(e.message||String(e),true);}}
+}
+function requestId(){
+ if(!state.requestId){
+  state.requestId=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')
+  ?crypto.randomUUID()
+  :'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);
+   });
+ }
+ return state.requestId;
+}
+async function confirm(){
+ if(!state.selected||!state.slot){status('Selecciona primero el estilo y la hora.',true);return;}
+ const name=$('clienteNombre').value.trim(),phone=$('clienteTelefono').value.trim();
+ if(name.length<3||phone.replace(/\D/g,'').length<8){status('Completa tu nombre y teléfono de contacto.',true);return;}
+ const btn=$('confirmarReserva');btn.disabled=true;btn.textContent='Confirmando…';
+ status('Estamos comprobando nuevamente el horario disponible…');
+ try{
+  const result=await api('reservarCita',[{
+   nombre:name,telefono:phone,comentario:$('clienteComentario').value,
+   fecha:$('fecha').value,inicio:state.slot.inicio,
+   servicioId:state.selected.servicioId,estiloId:state.selected.estiloId||'',
+   galeriaId:'',idempotencia:requestId()
+  }]);
+  status('');
+  $('datosCliente').hidden=true;$('reservaExitosa').hidden=false;
+  $('comprobante').textContent='Código '+result.codigo+' · '+(result.estilo||result.servicio)+
+   ' · '+result.fecha+' · '+result.inicio+'–'+result.fin+' · '+currency(result.precio);
+  state.slot=null;state.requestId='';scroll('reservaExitosa');
+ }catch(e){
+  status('No fue posible confirmar: '+(e.message||String(e))+
+    '. Si ya recibiste un código o aparece en tu agenda, no repitas la reserva.',true);
+ }finally{btn.disabled=false;btn.textContent='Confirmar mi cita';}
+}
+$('buscar').addEventListener('input',e=>{state.query=e.target.value;renderProducts();});
+$('orden').addEventListener('change',e=>{state.sort=e.target.value;renderProducts();});
+$('fecha').addEventListener('change',()=>{renderDays();availability();});
+$('confirmarReserva').addEventListener('click',()=>{try{confirm();}catch(e){status(e.message||String(e),true);}});
+$('formularioReserva').addEventListener('submit',e=>e.preventDefault());
+(async()=>{
+ try{
+  const data=await api('obtenerEscaparatePublico',[]);
+  state.data=data;setupBrand(data);categoryButtons();renderProducts();
+  $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
+ }catch(e){
+  $('productos').textContent='';
+  const d=document.createElement('div');d.className='empty';
+  d.textContent='No pudimos cargar los servicios. Verifica la configuración de BarberControl y vuelve a intentarlo.';
+  $('productos').append(d);$('catalogCount').textContent='Sin conexión';
+ }
+})();
+})();
 </script>
-</main></body></html>
+</body>
+</html>
