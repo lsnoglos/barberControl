@@ -23,14 +23,15 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <div id="resultado"></div>
 </section>
 <div id="gestion" class="hidden">
-<section><h2>2. Configuración del negocio</h2>
-<div class="grid"><label>Nombre comercial<input id="nombreNegocio" maxlength="80"></label><label>Intervalo de reservas (min)<select id="intervalo"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option><option>60</option></select></label></div>
-<p><button onclick="guardarConfig()">Guardar configuración</button></p></section>
+<?!= incluirCatalogoAdmin_('MarcaPanel'); ?>
+<section><h2>Configuración de agenda</h2>
+<div class="grid"><label>Intervalo entre horarios ofrecidos (min)<select id="intervalo"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option><option>60</option></select></label></div>
+<p><button onclick="guardarConfig()">Guardar intervalo</button></p></section>
 <section><h2>3. Servicios y precios</h2><p class="muted">Los servicios nuevos estarán disponibles después de guardarlos. Configura precios y duraciones reales antes de compartir la web.</p>
 <form id="servicioForm" onsubmit="guardarServicio(event)">
 <input type="hidden" id="sId"><div class="grid">
 <label>Nombre<input id="sNombre" required minlength="3" maxlength="100" placeholder="Corte degradado"></label>
-<label>Categoría<input id="sCategoria" value="Cabello"></label>
+<label>Categoría<select id="sCategoria" required><option value="">Preparando categorías…</option></select></label>
 <label>Duración (min)<input id="sDuracion" type="number" min="10" max="360" value="45" required></label>
 <label>Precio (C$)<input id="sPrecio" type="number" min="0" step=".01" required></label>
 </div><p><label>Descripción<textarea id="sDescripcion" rows="2"></textarea></label></p>
@@ -60,8 +61,8 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <label>URL de aplicación pública /exec<input id="urlPublica" placeholder="https://script.google.com/macros/s/.../exec"></label>
 <button onclick="guardarUrlPublica()">Vincular URL pública</button>
 <p class="muted">La clave BRIDGE_SECRET únicamente se copia a las Script Properties del proyecto público, nunca a GitHub.</p></section>
-</div>
 <?!= incluirCatalogoAdmin_('CatalogoPanel'); ?>
+</div>
 </main>
 <script>
 let panel=null;
@@ -77,8 +78,8 @@ function render(data){
  $('gestion').classList.toggle('hidden',!instalado);
  if(!instalado)return;
  const c=Object.fromEntries(data.configuracion.map(x=>[x.Clave,x.Valor]));
- $('nombreNegocio').value=c.NOMBRE_NEGOCIO||'';
  $('intervalo').value=c.INTERVALO_MIN||'15';
+ if(window.bcMarcaRefresh)window.bcMarcaRefresh();
  $('conexion').textContent=JSON.stringify(data.estado.propiedadesPublicas,null,2);
  $('urlPublica').value=data.estado.publicWebappUrl||'';
  mostrarBloqueos(data.bloqueos);
@@ -101,14 +102,12 @@ function render(data){
   const b=document.createElement('button');b.textContent='Guardar';b.onclick=()=>llamar('guardarHorarioAdmin',[{dia:dia,abierto:sel.checked,inicio:ini.value,fin:fin.value}],render);div.append(b);
   $('listaHorarios').append(div);
  });
- $('reservas').textContent=data.reservas.length?data.reservas.map(r=>r.Fecha+' '+r.Inicio+' · '+r.Cliente+' · '+r.Estado).join(' | '):'Aún no hay citas registradas.';
+ const nombresEstilos=Object.fromEntries((data.estilos||[]).map(e=>[e.ID,e.Nombre]));
+ $('reservas').textContent=data.reservas.length?data.reservas.map(r=>r.Fecha+' '+r.Inicio+' · '+r.Cliente+' · '+(nombresEstilos[r.EstiloId]||r.EstiloId||'Sin estilo')+' · '+r.Estado).join(' | '):'Aún no hay citas registradas.';
  if(window.bcMediaRefresh)window.bcMediaRefresh();
 }
-function guardarConfig(){const c=Object.fromEntries(panel.configuracion.map(x=>[x.Clave,x.Valor]));
- const nombre=$('nombreNegocio').value.trim(), intervalo=$('intervalo').value;
- if(c.NOMBRE_NEGOCIO!==nombre){llamar('guardarConfiguracionAdmin',['NOMBRE_NEGOCIO',nombre],r=>{
-   if(c.INTERVALO_MIN!==intervalo)llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',intervalo],render);else render(r);
- });}else llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',intervalo],render);
+function guardarConfig(){
+ llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',$('intervalo').value],render);
 }
 function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
  id:$('sId').value,nombre:$('sNombre').value,categoria:$('sCategoria').value,
@@ -117,7 +116,12 @@ function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
 }],r=>{limpiarServicio();render(r);});}
 function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;
  $('sActivo').checked=String(s.Activo).toLowerCase()==='true';$('sVisible').checked=String(s.Visible).toLowerCase()==='true';$('sReservable').checked=String(s.Reservable).toLowerCase()==='true';window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
-function limpiarServicio(){$('servicioForm').reset();$('sId').value='';$('sCategoria').value='Cabello';$('sDuracion').value='45';}
+function limpiarServicio(){
+ $('servicioForm').reset();$('sId').value='';
+ const categorias=$('sCategoria').options;
+ if(categorias.length)$('sCategoria').value=Array.from(categorias).some(c=>c.value==='Cabello')?'Cabello':categorias[0].value;
+ $('sDuracion').value='45';
+}
 
 function guardarUrlPublica(){llamar('configurarPuenteAdmin',[$('urlPublica').value],render);}
 function guardarBloqueo(e){
