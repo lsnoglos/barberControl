@@ -4,6 +4,7 @@
  */
 const BC_SCHEMA_ = {
   Configuracion: ['Clave','Valor','Descripcion'],
+  Categorias: ['ID','Nombre','Orden','Activa'],
   Horarios: ['DiaSemana','Abierto','Inicio','Fin'],
   Bloqueos: ['ID','Tipo','DiaSemana','FechaInicio','FechaFin','Inicio','Fin','Motivo','Activo'],
   Servicios: ['ID','Nombre','Categoria','Descripcion','DuracionMin','Precio','Moneda','ImagenId','Activo','Visible','Reservable','Orden'],
@@ -79,11 +80,23 @@ function instalarBarberControl() {
       ['INTERVALO_MIN','15','Frecuencia de horarios de inicio'],
       ['ANTICIPACION_MIN','60','Anticipacion minima de reservas'],
       ['DIAS_ADELANTO','30','Ventana maxima de reserva'],
-      ['BUFFER_MIN','0','Tiempo extra entre servicios']
+      ['BUFFER_MIN','0','Tiempo extra entre servicios'],
+      ['TELEFONO_WHATSAPP','','WhatsApp comercial, código internacional'],
+      ['ESLOGAN_NEGOCIO','Tu estilo comienza aquí','Eslogan público'],
+      ['LOGO_FILE_ID','','Archivo PNG con transparencia en Drive']
     ];
     const config = ss.getSheetByName('Configuracion');
     const existentes = config.getLastRow()>1 ? config.getRange(2,1,config.getLastRow()-1,1).getValues().flat().map(String) : [];
     defaults.filter(function(row){return existentes.indexOf(row[0])===-1;}).forEach(function(row){config.appendRow(row);});
+    const categories=ss.getSheetByName('Categorias');
+    if (categories.getLastRow()===1) {
+      categories.getRange(2,1,7,4).setValues([
+        ['CAT-CABELLO','Cabello',1,true],['CAT-BARBA','Barba',2,true],
+        ['CAT-COMBOS','Combos',3,true],['CAT-MASAJES','Masajes',4,true],
+        ['CAT-DISENOS','Diseños',5,true],['CAT-TRATAMIENTOS','Tratamientos',6,true],
+        ['CAT-OTROS','Otros',7,true]
+      ]);
+    }
     const horarios = ss.getSheetByName('Horarios');
     if (horarios.getLastRow() === 1) {
       horarios.getRange(2,1,7,4).setValues([
