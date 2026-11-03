@@ -1,0 +1,141 @@
+<style>
+.bc-brand-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(210px,1fr);gap:18px}
+.bc-brand-card{background:#111419;border:1px solid #343942;border-radius:16px;padding:16px}
+.bc-brand-card h3{margin:0 0 12px}
+.bc-brand-logo{width:min(170px,80%);aspect-ratio:1/1;object-fit:contain;background:repeating-conic-gradient(#25282d 0% 25%,#353841 0% 50%) 50% / 18px 18px;border-radius:15px;padding:10px}
+.bc-brand-label{display:block;color:#c5c9d0;margin:8px 0}
+.bc-brand-label input{width:100%;margin-top:5px}
+.bc-brand-categories{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bc-brand-chip{border:1px solid #4c5057;color:#e1d8c9;border-radius:100px;padding:8px 12px;background:#292b31;font-size:.85rem;display:flex;align-items:center;gap:7px}
+.bc-brand-chip button{background:#484d54;color:#fff;border-radius:100px;padding:3px 7px;font-size:.72rem}
+.bc-brand-note{color:#adb4bd;font-size:.84rem;line-height:1.5}
+@media(max-width:650px){.bc-brand-grid{grid-template-columns:1fr}}
+</style>
+<section id="bcMarcaSection">
+  <h2>Identidad de la barbería y categorías</h2>
+  <p class="muted">Personaliza el nombre, logotipo y WhatsApp que verán tus clientes. Las categorías son las que se usarán para filtrar cortes y servicios.</p>
+  <div class="bc-brand-grid">
+    <div class="bc-brand-card">
+      <h3>Datos públicos del negocio</h3>
+      <form id="bcMarcaForm">
+        <label class="bc-brand-label">Nombre comercial<input id="bcMarcaNombre" maxlength="80" required placeholder="William Barber Shop"></label>
+        <label class="bc-brand-label">Eslogan<input id="bcMarcaEslogan" maxlength="140" placeholder="Tu estilo comienza aquí"></label>
+        <label class="bc-brand-label">WhatsApp de contacto<input id="bcMarcaTelefono" type="tel" maxlength="24" placeholder="+505 8888 8888"></label>
+        <p class="bc-brand-note">Al ingresar ocho dígitos, se añadirá automáticamente el prefijo de Nicaragua (+505). También puedes guardar un número internacional completo.</p>
+        <button type="submit">Guardar identidad de la barbería</button>
+      </form>
+    </div>
+    <div class="bc-brand-card">
+      <h3>Logotipo</h3>
+      <img class="bc-brand-logo" id="bcMarcaLogoPreview" alt="Logo de barbería" hidden>
+      <p id="bcMarcaLogoEmpty" class="bc-brand-note">Todavía no hay un logo configurado.</p>
+      <label class="bc-brand-label">Subir logo PNG transparente<input id="bcMarcaLogoFile" type="file" accept="image/png"></label>
+      <button type="button" id="bcMarcaSubirLogo">Guardar logotipo</button>
+      <p class="bc-brand-note">Acepta PNG con transparencia. El fondo ajedrezado permite comprobar que el archivo tiene canal alfa; un fondo blanco dentro del PNG seguirá viéndose blanco.</p>
+    </div>
+  </div>
+  <div class="bc-brand-card" style="margin-top:18px">
+    <h3>Categorías del catálogo</h3>
+    <p class="bc-brand-note">Sugeridas: Cabello, Barba, Combos, Masajes, Diseños y Tratamientos. Puedes agregar tantas categorías como necesites.</p>
+    <form id="bcCategoriaForm" class="row">
+      <input id="bcCategoriaNombre" placeholder="Nueva categoría: Pestañas, Faciales…" maxlength="45" required style="flex:1;min-width:190px">
+      <button type="submit">Crear categoría</button>
+    </form>
+    <div id="bcCategoriaLista" class="bc-brand-categories"></div>
+  </div>
+  <p id="bcMarcaEstado" aria-live="polite" class="bc-brand-note"></p>
+</section>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let loaded=false, latest=null;
+const status=(msg,error)=>{const e=$('bcMarcaEstado');e.textContent=msg;e.style.color=error?'#ffaea4':'#e8ca8b'};
+const call=(method,...args)=>new Promise((resolve,reject)=>{
+ google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
+});
+function active(v){return String(v).toLowerCase()==='true';}
+function refreshCategoryList(cats) {
+ const list=$('bcCategoriaLista');list.textContent='';
+ const options=$('sCategoria'),old=options.value;
+ options.textContent='';
+ cats.slice().sort((a,b)=>Number(a.Orden)-Number(b.Orden)).forEach(c=>{
+   const chip=document.createElement('span');chip.className='bc-brand-chip';
+   const label=document.createElement('span');label.textContent=c.Nombre+(active(c.Activa)?'':' (oculta)');
+   chip.append(label);
+   const button=document.createElement('button');button.type='button';
+   button.textContent=active(c.Activa)?'Ocultar':'Activar';
+   button.title=active(c.Activa)?'Desactivar categoría':'Activar categoría';
+   button.onclick=async()=>{try{
+    status('Actualizando categoría…');
+    const result=await call('cambiarCategoriaAdmin',c.ID,!active(c.Activa));apply(result);status('Categoría actualizada.');
+   }catch(e){status(e.message,true)}};
+   chip.append(button);list.append(chip);
+   if(active(c.Activa)){const option=document.createElement('option');option.value=c.Nombre;option.textContent=c.Nombre;options.append(option);}
+ });
+ if(Array.from(options.options).some(o=>o.value===old))options.value=old;
+ else if(options.options.length)options.selectedIndex=0;
+}
+function apply(result){
+ latest=result;
+ $('bcMarcaNombre').value=result.nombre;
+ $('bcMarcaTelefono').value=result.telefono;
+ $('bcMarcaEslogan').value=result.eslogan;
+ refreshCategoryList(result.categorias||[]);
+ if(result.tieneLogo){
+   call('obtenerLogoAdmin').then(url=>{
+      $('bcMarcaLogoPreview').src=url;$('bcMarcaLogoPreview').hidden=false;
+      $('bcMarcaLogoEmpty').hidden=true;
+   }).catch(e=>status('No se pudo cargar el logotipo: '+e.message,true));
+ }else{
+   $('bcMarcaLogoPreview').hidden=true;$('bcMarcaLogoEmpty').hidden=false;
+ }
+}
+window.bcMarcaRefresh=async function(){
+ try{const data=await call('obtenerMarcaAdmin');apply(data);
+ if(!loaded){status('Personalización lista.');loaded=true;}
+ }catch(e){status('Revisa la instalación: '+e.message,true);}
+};
+$('bcMarcaForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ try{status('Guardando identidad…');
+  const result=await call('guardarMarcaAdmin',{
+   nombre:$('bcMarcaNombre').value,
+   telefono:$('bcMarcaTelefono').value,eslogan:$('bcMarcaEslogan').value
+  });apply(result);
+  status('Identidad guardada. La web pública mostrará los cambios al actualizar la página.');
+ }catch(err){status(err.message,true);}
+});
+$('bcCategoriaForm').addEventListener('submit',async e=>{
+ e.preventDefault();try{
+   status('Creando categoría…');
+   const data=await call('crearCategoriaAdmin',$('bcCategoriaNombre').value);
+   apply(data);$('bcCategoriaNombre').value='';status('Nueva categoría disponible.');
+ }catch(err){status(err.message,true);}
+});
+$('bcMarcaSubirLogo').addEventListener('click',async ()=>{
+ const file=$('bcMarcaLogoFile').files[0];
+ if(!file){status('Elige un archivo PNG de tu barbería.',true);return;}
+ if(file.type!=='image/png'){status('Usa un PNG para conservar la transparencia.',true);return;}
+ const button=$('bcMarcaSubirLogo');button.disabled=true;
+ try{
+  status('Procesando logo…');
+  const url=URL.createObjectURL(file);
+  const image=await new Promise((resolve,reject)=>{
+   const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('No fue posible abrir la imagen.'));im.src=url;
+  });
+  URL.revokeObjectURL(url);
+  const canvas=document.createElement('canvas');
+  const ratio=Math.min(1,600/Math.max(image.naturalWidth,image.naturalHeight));
+  canvas.width=Math.max(1,Math.round(image.naturalWidth*ratio));
+  canvas.height=Math.max(1,Math.round(image.naturalHeight*ratio));
+  canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+  const encoded=canvas.toDataURL('image/png');
+  if(encoded.length>1350000)throw new Error('El logo es demasiado pesado; utiliza un PNG más pequeño.');
+  const result=await call('subirLogoAdmin',encoded);
+  apply(result);status('Logo actualizado correctamente.');
+  $('bcMarcaLogoFile').value='';
+ }catch(err){status(err.message,true);}finally{button.disabled=false;}
+});
+})();
+</script>
