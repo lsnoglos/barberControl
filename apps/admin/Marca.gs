@@ -42,6 +42,7 @@ function guardarMarcaAdmin(data) {
   actualizarConfigMarca_('TELEFONO_WHATSAPP',numero);
   actualizarConfigMarca_('ESLOGAN_NEGOCIO',clean(eslogan));
   auditarAdmin_('CONFIGURACION','Barberia','Marca','Identidad actualizada');
+  actualizarVersionEscaparate_();
   return obtenerMarcaAdmin();
 }
 function crearCategoriaAdmin(nombre) {
@@ -55,6 +56,7 @@ function crearCategoriaAdmin(nombre) {
   const sheet=obtenerDbAdmin_().getSheetByName('Categorias');
   sheet.appendRow([id,n,names.length+1,true]);
   auditarAdmin_('CREAR','Categoria',id,n);
+  actualizarVersionEscaparate_();
   return obtenerMarcaAdmin();
 }
 function cambiarCategoriaAdmin(id,activa) {
@@ -71,6 +73,7 @@ function cambiarCategoriaAdmin(id,activa) {
   }
   sheet.getRange(index+1,4).setValue(activa===true);
   auditarAdmin_('ESTADO','Categoria',id,String(activa===true));
+  actualizarVersionEscaparate_();
   return obtenerMarcaAdmin();
 }
 /**
@@ -98,6 +101,7 @@ function subirLogoAdmin(dataUri) {
     SpreadsheetApp.flush();
   }catch(e){logo.setTrashed(true);throw e;}
   auditarAdmin_('LOGO','Barberia','Identidad',logo.getId());
+  actualizarVersionEscaparate_();
   return obtenerMarcaAdmin();
 }
 function obtenerLogoAdmin() {

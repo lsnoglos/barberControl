@@ -46,6 +46,7 @@ function guardarServicioAdmin(data) {
     data.orden===undefined?(previous?Number(previous[11])||0:0):Number(data.orden)||0];
   if(index>0) sheet.getRange(index,1,1,row.length).setValues([row]); else sheet.appendRow(row);
   auditarAdmin_(index>0?'MODIFICAR':'CREAR','Servicio',id,nombre);
+  actualizarVersionEscaparate_();
   return obtenerPanelAdmin();
 }
 
@@ -58,6 +59,7 @@ function cambiarEstadoServicioAdmin(id,propiedad,valor) {
   if(index<0)throw new Error('Servicio no encontrado.');
   sheet.getRange(index+1,columnas[propiedad]).setValue(valor===true);
   auditarAdmin_('ESTADO','Servicio',id,propiedad+'='+Boolean(valor));
+  actualizarVersionEscaparate_();
   return obtenerPanelAdmin();
 }
 
@@ -78,6 +80,7 @@ function guardarConfiguracionAdmin(nombre,valor) {
   if(i<0)throw new Error('Clave inexistente.');
   sheet.getRange(i+2,2).setValue(texto);
   auditarAdmin_('CONFIGURACION','Configuracion',nombre,texto);
+  actualizarVersionEscaparate_();
   return obtenerPanelAdmin();
 }
 

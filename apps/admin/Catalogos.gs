@@ -66,6 +66,7 @@ function guardarEstiloAdmin(data) {
   if(index>0)sheet.getRange(index+1,1,1,record.length).setValues([record]);
   else sheet.appendRow(record);
   auditarAdmin_('GUARDAR','Estilos',id,nombre);
+  actualizarVersionEscaparate_();
   return {id:id, catalogos:listarCatalogosAdmin()};
 }
 function cambiarEstadoEstiloAdmin(id,campo,activo) {
@@ -74,6 +75,7 @@ function cambiarEstadoEstiloAdmin(id,campo,activo) {
   const found=buscarFilaCatalogo_('Estilos',id);
   found.sheet.getRange(found.index,columnas[campo]).setValue(activo===true);
   auditarAdmin_('ESTADO','Estilos',id,campo+': '+Boolean(activo));
+  actualizarVersionEscaparate_();
   return listarCatalogosAdmin();
 }
 function guardarTrabajoAdmin(data) {
@@ -151,6 +153,7 @@ function subirPortadaAdmin(data) {
     throw e;
   }
   auditarAdmin_('PORTADA',nombre,id,file.getId());
+  actualizarVersionEscaparate_();
   return {id:id,imagenId:file.getId()};
 }
 function subirFotoTrabajoAdmin(data) {
