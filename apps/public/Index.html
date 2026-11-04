@@ -460,6 +460,85 @@ async function availability(){
   });
  }catch(e){if(seq===state.seq){$('horarioInfo').textContent='No se pudo consultar la agenda';status(e.message||String(e),true);}}
 }
+
+/** Fecha legible, independiente de la zona horaria del navegador. */
+function fechaReservaLegible(fecha){
+ const parts=String(fecha||'').split('-').map(Number);
+ if(parts.length!==3||parts.some(n=>!Number.isInteger(n)))
+   return String(fecha||'');
+ const d=new Date(Date.UTC(parts[0],parts[1]-1,parts[2],12,0,0));
+ return new Intl.DateTimeFormat('es-NI',{
+  weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'
+ }).format(d);
+}
+function horaReservaLegible(hora){
+ const match=/^(\d{2}):(\d{2})$/.exec(String(hora||''));
+ if(!match)return String(hora||'');
+ const h=Number(match[1]),m=match[2];
+ return String(h%12||12)+':'+m+' '+(h>=12?'p. m.':'a. m.');
+}
+/**
+ * La solicitud no se puede cancelar desde el navegador después de enviarla:
+ * si vence el plazo, el usuario debe verificar la agenda antes de reintentar.
+ */
+function apiReservaConLimite(args,ms){
+ return new Promise((resolve,reject)=>{
+  let completed=false;
+  const timer=setTimeout(()=>{
+   if(completed)return;
+   completed=true;
+   reject(new Error('El servidor tardó demasiado en responder. Verifica si la cita aparece registrada antes de intentar otra vez.'));
+  },ms||60000);
+  google.script.run.withSuccessHandler(result=>{
+   if(completed)return;completed=true;clearTimeout(timer);resolve(result);
+  }).withFailureHandler(error=>{
+   if(completed)return;completed=true;clearTimeout(timer);reject(error);
+  }).reservarCita(args);
+ });
+}
+let previousFocus=null;
+function bloquearMientrasReserva(bloquear){
+ const overlay=$('reservaOverlay');
+ if(!overlay)return;
+ if(bloquear)previousFocus=document.activeElement;
+ overlay.hidden=!bloquear;
+ document.body.classList.toggle('bc-reserva-bloqueada',bloquear);
+ // Impide navegar por teclado a controles detrás del diálogo.
+ [document.querySelector('header'),document.querySelector('main'),
+  document.querySelector('nav.bottom-nav')].forEach(element=>{
+  if(element&&'inert' in element)element.inert=bloquear;
+ });
+ if(bloquear)overlay.focus({preventScroll:true});
+ else if(previousFocus&&typeof previousFocus.focus==='function')
+  previousFocus.focus({preventScroll:true});
+}
+function mostrarComprobanteReserva(result){
+ const host=$('comprobante');host.textContent='';
+ const rows=[
+  ['Servicio',result.estilo||result.servicio],
+  ['Día',fechaReservaLegible(result.fecha)],
+  ['Hora',horaReservaLegible(result.inicio)+' – '+horaReservaLegible(result.fin)],
+  ['Precio',currency(result.precio)],
+  ['Código',result.codigo]
+ ];
+ rows.forEach(pair=>{
+  const row=document.createElement('div');row.className='receipt-row';
+  const label=document.createElement('span');label.textContent=pair[0];
+  const value=document.createElement('strong');value.textContent=pair[1];
+  row.append(label,value);host.append(row);
+ });
+ const button=$('waDespues');
+ const tel=state.data&&state.data.telefono;
+ if(tel&&/^\d{8,15}$/.test(tel)){
+  const message='Hola, solo para avisarte que hice una reservación para el '+
+   fechaReservaLegible(result.fecha)+' a las '+horaReservaLegible(result.inicio)+
+   '. Elegí '+(result.estilo||result.servicio)+
+   '. Mi código de reserva es '+result.codigo+'. ¡Gracias!';
+  button.href='https://wa.me/'+tel+'?text='+encodeURIComponent(message);
+  button.hidden=false;
+ }else{button.hidden=true;button.removeAttribute('href');}
+}
+
 function requestId(){
  if(!state.requestId){
   state.requestId=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')
@@ -471,28 +550,40 @@ function requestId(){
  return state.requestId;
 }
 async function confirm(){
- if(!state.selected||!state.slot){status('Selecciona primero el estilo y la hora.',true);return;}
+ if($('reservaOverlay')&&!$('reservaOverlay').hidden)return;
+ if(!state.selected||!state.slot){
+  status('Selecciona primero el estilo y la hora.',true);return;
+ }
  const name=$('clienteNombre').value.trim(),phone=$('clienteTelefono').value.trim();
- if(name.length<3||phone.replace(/\D/g,'').length<8){status('Completa tu nombre y teléfono de contacto.',true);return;}
- const btn=$('confirmarReserva');btn.disabled=true;btn.textContent='Confirmando…';
+ if(name.length<3||phone.replace(/\D/g,'').length<8){
+  status('Completa tu nombre y teléfono de contacto.',true);return;
+ }
+ const btn=$('confirmarReserva');
+ btn.disabled=true;btn.textContent='Confirmando…';
  status('Estamos comprobando nuevamente el horario disponible…');
+ bloquearMientrasReserva(true);
  try{
-  const result=await api('reservarCita',[{
+  const result=await apiReservaConLimite([{
    nombre:name,telefono:phone,comentario:$('clienteComentario').value,
    fecha:$('fecha').value,inicio:state.slot.inicio,
    servicioId:state.selected.servicioId,estiloId:state.selected.estiloId||'',
    galeriaId:'',idempotencia:requestId()
-  }]);
+  }],60000);
+  mostrarComprobanteReserva(result);
   status('');
   $('datosCliente').hidden=true;$('reservaExitosa').hidden=false;
-  $('comprobante').textContent='Código '+result.codigo+' · '+(result.estilo||result.servicio)+
-   ' · '+result.fecha+' · '+result.inicio+'–'+result.fin+' · '+currency(result.precio);
-  state.slot=null;state.requestId='';scroll('reservaExitosa');
+  state.slot=null;state.requestId='';
+  // El éxito se muestra al cerrar el diálogo, con fecha y hora legibles.
+  scroll('reservaExitosa');
  }catch(e){
-  status('No fue posible confirmar: '+(e.message||String(e))+
-    '. Si ya recibiste un código o aparece en tu agenda, no repitas la reserva.',true);
- }finally{btn.disabled=false;btn.textContent='Confirmar mi cita';}
+  status('No pudimos confirmar el resultado: '+(e.message||String(e))+
+   ' Si la cita aparece en Google Calendar o en tus registros, no la repitas.',true);
+ }finally{
+  bloquearMientrasReserva(false);
+  btn.disabled=false;btn.textContent='Confirmar mi cita';
+ }
 }
+
 $('buscar').addEventListener('input',e=>{state.query=e.target.value;renderProducts();});
 $('orden').addEventListener('change',e=>{state.sort=e.target.value;renderProducts();});
 $('fecha').addEventListener('change',()=>{renderDays();availability();});
