@@ -83,7 +83,8 @@ function instalarBarberControl() {
       ['BUFFER_MIN','0','Tiempo extra entre servicios'],
       ['TELEFONO_WHATSAPP','','WhatsApp comercial, código internacional'],
       ['ESLOGAN_NEGOCIO','Tu estilo comienza aquí','Eslogan público'],
-      ['LOGO_FILE_ID','','Archivo PNG con transparencia en Drive']
+      ['LOGO_FILE_ID','','Archivo PNG con transparencia en Drive'],
+      ['PUBLIC_CATALOG_VERSION','0','Marca de versión para actualizar catálogo público']
     ];
     const config = ss.getSheetByName('Configuracion');
     const existentes = config.getLastRow()>1 ? config.getRange(2,1,config.getLastRow()-1,1).getValues().flat().map(String) : [];
@@ -105,6 +106,14 @@ function instalarBarberControl() {
         [6,true,'08:00','17:00']
       ]);
     }
+    // Detectar también cambios manuales en las pestañas comerciales de Sheets.
+    // Las escrituras hechas desde Admin ya invalidan la versión directamente.
+    const handler='barberControlOnEditCatalogo_';
+    const existingTrigger=ScriptApp.getProjectTriggers().some(function(trigger){
+      return trigger.getHandlerFunction()===handler &&
+        trigger.getTriggerSourceId()===ss.getId();
+    });
+    if(!existingTrigger)ScriptApp.newTrigger(handler).forSpreadsheet(ss).onEdit().create();
     DriveApp.getFileById(ss.getId()).moveTo(root);
     if (!props.getProperty('CALENDAR_ID')) {
       const calendar = CalendarApp.createCalendar('BarberControl - Citas',{timeZone:'America/Managua'});
@@ -160,4 +169,14 @@ function leerFilasAdmin_(nombre) {
 
 function auditarAdmin_(accion,entidad,id,detalle) {
   obtenerDbAdmin_().getSheetByName('Auditoria').appendRow([new Date(),accion,entidad,id,String(detalle||'').slice(0,500)]);
+}
+
+/** Detecta cambios MANUALES en las pestañas del catálogo público. */
+function barberControlOnEditCatalogo_(event) {
+  if(!event||!event.range||!event.source)return;
+  const expected=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if(!expected||event.source.getId()!==expected)return;
+  const sheetName=event.range.getSheet().getName();
+  if(['Servicios','Estilos','Categorias','Configuracion'].indexOf(sheetName)===-1)return;
+  actualizarVersionEscaparate_();
 }
