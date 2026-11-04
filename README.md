@@ -58,3 +58,9 @@ barberControl/
 CI valida sintaxis y lógica de catálogo, consentimiento, privacidad, identidad y reserva con estilo utilizando simulaciones. **No equivale a pruebas reales en la cuenta de Google.** Confirma el flujo completo en tus dos implementaciones antes de compartir el enlace a clientes.
 
 [Arquitectura](docs/ARQUITECTURA.md) · [Despliegue inicial](docs/DESPLIEGUE.md) · [Actualización de esta versión](docs/ACTUALIZAR-ESCAPARATE.md)
+
+## Reserva animada y caché versionada
+
+Al confirmar una cita, la aplicación muestra una animación de tubo de barbería, bloquea interacciones y entrega un comprobante con fecha/hora legibles y opción de aviso por WhatsApp. El catálogo y las fotos públicas cuentan con caché local que se invalida mediante `PUBLIC_CATALOG_VERSION` en Sheets (incluye detector de edición manual).
+
+[Actualizar ambos proyectos Apps Script](docs/ACTUALIZAR-RESERVAS-CACHE.md).
