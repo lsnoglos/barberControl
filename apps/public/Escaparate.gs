@@ -61,3 +61,18 @@ function obtenerLogoPublico() {
   if(bytes.length>950000)throw new Error('Logo demasiado grande.');
   return 'data:image/png;base64,'+Utilities.base64Encode(bytes);
 }
+
+/**
+ * Versión ligera del escaparate para caché del navegador.
+ * La marca cambia cuando Admin edita servicios, estilos, fotos o marca.
+ * No cachear aquí horarios disponibles ni reservas: son datos en vivo.
+ */
+function obtenerVersionEscaparate() {
+  const dbId=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if(!dbId)throw new Error('El sistema no ha sido configurado.');
+  const hash=Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256, dbId, Utilities.Charset.UTF_8
+  ).map(function(b){return ('0'+(b&255).toString(16)).slice(-2);}).join('');
+  const conf=configuracionPublica_();
+  return {identidad:hash.slice(0,16),version:String(conf.PUBLIC_CATALOG_VERSION||'0')};
+}
