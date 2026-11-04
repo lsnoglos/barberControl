@@ -317,6 +317,109 @@ const state={data:null,category:'Todo',sort:'destacado',query:'',selected:null,s
 const currency=n=>'C$'+Number(n||0).toLocaleString('es-NI',{maximumFractionDigits:2});
 function api(name,args){return new Promise((resolve,reject)=>
  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...(args||[])));}
+
+/*
+ * Caché de catálogo público. Nunca guardar en localStorage datos de clientes,
+ * citas, tokens, disponibilidad ni comentarios.
+ */
+const BC_STORE='barbercontrol-public-v6';
+let bcRevision='',bcIdentity='';
+const bcMemory=new Map(),bcPending=new Map();
+function bcRead(key){try{return localStorage.getItem(key);}catch(e){return null;}}
+function bcWrite(key,val){try{localStorage.setItem(key,val);return true;}catch(e){return false;}}
+function bcRemove(key){try{localStorage.removeItem(key);}catch(e){}}
+function bcJson(key){try{return JSON.parse(bcRead(key)||'null');}catch(e){return null;}}
+function bcSignature(info){return String(info.identidad||'')+'/'+String(info.version||'0');}
+function bcAssetKey(tipo,id){return BC_STORE+':foto:'+bcIdentity+':'+bcRevision+':'+tipo+':'+id;}
+function bcSetRevision(info){
+ const before=bcIdentity+'/'+bcRevision;
+ bcIdentity=String(info.identidad||'');bcRevision=String(info.version||'0');
+ if(before===bcIdentity+'/'+bcRevision)return;
+ bcMemory.clear();bcPending.clear();
+ const keys=bcJson(BC_STORE+':images')||[];
+ if(!Array.isArray(keys))return;
+ const valid=keys.filter(row=>{
+  if(row&&typeof row.key==='string'&&!row.key.startsWith(BC_STORE+':foto:'+bcIdentity+':'+bcRevision+':')){
+   bcRemove(row.key);return false;
+  }
+  return row&&typeof row.key==='string';
+ });
+ bcWrite(BC_STORE+':images',JSON.stringify(valid));
+}
+function bcStoreImage(key,uri){
+ if(typeof uri!=='string'||!uri.startsWith('data:image/')||uri.length>700000)return;
+ let items=bcJson(BC_STORE+':images')||[];
+ if(!Array.isArray(items))items=[];
+ items=items.filter(x=>x&&x.key!==key&&typeof x.key==='string');
+ let sum=items.reduce((n,x)=>n+Number(x.size||0),0);
+ while(items.length&&sum+uri.length>1800000){
+  const old=items.shift();sum-=Number(old.size||0);bcRemove(old.key);
+ }
+ if(sum+uri.length>1800000||!bcWrite(key,uri))return;
+ items.push({key:key,size:uri.length});
+ bcWrite(BC_STORE+':images',JSON.stringify(items));
+}
+function bcGetImage(tipo,id){
+ const key=bcAssetKey(tipo,id);
+ if(bcMemory.has(key))return Promise.resolve(bcMemory.get(key));
+ const saved=bcRead(key);
+ if(saved&&saved.startsWith('data:image/')){
+  bcMemory.set(key,saved);return Promise.resolve(saved);
+ }
+ if(bcPending.has(key))return bcPending.get(key);
+ const pending=(tipo==='LOGO'?api('obtenerLogoPublico',[]):api('obtenerImagenPublica',[tipo,id,'']))
+ .then(uri=>{
+  if(typeof uri==='string'&&uri.startsWith('data:image/')){
+   bcMemory.set(key,uri);bcStoreImage(key,uri);
+  }
+  return uri;
+ }).finally(()=>bcPending.delete(key));
+ bcPending.set(key,pending);return pending;
+}
+function bcPresentCatalog(data){
+ state.data=data;setupBrand(data);categoryButtons();renderProducts();
+}
+function bcReadCatalog(){
+ const stored=bcJson(BC_STORE+':catalog');
+ if(!stored||!stored.info||!stored.data||!Array.isArray(stored.data.productos))return null;
+ bcSetRevision(stored.info);return stored.data;
+}
+function bcSaveCatalog(version,data){
+ bcWrite(BC_STORE+':catalog',JSON.stringify({info:version,data:data}));
+}
+async function bcStartCatalog(){
+ const cached=bcReadCatalog();
+ if(cached)bcPresentCatalog(cached);
+ try{
+  const versionTask=api('obtenerVersionEscaparate',[]);
+  // Primera visita: se consultan versión y catálogo en paralelo.
+  const firstCatalog=cached?null:api('obtenerEscaparatePublico',[]);
+  const version=await versionTask;
+  if(cached&&bcSignature(version)===bcIdentity+'/'+bcRevision)return;
+  const catalog=firstCatalog?await firstCatalog:await api('obtenerEscaparatePublico',[]);
+  if(!catalog||!Array.isArray(catalog.productos))throw new Error('Catálogo inválido.');
+  bcSetRevision(version);bcSaveCatalog(version,catalog);bcPresentCatalog(catalog);
+ }catch(error){
+  if(!cached){
+   $('productos').textContent='';const notice=document.createElement('div');
+   notice.className='empty';
+   notice.textContent='No se pudo cargar el catálogo. Revisa la conexión y actualiza la página.';
+   $('productos').append(notice);$('catalogCount').textContent='Sin conexión';
+  }
+ }
+}
+let bcLastCheck=0;
+async function bcCheckChanges(){
+ if(!state.data||Date.now()-bcLastCheck<60000)return;
+ bcLastCheck=Date.now();
+ try{
+  const version=await api('obtenerVersionEscaparate',[]);
+  if(bcSignature(version)===bcIdentity+'/'+bcRevision)return;
+  const fresh=await api('obtenerEscaparatePublico',[]);
+  bcSetRevision(version);bcSaveCatalog(version,fresh);bcPresentCatalog(fresh);
+ }catch(error){/* Mantener catálogo local cuando no hay conexión. */}
+}
+
 function dateKey(date){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
 function safeDate(s){return new Date(String(s)+'T12:00:00');}
 function status(text,error){const el=$('estadoReserva');el.textContent=text;el.classList.toggle('error',Boolean(error));}
@@ -336,7 +439,9 @@ function setupBrand(data){
   $(id).hidden=!wa;if(wa)$(id).href=wa;
  });
  if(data.tieneLogo){
-  api('obtenerLogoPublico',[]).then(uri=>{
+  const revision=bcRevision;
+  bcGetImage('LOGO','principal').then(uri=>{
+   if(revision!==bcRevision)return;
    if(uri){
     $('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;
     $('heroLogo').src=uri;$('heroLogo').hidden=false;$('heroLogoFallback').hidden=true;
@@ -387,8 +492,9 @@ function card(item){
 }
 function loadImage(img){
  if(img.dataset.loading)return;img.dataset.loading='1';
- api('obtenerImagenPublica',[img.dataset.tipo,img.dataset.id,''])
-  .then(uri=>{if(img.isConnected&&uri)img.src=uri;})
+ const revision=bcRevision;
+ bcGetImage(img.dataset.tipo,img.dataset.id)
+  .then(uri=>{if(img.isConnected&&uri&&revision===bcRevision)img.src=uri;})
   .catch(()=>{if(img.isConnected)img.remove()});
 }
 const observer=('IntersectionObserver' in window)?new IntersectionObserver(entries=>{
@@ -590,17 +696,12 @@ $('fecha').addEventListener('change',()=>{renderDays();availability();});
 $('confirmarReserva').addEventListener('click',()=>{try{confirm();}catch(e){status(e.message||String(e),true);}});
 $('formularioReserva').addEventListener('submit',e=>e.preventDefault());
 (async()=>{
- try{
-  const data=await api('obtenerEscaparatePublico',[]);
-  state.data=data;setupBrand(data);categoryButtons();renderProducts();
-  $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
- }catch(e){
-  $('productos').textContent='';
-  const d=document.createElement('div');d.className='empty';
-  d.textContent='No pudimos cargar los servicios. Verifica la configuración de BarberControl y vuelve a intentarlo.';
-  $('productos').append(d);$('catalogCount').textContent='Sin conexión';
- }
+ $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
+ await bcStartCatalog();bcLastCheck=Date.now();
 })();
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible')bcCheckChanges();
+});
 })();
 </script>
 </body>
