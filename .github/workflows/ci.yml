@@ -19,3 +19,6 @@ jobs:
         run: node tests/booking-ux.test.js
       - name: Probar escaparate, WhatsApp, estilos y calendario
         run: node tests/escaparate.test.js
+
+      - name: Probar paquete de conexión Admin → Public
+        run: node tests/connection.test.js
