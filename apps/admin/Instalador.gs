@@ -5,6 +5,8 @@
 const BC_SCHEMA_ = {
   Configuracion: ['Clave','Valor','Descripcion'],
   Categorias: ['ID','Nombre','Orden','Activa'],
+  Cortes: ['ID','Nombre','Categoria','Descripcion','Origen','Tecnica','PrecioLocal','PrecioDomicilio','DuracionMin','ImagenId','Activo','Visible','Orden','LegacyServicioId','LegacyEstiloId'],
+  FotosCortes: ['ID','CorteId','DriveId','Descripcion','Orden','Publicado'],
   Horarios: ['DiaSemana','Abierto','Inicio','Fin'],
   Bloqueos: ['ID','Tipo','DiaSemana','FechaInicio','FechaFin','Inicio','Fin','Motivo','Activo'],
   Servicios: ['ID','Nombre','Categoria','Descripcion','DuracionMin','Precio','Moneda','ImagenId','Activo','Visible','Reservable','Orden'],
@@ -68,6 +70,20 @@ function instalarBarberControl() {
         }
       }
     });
+    // Ampliación compatible: conservar las 18 columnas de las reservas antiguas.
+    const reservasSheet=ss.getSheetByName('Reservas');
+    const extra=['CorteId','Modalidad','Direccion'];
+    const firstHeader=reservasSheet.getRange(1,1,1,reservasSheet.getLastColumn()).getDisplayValues()[0];
+    extra.forEach(function(key){
+      if(firstHeader.indexOf(key)<0){
+        const col=reservasSheet.getLastColumn()+1;
+        reservasSheet.getRange(1,col).setValue(key);
+        reservasSheet.getRange(1,col).setBackground('#171a20').setFontColor('#ffffff').setFontWeight('bold');
+      }
+    });
+    // Crear un Corte por cada estilo antiguo, manteniendo el precio local
+    // y el vínculo histórico. Las hojas Servicios/Estilos NO se borran.
+    migrarEstilosACortes_(ss);
     // Mantener fechas, horas y teléfonos como texto en Sheets.
     ss.getSheetByName('Reservas').getRange('A:A').setNumberFormat('@');
     ss.getSheetByName('Reservas').getRange('C:E').setNumberFormat('@');
@@ -182,7 +198,7 @@ function barberControlOnEditCatalogo_(event) {
   const expected=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if(!expected||event.source.getId()!==expected)return;
   const sheetName=event.range.getSheet().getName();
-  if(['Servicios','Estilos','Categorias','Configuracion'].indexOf(sheetName)===-1)return;
+  if(['Servicios','Estilos','Cortes','FotosCortes','Categorias','Configuracion'].indexOf(sheetName)===-1)return;
   actualizarVersionEscaparate_();
 }
 
@@ -203,4 +219,43 @@ function exportarConexionPublicaAdmin() {
   }
   // Se envía únicamente a la interfaz PRIVADA del propietario.
   return JSON.stringify(datos);
+}
+
+/** Migración idempotente: de Servicios + Estilos hacia un único catálogo Cortes. */
+function migrarEstilosACortes_(ss) {
+  const cortes=ss.getSheetByName('Cortes');
+  const oldServicios=ss.getSheetByName('Servicios').getDataRange().getDisplayValues();
+  const oldEstilos=ss.getSheetByName('Estilos').getDataRange().getDisplayValues();
+  const asRows=function(rows){const keys=rows[0];return rows.slice(1).filter(r=>r[0]).map(r=>{
+    const obj={};keys.forEach((k,i)=>obj[k]=r[i]||'');return obj;
+  });};
+  const servicios=asRows(oldServicios),estilos=asRows(oldEstilos);
+  const byId={};servicios.forEach(s=>byId[s.ID]=s);
+  const existing=cortes.getDataRange().getDisplayValues();
+  const known=new Set(existing.slice(1).map(r=>r[13]+'|'+r[14]));
+  const hasStyle=new Set(estilos.map(e=>e.ServicioId));
+  const out=[];
+  const active=v=>String(v).toLowerCase()==='true';
+  const parsePrice=v=>String(v).trim()===''?'':Number(String(v).replace(',','.'));
+  estilos.forEach(e=>{
+    const s=byId[e.ServicioId];if(!s||known.has(e.ServicioId+'|'+e.ID))return;
+    const price=parsePrice(s.Precio);
+    const id='CRT-'+Utilities.getUuid().slice(0,12).toUpperCase();
+    out.push([id,e.Nombre,s.Categoria,e.Descripcion||s.Descripcion,e.Origen,e.Tecnica,
+      Number.isFinite(price)?price:'','',Number(s.DuracionMin)||30,e.ImagenId||s.ImagenId,
+      active(s.Activo)&&active(e.Activo),active(s.Visible)&&active(e.Visible),Number(e.Orden)||0,
+      s.ID,e.ID]);
+  });
+  servicios.forEach(s=>{
+    if(hasStyle.has(s.ID)||known.has(s.ID+'|'))return;
+    const price=parsePrice(s.Precio);
+    out.push(['CRT-'+Utilities.getUuid().slice(0,12).toUpperCase(),s.Nombre,s.Categoria,s.Descripcion,'','',
+      Number.isFinite(price)?price:'','',Number(s.DuracionMin)||30,s.ImagenId,
+      active(s.Activo),active(s.Visible),Number(s.Orden)||0,s.ID,'']);
+  });
+  if(out.length){
+    cortes.getRange(cortes.getLastRow()+1,1,out.length,15).setValues(out);
+    SpreadsheetApp.flush();
+  }
+  // No modifica citas históricas ni vuelve a migrar registros ya existentes.
 }
