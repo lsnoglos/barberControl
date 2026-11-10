@@ -54,7 +54,18 @@ const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'
 const state={panel:null,cortes:[],fotos:[],marca:null,year:new Date().getFullYear(),month:new Date().getMonth()+1,selectedDate:'',images:new Map(),busy:false};
 function api(name,...args){
  return new Promise((resolve,reject)=>{
-  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
+  let settled=false;
+  const timer=setTimeout(()=>{
+   if(settled)return;settled=true;
+   reject(new Error('Google tardó demasiado en responder. Verifica si se completó antes de repetir.'));
+  },60000);
+  const runner=google.script.run.withSuccessHandler(result=>{
+   if(settled)return;settled=true;clearTimeout(timer);resolve(result);
+  }).withFailureHandler(error=>{
+   if(settled)return;settled=true;clearTimeout(timer);reject(error);
+  });
+  try{runner[name](...args);}
+  catch(error){if(!settled){settled=true;clearTimeout(timer);reject(error);}}
  });
 }
 function busy(active,title,detail){
