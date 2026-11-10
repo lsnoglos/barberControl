@@ -72,3 +72,9 @@ CI valida sintaxis y lógica de catálogo, consentimiento, privacidad, identidad
 Al confirmar una cita, la aplicación muestra una animación de tubo de barbería, bloquea interacciones y entrega un comprobante con fecha/hora legibles y opción de aviso por WhatsApp. El catálogo y las fotos públicas cuentan con caché local que se invalida mediante `PUBLIC_CATALOG_VERSION` en Sheets (incluye detector de edición manual).
 
 [Actualizar ambos proyectos Apps Script](docs/ACTUALIZAR-RESERVAS-CACHE.md).
+
+## BarberControl v2 — Cortes y reservaciones
+
+El catálogo de clientes se construye ahora directamente desde `Cortes` y `FotosCortes`. Un mismo corte puede ofrecer precio en local, a domicilio o ambos. El cliente elige modalidad, ve disponibilidad según la duración y puede consultar fotografías adicionales en un carrusel. Se corrigió la entrega del objeto de reserva para evitar el error «Introduce un nombre válido».
+
+La administración se dividió en una pantalla principal (cortes, calendario mensual, horarios y bloqueos) y configuración adicional (identidad, categorías, intervalo, instalación y conexión). Se conserva la información histórica de `Servicios` y `Estilos` para migración. **Guía para actualizar tus proyectos existentes:** [docs/ACTUALIZAR-V2-CORTES.md](docs/ACTUALIZAR-V2-CORTES.md).
