@@ -7,7 +7,7 @@
 1. Iniciar sesión en [script.google.com](https://script.google.com) usando la cuenta del propietario.
 2. Crear un proyecto nuevo llamado **BarberControl - Admin**.
 3. Crear otro proyecto independiente llamado **BarberControl - Publico**.
-4. Abrir **Configuración del proyecto** de cada uno y copiar su **ID de secuencia de comandos (Script ID)**.
+4. Si vas a pegar los archivos manualmente, no necesitas copiar ningún Script ID. Si utilizas `clasp`, identifica cada proyecto por su Script ID para sincronizar código (no es un ID de Sheets ni Calendar).
 
 No uses el mismo Script ID para ambos: son despliegues con permisos y funciones diferentes.
 
@@ -55,31 +55,26 @@ El instalador:
 - configura horarios de ejemplo;
 - crea/reutiliza el calendario `BarberControl - Citas`;
 - genera `BRIDGE_SECRET` en propiedades privadas;
-- devuelve los identificadores requeridos para el proyecto público.
+- crea un manifiesto privado de configuración en Drive para que Barber Public pueda autovincularse sin copiar identificadores.
 
 Al instalar de nuevo, reutilizará los recursos registrados y no eliminará las citas.
 
 **Antes de compartir con clientes**: cambia el nombre del negocio, revisa horarios, registra los servicios y define los precios reales.
 
-## D. Conectar y desplegar Público
+## D. Conectar y desplegar Público (automático)
 
-En el editor de **BarberControl - Publico**, abre **Configuración del proyecto → Propiedades de secuencia de comandos (Script Properties)**.
+Después de ejecutar el instalador desde Admin, la configuración compartida está disponible **solo para los dos proyectos autorizados bajo la misma cuenta de Google**.
 
-Agrega exactamente estas tres claves con los valores mostrados en el panel Admin:
+1. Asegúrate de que `apps/public/ConexionPublica.gs`, `Datos.gs`, `Escaparate.gs` y `Puente.gs` correspondan a las versiones actuales del repositorio.
+2. Despliega la aplicación pública como **Aplicación web**, ejecutada **como yo (propietario)** y accesible por **cualquier persona, incluso anónima**.
+3. Abre la URL `/exec`. Al consultar el catálogo, Barber Public buscará la configuración privada de Admin en Drive, comprobará los recursos y creará sus propias propiedades **automáticamente**.
+4. Verifica en el editor, en **Configuración → Propiedades de secuencia de comandos**, que aparezcan `SPREADSHEET_ID`, `CALENDAR_ID` y `BRIDGE_SECRET`.
 
-```text
-SPREADSHEET_ID   = (ID del archivo BarberControl_DB)
-CALENDAR_ID      = (ID del calendario BarberControl - Citas)
-BRIDGE_SECRET    = (clave secreta generada en Admin)
-```
+**No copies ni pegues valores.** No tienes que crear ninguna Script Property manualmente. Si había propiedades válidas de una instalación anterior, se seguirán usando.
 
-No copies los valores reales al repositorio GitHub.
+Esta primera conexión requiere que ambos proyectos pertenezcan y se ejecuten con la **misma cuenta propietaria**. Nunca compartas la carpeta `BarberControl - CONFIG PRIVADA NO COMPARTIR`.
 
-Despliega **BarberControl - Publico** como **Aplicación web**:
-- Ejecutar como: **Yo** (propietario).
-- Quién tiene acceso: **Cualquier persona**, incluso anónima.
-
-Autoriza los permisos del proyecto con la cuenta propietaria y verifica la URL `/exec` desde una ventana de incógnito **sin iniciar sesión**.
+Más detalles: [CONEXION-SIMPLIFICADA.md](CONEXION-SIMPLIFICADA.md).
 
 ## E. Terminar la conexión del puente
 
@@ -101,6 +96,6 @@ Después, crea un bloqueo de prueba de 12:00 a 12:30 en el panel privado. Vuelve
 
 ## G. Qué NO hay todavía
 
-No hay carga de fotografías, estilos/galería visual, videos YouTube, recordatorios automáticos, cancelación desde cliente ni panel avanzado de atención de citas. Las pestañas para esos módulos ya están creadas por el instalador para su futuro desarrollo.
+Ya hay catálogo de estilos, fotografías y enlaces opcionales de YouTube en el código. Todavía faltan recordatorios automáticos, cancelación desde cliente y mejoras avanzadas de agenda. Las pestañas para esos módulos ya están creadas por el instalador para su futuro desarrollo.
 
 Los proyectos Google **no se crean al subir código a GitHub**: deben existir previamente en la cuenta del propietario (o crearse mediante una integración autorizada con la Apps Script API). Tampoco basta con editar el manifiesto: comprueba los permisos reales en **Implementar**.
