@@ -1,83 +1,64 @@
+const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
-const assert=require('node:assert/strict');
-const folder=path.join(__dirname,'..');
-const file=p=>fs.readFileSync(path.join(folder,p),'utf8');
-
+const root=path.join(__dirname,'..');
+const load=p=>fs.readFileSync(path.join(root,p),'utf8');
 const rows={
- Servicios:[
-  {ID:'SER-1',Nombre:'Corte degradado',Categoria:'Cabello',Precio:'150',DuracionMin:'45',
-   Descripcion:'Corte moderno',Activo:'TRUE',Visible:'TRUE',Reservable:'TRUE'},
-  {ID:'SER-2',Nombre:'Masaje relajante',Categoria:'Masajes',Precio:'220',DuracionMin:'30',
-   Descripcion:'Relajante',Activo:'TRUE',Visible:'TRUE',Reservable:'TRUE'},
-  {ID:'SER-3',Nombre:'Oculto',Categoria:'Barba',Precio:'100',DuracionMin:'20',
-   Activo:'TRUE',Visible:'FALSE',Reservable:'TRUE'}
+ Cortes:[
+  {ID:'CRT-1',Nombre:'Low Fade',Categoria:'Cabello',PrecioLocal:'80',PrecioDomicilio:'120',DuracionMin:'45',ImagenId:'private1',Descripcion:'Degradado',Activo:'TRUE',Visible:'TRUE'},
+  {ID:'CRT-2',Nombre:'Solo en local',Categoria:'Barba',PrecioLocal:'90',PrecioDomicilio:'',DuracionMin:'20',ImagenId:'',Activo:'TRUE',Visible:'TRUE'},
+  {ID:'CRT-3',Nombre:'Solo a domicilio',Categoria:'Masajes',PrecioLocal:'',PrecioDomicilio:'250',DuracionMin:'60',ImagenId:'',Activo:'TRUE',Visible:'TRUE'},
+  {ID:'CRT-4',Nombre:'Oculto',Categoria:'Cabello',PrecioLocal:'100',PrecioDomicilio:'',DuracionMin:'30',ImagenId:'private4',Activo:'TRUE',Visible:'FALSE'}
  ],
- Estilos:[
-  {ID:'EST-1',Nombre:'Low Fade',ServicioId:'SER-1',Descripcion:'Degradado bajo',
-   ImagenId:'PRIVATE_FILE_ID',Origen:'',Tecnica:'',Activo:'TRUE',Visible:'TRUE'},
-  {ID:'EST-2',Nombre:'Estilo secreto',ServicioId:'SER-3',Descripcion:'',
-   ImagenId:'HIDDEN_FILE',Activo:'TRUE',Visible:'TRUE'}
- ],
+ FotosCortes:[{ID:'F1',CorteId:'CRT-1',Publicado:'TRUE'}],
  Categorias:[
-  {ID:'1',Nombre:'Cabello',Orden:'1',Activa:'TRUE'},
-  {ID:'2',Nombre:'Masajes',Orden:'2',Activa:'TRUE'},
-  {ID:'3',Nombre:'Barba',Orden:'3',Activa:'TRUE'},
-  {ID:'4',Nombre:'No disponible',Orden:'4',Activa:'FALSE'}
+  {Nombre:'Cabello',Activa:'TRUE',Orden:'1'},
+  {Nombre:'Barba',Activa:'TRUE',Orden:'2'},
+  {Nombre:'Masajes',Activa:'TRUE',Orden:'3'}
  ]
 };
-const config={NOMBRE_NEGOCIO:'William Barber Shop',ESLOGAN_NEGOCIO:'Tu mejor estilo',
- TELEFONO_WHATSAPP:'50588888888',LOGO_FILE_ID:'logo-private',MONEDA:'NIO'};
+const config={
+ NOMBRE_NEGOCIO:'William Barber Shop',ESLOGAN_NEGOCIO:'Tu mejor estilo',
+ TELEFONO_WHATSAPP:'50588888888',LOGO_FILE_ID:'private-logo',MONEDA:'NIO'
+};
 const ctx=vm.createContext({
- leerPublico_:n=>rows[n]||[],configuracionPublica_:()=>config,
+ leerPublico_:n=>rows[n]||[],esVerdad_:v=>String(v).toLowerCase()==='true',
+ configuracionPublica_:()=>config,Number,String
+});
+vm.runInContext(load('apps/public/Escaparate.gs'),ctx);
+const page=vm.runInContext('obtenerEscaparatePublico()',ctx);
+assert.equal(page.productos.length,3);
+assert.equal(page.productos[0].fotosAdicionales,1);
+assert.equal(page.productos[1].precioDomicilio,null);
+assert.equal(page.productos[2].precioLocal,null);
+assert.equal(page.productos[0].precioLocal,80);
+assert.equal(page.productos[0].precioDomicilio,120);
+assert.equal(JSON.stringify(page).includes('private-logo'),false);
+assert.equal(JSON.stringify(page).includes('private1'),false);
+console.log('OK: escaparate único, modalidad opcional y sin IDs privados');
+const avail=vm.createContext({
+ cortesPublicos_:()=>page.productos,
+ configuracionPublica_:()=>({}),
+ validarFecha_:()=>new Date(2026,10,11),
+ leerPublico_:n=>n==='Horarios'?[{DiaSemana:'3',Abierto:'TRUE',Inicio:'08:00',Fin:'18:00'}]:[],
  esVerdad_:v=>String(v).toLowerCase()==='true',
- DriveApp:{getFileById:()=>({getMimeType:()=> 'image/png',getBlob:()=>({getBytes:()=>[137,80,78,71,13,10,26,10]})})},
- Utilities:{base64Encode:bytes=>Buffer.from(bytes).toString('base64')}
+ minutos_:x=>Number(x.slice(0,2))*60+Number(x.slice(3,5)),
+ reloj_:x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'),
+ fechaLocal_:(date,time)=>new Date(date+'T'+time+':00'),
+ calendarioPublico_:()=>({getEvents:()=>[]}),
+ Date,Number,String,Error
 });
-vm.runInContext(file('apps/public/Escaparate.gs'),ctx);
-const store=vm.runInContext('obtenerEscaparatePublico()',ctx);
-assert.equal(store.nombre,'William Barber Shop');
-assert.equal(store.telefono,'50588888888');
-assert.equal(store.productos.length,2);
-assert.equal(store.productos[0].nombre,'Low Fade');
-assert.equal(store.productos[0].servicioId,'SER-1');
-assert.equal(store.productos[0].estiloId,'EST-1');
-assert.equal(store.productos[1].nombre,'Masaje relajante');
-assert(!store.categorias.includes('No disponible'));
-assert(!JSON.stringify(store).includes('PRIVATE_FILE_ID'));
-assert(!JSON.stringify(store).includes('logo-private'));
-assert.equal(vm.runInContext('obtenerLogoPublico()',ctx),'data:image/png;base64,iVBORw0KGgo=');
-console.log('OK: escaparate filtra servicios, conserva estilos, categorías y privacidad del logo');
-
-let event=null,row=null,nonce=0;
-const booking=vm.createContext({
- LockService:{getScriptLock:()=>({waitLock:()=>{},releaseLock:()=>{}})},
- Utilities:{
-  getUuid:()=>('00000000-0000-4000-8000-'+String(++nonce).padStart(12,'0')),
-  computeDigest:()=>[1,2,3],DigestAlgorithm:{SHA_256:'SHA_256'},Charset:{UTF_8:'UTF_8'}
- },
- leerPublico_:()=>[],
- estiloVisibleCatalogo_:id=>id==='EST-1'?{ServicioId:'SER-1',Nombre:'Low Fade'}:null,
- trabajoVisibleCatalogo_:()=>null,
- calcularIntervalos_:()=>({servicio:{nombre:'Corte degradado',precio:150,duracion:45},horarios:[{inicio:'10:00',fin:'10:45'}]}),
- calendarioPublico_:()=>({createEvent:(title,start,end,options)=>{
-  event={title,start,end,options};return {getId:()=> 'EVENT-1',deleteEvent:()=>{}};
- }}),
- fechaLocal_:()=>new Date('2026-11-04T10:00:00'),
- dbPublica_:()=>({getSheetByName:()=>({appendRow:r=>row=r})}),
- SpreadsheetApp:{flush:()=>{}}
-});
-vm.runInContext(file('apps/public/Reservas.gs'),booking);
-const reservation=booking.reservarCita({
- nombre:'Cliente Prueba',telefono:'88888888',comentario:'Con textura arriba',
- fecha:'2026-11-04',inicio:'10:00',servicioId:'SER-1',estiloId:'EST-1',
- galeriaId:'',idempotencia:'11111111-1111-4111-8111-111111111111'
-});
-assert.equal(reservation.estilo,'Low Fade');
-assert(event.title.includes('Low Fade'));
-assert(event.title.includes('Corte degradado'));
-assert(event.options.description.includes('Low Fade'));
-assert.equal(row[8],'EST-1');
-assert.equal(row[11],'CONFIRMADA');
-console.log('OK: reserva de estilo aparece en Google Calendar por nombre y en Sheets por ID');
+vm.runInContext(load('apps/public/Disponibilidad.gs'),avail);
+assert.equal(vm.runInContext("corteReservable_('CRT-1','LOCAL').precio",avail),80);
+assert.equal(vm.runInContext("corteReservable_('CRT-1','DOMICILIO').precio",avail),120);
+assert.throws(()=>vm.runInContext("corteReservable_('CRT-2','DOMICILIO')",avail));
+assert.throws(()=>vm.runInContext("corteReservable_('CRT-3','LOCAL')",avail));
+console.log('OK: disponibilidad basada en precios y modalidad reales');
+const code=load('apps/public/Index.html');
+assert(!code.includes('Un gran estilo empieza aquí'));
+assert(code.includes("api('reservarCita',payload)"));
+assert(code.includes('fotosAdicionales>0'));
+assert(code.includes('id="galleryModal"'));
+assert(code.includes("api('obtenerDisponibilidad',fecha,cut.id,mode)"));
+console.log('OK: cliente sin hero, carrusel opcional y envío de objeto correcto');

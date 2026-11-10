@@ -1,83 +1,45 @@
-/**
- * Pruebas aisladas del catálogo, consentimiento y URLs de YouTube.
- * No necesitan credenciales ni llamadas reales a servicios Google.
- */
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
 const assert=require('node:assert/strict');
-const base=path.join(__dirname,'..');
-const adminSource=fs.readFileSync(path.join(base,'apps/admin/Catalogos.gs'),'utf8');
-const admin=vm.createContext({});
-vm.runInContext(adminSource,admin,{filename:'apps/admin/Catalogos.gs'});
-const youtube=vm.runInContext('extraerYoutubeIdCatalogo_',admin);
-assert.equal(youtube('https://youtu.be/dQw4w9WgXcQ'),'dQw4w9WgXcQ');
-assert.equal(youtube('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),'dQw4w9WgXcQ');
-assert.equal(youtube('https://youtube.com/shorts/dQw4w9WgXcQ'),'dQw4w9WgXcQ');
-assert.equal(youtube('https://m.youtube.com/watch?feature=shared&v=dQw4w9WgXcQ'),'dQw4w9WgXcQ');
-assert.throws(()=>youtube('https://evil.example/watch?v=dQw4w9WgXcQ'));
-assert.throws(()=>youtube('javascript:alert(1)'));
-console.log('OK: enlaces YouTube válidos y rechazo de orígenes ajenos');
-
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const root=path.join(__dirname,'..');
+const load=p=>fs.readFileSync(path.join(root,p),'utf8');
 const rows={
- Servicios:[
-  {ID:'SER-1',Nombre:'Degradado',Activo:'TRUE',Visible:'TRUE',Reservable:'TRUE'},
-  {ID:'SER-2',Nombre:'Secreto',Activo:'TRUE',Visible:'FALSE',Reservable:'TRUE'},
-  {ID:'SER-3',Nombre:'No reservable',Activo:'TRUE',Visible:'TRUE',Reservable:'FALSE'}
+ Cortes:[
+  {ID:'CRT-1',Nombre:'Low Fade',Categoria:'Cabello',PrecioLocal:'80',PrecioDomicilio:'120',DuracionMin:'45',ImagenId:'private-cover',Activo:'TRUE',Visible:'TRUE'},
+  {ID:'CRT-2',Nombre:'Oculto',Categoria:'Barba',PrecioLocal:'100',PrecioDomicilio:'',DuracionMin:'30',ImagenId:'secret-cover',Activo:'TRUE',Visible:'FALSE'}
  ],
- Estilos:[
-  {ID:'EST-1',Nombre:'Low Fade',ServicioId:'SER-1',Activo:'TRUE',Visible:'TRUE',ImagenId:'file-visible'},
-  {ID:'EST-2',Nombre:'Oculto',ServicioId:'SER-2',Activo:'TRUE',Visible:'TRUE',ImagenId:'file-secret'}
- ],
- Galeria:[
-  {ID:'GAL-1',Titulo:'Trabajo autorizado',ServicioId:'SER-1',Publicado:'TRUE',Consentimiento:'TRUE',Destacado:'FALSE'},
-  {ID:'GAL-2',Titulo:'Sin autorización',ServicioId:'SER-1',Publicado:'TRUE',Consentimiento:'FALSE',Destacado:'FALSE'},
-  {ID:'GAL-3',Titulo:'Borrador',ServicioId:'SER-1',Publicado:'FALSE',Consentimiento:'TRUE',Destacado:'FALSE'}
- ],
- Medios:[
-  {ID:'MED-1',GaleriaId:'GAL-1',Tipo:'FOTO',Publicado:'TRUE',DriveId:'file-work'},
-  {ID:'MED-2',GaleriaId:'GAL-2',Tipo:'FOTO',Publicado:'TRUE',DriveId:'file-private'},
-  {ID:'MED-3',GaleriaId:'GAL-1',Tipo:'YOUTUBE',Publicado:'TRUE',YoutubeId:'dQw4w9WgXcQ'},
-  {ID:'MED-4',GaleriaId:'GAL-3',Tipo:'FOTO',Publicado:'TRUE',DriveId:'file-draft'}
+ FotosCortes:[
+  {ID:'PIC-1',CorteId:'CRT-1',DriveId:'photo-visible',Publicado:'TRUE',Orden:'1'},
+  {ID:'PIC-2',CorteId:'CRT-1',DriveId:'photo-hidden',Publicado:'FALSE',Orden:'2'},
+  {ID:'PIC-3',CorteId:'CRT-2',DriveId:'photo-secret',Publicado:'TRUE',Orden:'1'}
  ]
 };
-let reads=[];
+const requested=[];
 const context=vm.createContext({
- leerPublico_:n=>rows[n]||[],
- esVerdad_:v=>String(v).toLowerCase()==='true',
- Utilities:{base64Encode:b=>Buffer.from(b).toString('base64')},
- DriveApp:{getFileById:id=>{reads.push(id);return {getMimeType:()=> 'image/jpeg',
-   getBlob:()=>({getBytes:()=>[255,216,255,0,0]})};}}
+ leerPublico_:n=>rows[n]||[],esVerdad_:v=>String(v).toLowerCase()==='true',
+ DriveApp:{getFileById:id=>{requested.push(id);return {getMimeType:()=> 'image/jpeg',getBlob:()=>({getBytes:()=>[255,216,255]})};}},
+ Utilities:{base64Encode:b=>Buffer.from(b).toString('base64')},String,Number,Error
 });
-vm.runInContext(fs.readFileSync(path.join(base,'apps/public/Catalogo.gs'),'utf8'),context);
-const get=expression=>vm.runInContext(expression,context);
-const visual=get('obtenerCatalogoVisualPublico()');
-assert.equal(visual.estilos.length,1);
-assert.equal(visual.estilos[0].id,'EST-1');
-assert.equal(visual.trabajos.length,1);
-assert.equal(visual.trabajos[0].id,'GAL-1');
-assert.equal(visual.trabajos[0].medios.length,2);
-assert.equal(JSON.stringify(visual).includes('file-work'),false,'No se deben publicar IDs de Drive');
-assert.equal(JSON.stringify(visual).includes('file-secret'),false);
-assert.equal(get("obtenerImagenPublica('ESTILO','EST-1','')"),'data:image/jpeg;base64,/9j/AAA=');
-assert.equal(get("obtenerImagenPublica('GALERIA','GAL-1','MED-1')"),'data:image/jpeg;base64,/9j/AAA=');
-assert.throws(()=>get("obtenerImagenPublica('GALERIA','GAL-2','MED-2')"));
-assert.throws(()=>get("obtenerImagenPublica('GALERIA','GAL-3','MED-4')"));
-assert.throws(()=>get("obtenerImagenPublica('ESTILO','EST-2','')"));
-assert.equal(reads.length,2,'Solo se deben leer de Drive archivos públicos');
-console.log('OK: filtros de publicación, privacidad y consentimiento');
-
-const adminIndex=fs.readFileSync(path.join(base,'apps/admin/Index.html'),'utf8');
-const publicIndex=fs.readFileSync(path.join(base,'apps/public/Index.html'),'utf8');
-assert(adminIndex.includes("incluirCatalogoAdmin_('CatalogoPanel')"));
-assert(adminIndex.includes("incluirCatalogoAdmin_('MarcaPanel')"));
-assert(publicIndex.includes("obtenerEscaparatePublico"));
-assert(publicIndex.includes("obtenerDisponibilidad"));
-assert(publicIndex.includes("reservarCita"));
-assert(publicIndex.includes("estiloId:state.selected.estiloId"));
-assert(!publicIndex.includes("incluirCatalogoPublico_('GaleriaPublica')"));
-assert(publicIndex.includes('id="categorias"'));
-assert(publicIndex.includes('id="buscar"'));
-assert(publicIndex.includes('id="whatsappTop"'));
-assert(publicIndex.includes('id="marcaLogo"'));
-console.log('OK: módulos HTML enlazados y reserva con referencia del estilo');
+vm.runInContext(load('apps/public/Catalogo.gs'),context);
+const photos=vm.runInContext("obtenerFotosCortePublico('CRT-1')",context);
+assert.equal(photos.length,2,'Se muestra la portada y una foto adicional publicada');
+assert.equal(photos[0].id,'PORTADA');
+assert.equal(photos[1].id,'PIC-1');
+assert.equal(JSON.stringify(photos).includes('private-cover'),false,'No revelar ID de Drive');
+assert.throws(()=>vm.runInContext("obtenerFotosCortePublico('CRT-2')",context));
+assert.throws(()=>vm.runInContext("obtenerImagenPublica('FOTO_CORTE','CRT-1','PIC-2')",context));
+assert.throws(()=>vm.runInContext("obtenerImagenPublica('CORTE','CRT-2','')",context));
+assert.equal(vm.runInContext("obtenerImagenPublica('CORTE','CRT-1','')",context),'data:image/jpeg;base64,/9j/');
+assert.equal(vm.runInContext("obtenerImagenPublica('FOTO_CORTE','CRT-1','PIC-1')",context),'data:image/jpeg;base64,/9j/');
+assert.deepEqual(requested,['private-cover','photo-visible']);
+console.log('OK: fotos múltiples, visibilidad y privacidad de Drive');
+const admin=load('apps/admin/CortesAdminV2.gs');
+const ctx=vm.createContext({});
+vm.runInContext(admin,ctx);
+const price=vm.runInContext('bcV2Precio_',ctx);
+assert.equal(price(''), '');
+assert.equal(price('0'),0);
+assert.equal(price('150.50'),150.50);
+assert.throws(()=>price('-5'));
+console.log('OK: precios local/domicilio opcionales');
