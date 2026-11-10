@@ -174,6 +174,9 @@ async function saveCut(event){
   $('cutDialog').close();
   const result=await run(async()=>{
    const saved=await api('guardarCorteAdminV2',data);
+   // Conservar el ID incluso si falla la carga de alguna fotografía.
+   // Así el usuario puede reintentar sin crear un corte duplicado.
+   $('cutId').value=saved.id;
    if(cover)await api('subirFotoCorteAdminV2',{corteId:saved.id,principal:true,imagen:await jpeg(cover),autorizacion:true});
    for(let i=0;i<files.length;i++){
     $('busyDetail').textContent='Subiendo foto '+(i+1)+' de '+files.length;
@@ -183,7 +186,7 @@ async function saveCut(event){
   },'Guardando corte y fotografías…');
   state.images.delete('principal:'+result.id);
   await refreshCortes();
- }catch(e){$('cutDialog').showModal();$('cutError').textContent=e.message||String(e);}
+ }catch(e){$('cutDialog').showModal();$('cutError').textContent=(e.message||String(e))+' Si se guardaron algunas fotografías, revisa el corte antes de volver a subirlas.';}
 }
 async function refreshCortes(){
  const result=await api('obtenerCortesAdmin');
