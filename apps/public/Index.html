@@ -60,7 +60,18 @@ const state={catalog:null,category:'Todo',query:'',sort:'recommended',cut:null,m
 const STORE='bc-catalog-v7',PHOTO_MAX=1700000;
 function api(name,...args){
  return new Promise((resolve,reject)=>{
-   google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
+  let settled=false;
+  const timer=setTimeout(()=>{
+   if(settled)return;settled=true;
+   reject(new Error('Google tardó demasiado en responder. Verifica si se completó antes de repetir.'));
+  },60000);
+  const runner=google.script.run.withSuccessHandler(result=>{
+   if(settled)return;settled=true;clearTimeout(timer);resolve(result);
+  }).withFailureHandler(error=>{
+   if(settled)return;settled=true;clearTimeout(timer);reject(error);
+  });
+  try{runner[name](...args);}
+  catch(error){if(!settled){settled=true;clearTimeout(timer);reject(error);}}
  });
 }
 function busy(active,title,message){
@@ -192,7 +203,7 @@ async function openGallery(cut){
  try{
   await wait(async()=>{
    const photos=await api('obtenerFotosCortePublico',cut.id);
-   if(photos.length<2)return;
+   if(!photos.length)return;
    state.gallery=photos.map(p=>({cutId:cut.id,type:p.tipo==='PRINCIPAL'?'CORTE':'FOTO_CORTE',photoId:p.tipo==='PRINCIPAL'?'':p.id}));
    state.galleryIndex=0;$('galleryModal').hidden=false;await showGalleryImage();
   },'Abriendo fotografías','Preparando las fotos del estilo…');
@@ -233,9 +244,9 @@ function choose(cut){
    modeHost.querySelectorAll('button').forEach(x=>x.classList.toggle('selected-mode',x===b));
    $('addressLabel').hidden=m[0]!=='DOMICILIO';slots();};modeHost.append(b);
  });
+ const today=dateKey(new Date());$('date').min=today;if(!$('date').value||$('date').value<today)$('date').value=today;
  if(available.length===1)modeHost.firstChild.click();
  else {state.mode=null;$('slots').textContent='Selecciona una modalidad.';}
- const today=dateKey(new Date());$('date').min=today;if(!$('date').value||$('date').value<today)$('date').value=today;
  $('booking').scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function slots(){
