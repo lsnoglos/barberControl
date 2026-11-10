@@ -1,707 +1,321 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<base target="_self">
+<base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111317">
-<title>Reserva tu próximo estilo | BarberControl</title>
+<title>BarberControl · Reserva tu estilo</title>
 <style>
-:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;--bg:#101115;--panel:#1c1e24;--panel2:#242730;--muted:#aaaeb8;--gold:#e6c38d;--border:#373b43;--ink:#f8f7f5}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink)}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
-a{color:inherit;text-decoration:none}
-header{position:sticky;top:0;z-index:12;background:rgba(15,16,20,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(14px)}
-.header-inner{max-width:1120px;margin:auto;padding:11px 19px;display:flex;align-items:center;gap:11px}
-.brand-mark{width:46px;height:46px;border-radius:13px;background:#292b31;display:flex;align-items:center;justify-content:center;color:var(--gold);font-weight:900;font-size:20px;overflow:hidden;flex-shrink:0}
-.brand-mark img{width:100%;height:100%;object-fit:contain}
-.brand-copy{flex:1;min-width:0}
-.brand-name{font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.header-contact{display:inline-flex;align-items:center;gap:6px;padding:10px 13px;border-radius:12px;border:1px solid #417257;background:#163a2a;color:#bff4d1;font-size:12px;font-weight:750}
-.header-contact[hidden]{display:none}
-main{max-width:1120px;margin:0 auto;padding:0 18px 95px}
-.hero{position:relative;overflow:hidden;min-height:235px;background:radial-gradient(ellipse at 87% 18%,#484033 0,transparent 38%),linear-gradient(130deg,#26272b,#14161a 78%);border:1px solid var(--border);margin-top:16px;border-radius:24px;padding:29px 26px}
-.hero-image{position:absolute;inset:0 0 0 auto;height:100%;width:56%;object-fit:cover;opacity:.55;mask-image:linear-gradient(to right,transparent,#000 58%);-webkit-mask-image:linear-gradient(to right,transparent,#000 58%)}
-.hero>.eyebrow,.hero>h1,.hero>p,.hero>.hero-actions{position:relative;z-index:2}
-.hero::after{content:"✂";position:absolute;right:-10px;bottom:-50px;font-size:225px;transform:rotate(-18deg);opacity:.065;pointer-events:none}
-.eyebrow{color:var(--gold);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800}
-.hero h1{font-size:clamp(30px,6.5vw,53px);line-height:1.08;letter-spacing:-.045em;margin:12px 0;max-width:520px}
-.hero p{color:#c3c4c9;line-height:1.48;max-width:480px;font-size:14px;margin-bottom:23px}
-.hero-actions{display:flex;flex-wrap:wrap;gap:10px;position:relative;z-index:1}
-.btn-primary,.btn-outline{border-radius:13px;padding:12px 18px;font-size:13px;font-weight:850;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
-.btn-primary{background:var(--gold);border:1px solid var(--gold);color:#161514}
-.btn-outline{background:#24262d;border:1px solid #464950;color:var(--ink)}
-.btn-primary:disabled,.btn-outline:disabled{opacity:.45;cursor:not-allowed}
-section{scroll-margin-top:85px}
-.section-head{display:flex;align-items:end;justify-content:space-between;margin:24px 0 12px;gap:10px}
-.section-head h2{margin:0;font-size:clamp(22px,3.5vw,29px);letter-spacing:-.03em}
-.section-head small{display:block;color:var(--muted);margin-top:3px;font-size:12px}
-.section-count{font-size:12px;color:var(--gold);background:#353026;border:1px solid #5e4b31;border-radius:20px;padding:7px 10px;white-space:nowrap}
-.searchwrap{display:flex;align-items:center;background:var(--panel);border:1px solid #444850;border-radius:14px;margin:17px 0 13px;padding:0 14px;gap:10px}
-.searchwrap span{color:var(--gold);font-size:21px}
-.searchwrap input{height:47px;flex:1;width:100%;border:0;background:transparent;color:var(--ink);outline:none;font-size:14px}
-.categories{display:flex;gap:9px;overflow-x:auto;padding:1px 0 12px;scrollbar-width:none}
-.categories::-webkit-scrollbar{display:none}
-.category{flex-shrink:0;border:1px solid #41454d;border-radius:100px;padding:10px 15px;background:#22242a;color:#c4c6cb;font-size:13px;font-weight:700;white-space:nowrap}
-.category.active{background:var(--gold);border-color:var(--gold);color:#201b15}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0 12px}
-.toolbar small{font-size:12px;color:var(--muted)}
-.toolbar select{font-size:12px;background:var(--panel);border:1px solid var(--border);color:#ddd;padding:9px;border-radius:10px;max-width:170px}
-.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
-.product{background:var(--panel);border:1px solid var(--border);border-radius:17px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.product-picture{height:auto;aspect-ratio:1/1;position:relative;background:linear-gradient(140deg,#35363b,#191b20);display:grid;place-items:center;overflow:hidden}
-.product-picture img{position:absolute;width:100%;height:100%;inset:0;object-fit:cover}
-.picture-placeholder{font-size:55px;opacity:.18}
-.product-label{position:absolute;bottom:9px;left:9px;background:rgba(17,18,21,.83);border:1px solid #606068;color:#eee;border-radius:9px;padding:5px 7px;font-size:10px}
-.product-body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
-.product-category{font-size:10px;color:var(--gold);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.product-title{font-size:14px;font-weight:800;line-height:1.23;min-height:33px;margin:0;overflow-wrap:anywhere}
-.product-desc{font-size:11px;color:#aeb0b7;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;margin:0}
-.product-foot{display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-top:auto}
-.product-price{font-size:19px;font-weight:900;letter-spacing:-.04em}
-.product-time{font-size:11px;color:#9fa2a8;white-space:nowrap}
-.product .btn-primary{width:100%;min-height:39px;padding:10px 5px;font-size:12px;border-radius:10px;margin-top:6px}
-.empty{padding:32px 17px;text-align:center;background:var(--panel);border-radius:15px;border:1px dashed #555963;color:#b9bdc5;grid-column:1/-1}
-.booking{margin-top:28px;border:1px solid #534734;border-radius:22px;background:linear-gradient(160deg,#25231f,#191b20 55%);padding:21px}
-.booking[hidden]{display:none}
-.booking h2{margin:0 0 5px;font-size:23px}
-.booking p{color:#b9bcc3;line-height:1.5}
-.step-label{font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.09em}
-.selected-style{display:flex;align-items:center;gap:13px;background:#121419;border:1px solid #4b4640;border-radius:14px;padding:14px;margin:15px 0}
-.selected-style strong{font-size:15px}
-.selected-style span{display:block;font-size:12px;color:#b6b7bc;margin-top:6px}
-.calendar-tools{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin:16px 0}
-.booking label{font-size:12px;color:#c4c6cc;display:flex;flex-direction:column;gap:6px}
-.booking input,.booking textarea{width:100%;color:#fff;background:#14161b;border:1px solid #555860;border-radius:11px;padding:12px;outline:none}
-.booking input:focus,.booking textarea:focus{border-color:var(--gold)}
-.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:12px 0 19px}
-.day{border-radius:11px;padding:9px 1px;min-height:61px;border:1px solid #47494e;background:#26272c;color:#e0e1e5;font-size:11px}
-.day b{display:block;font-size:17px;margin-top:5px}
-.day.active{background:var(--gold);color:#1b1a18;border-color:var(--gold)}
-.day:disabled{opacity:.25;cursor:not-allowed}
-.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin:13px 0 18px}
-.slot{background:#22252a;color:#e1e2e4;border:1px solid #494d54;border-radius:11px;padding:12px;font-weight:750;font-size:13px}
-.slot.active{background:var(--gold);border-color:var(--gold);color:#141414}
-.book-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
-.book-fields label:last-child{grid-column:1/-1}
-.booking-status{font-size:13px;color:#e7c48f;min-height:17px;white-space:pre-wrap}
-.booking-status.error{color:#ffb2a8}
-.booking .btn-primary{width:100%;margin-top:12px}
-.success{padding:22px;background:#14281d;border:1px solid #457255;border-radius:15px;margin-top:17px}
-.success[hidden]{display:none}
-.success h3{color:#beedcd;margin:0 0 8px}
-.success p{margin:8px 0}
-.footer{padding:30px 0;border-top:1px solid var(--border);margin-top:34px;color:#a8aab1;text-align:center;font-size:12px}
-.bottom-nav{display:none}
-[hidden]{display:none!important}
-@media(min-width:740px){.products{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.product-title{font-size:16px}.product-desc{font-size:12px}.product-price{font-size:22px}.product-body{padding:15px}.brand-name{font-size:19px}}
-@media(min-width:1020px){.products{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:620px){
-main{padding:0 11px 110px}.header-inner{padding:9px 12px}.brand-mark{width:43px;height:43px}
-.hero{margin-top:10px;padding:24px 18px;min-height:233px;border-radius:19px}.hero h1{font-size:32px}.hero p{font-size:13px}
-.section-head{margin-top:22px}
-.product-body{padding:10px}.product-price{font-size:17px}.product-time{font-size:10px}
-.product-title{font-size:13px}.product-desc{font-size:11px}
-.header-contact{font-size:11px;padding:9px 10px}
-.book-fields{grid-template-columns:1fr}.book-fields label:last-child{grid-column:auto}
-.booking{padding:16px}
-.bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);height:68px;bottom:0;left:0;right:0;z-index:15;background:#17191ef5;box-shadow:0 -6px 25px #0005;border-top:1px solid #41454c;padding-bottom:env(safe-area-inset-bottom)}
-.bottom-nav button,.bottom-nav a{border:0;background:transparent;color:#c6c5c3;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-size:11px;font-weight:750}
-.bottom-nav .nav-icon{font-size:20px;color:var(--gold)}
-}
-
-/* Identidad visual de la barbería: hero sin fotografías de estilos */
-.hero{
-  background:
-    radial-gradient(circle at 85% 25%,rgba(228,192,133,.18),transparent 38%),
-    linear-gradient(120deg,#171a23 0%,#24232a 49%,#11141c 100%);
-  padding-right:clamp(175px,31%,330px);
-}
-.hero-logo-panel{
-  position:absolute;right:0;top:0;bottom:0;
-  width:35%;display:flex;align-items:center;justify-content:center;
-  padding:22px;pointer-events:none;
-  background:radial-gradient(circle,rgba(220,174,103,.12),transparent 72%);
-}
-.hero-logo-frame{
-  width:min(100%,255px);aspect-ratio:1;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:32px;border:1px solid rgba(238,203,149,.2);
-  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(9,10,15,.2));
-  box-shadow:0 16px 46px rgba(0,0,0,.25);
-  padding:18px;
-}
-.hero-logo-frame img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 16px rgba(0,0,0,.22))}
-#heroLogoFallback{font-size:88px;color:var(--gold)}
-.hero::after{display:none}
-.header-contact,.btn-whatsapp{
-  display:inline-flex;justify-content:center;align-items:center;gap:8px;
-  background:#168b49!important;border:1px solid #30bd72!important;
-  color:#fff!important;font-weight:800;
-}
-.header-contact:hover,.btn-whatsapp:hover{background:#10783c!important}
-.btn-whatsapp{padding:12px 17px;border-radius:13px;font-size:13px;min-height:44px}
-.whatsapp-icon{
-  width:20px;height:20px;display:inline-flex;align-items:center;
-  justify-content:center;border:1.4px solid currentColor;border-radius:50%;
-  font-size:14px;line-height:1;
-}
-@media(max-width:620px){
-  .hero{padding-right:18px;padding-bottom:155px}
-  .hero-logo-panel{top:auto;bottom:3px;height:145px;width:100%;padding:8px}
-  .hero-logo-frame{width:126px;border-radius:22px;padding:9px}
-  #heroLogoFallback{font-size:48px}
-}
-
-
-/* Reserva: diálogo modal que bloquea clics y teclado mientras responde Google */
-.bc-reserva-overlay[hidden]{display:none!important}
-.bc-reserva-overlay{
- position:fixed;inset:0;z-index:2000;display:grid;place-items:center;
- padding:20px;background:rgba(8,10,14,.9);backdrop-filter:blur(12px);
- -webkit-backdrop-filter:blur(12px);color:#f7f4ed;
-}
-.bc-loading-panel{
- width:min(94vw,365px);padding:28px 22px;text-align:center;
- border-radius:24px;border:1px solid rgba(229,195,140,.38);
- background:linear-gradient(150deg,#242830,#14171e 80%);
- box-shadow:0 28px 70px rgba(0,0,0,.55);
-}
-.bc-loading-panel h2{font-size:21px;line-height:1.25;margin:15px 0 7px}
-.bc-loading-panel p{color:#c5c5cb;font-size:14px;line-height:1.5;margin:0 auto 11px;max-width:280px}
-.bc-loading-panel small{display:block;color:#d4bd9d;margin-top:14px;font-size:11px}
-.bc-pole-scene{position:relative;width:156px;height:167px;margin:0 auto;display:flex;align-items:center;justify-content:center}
-.bc-pole-shell{
- width:76px;height:142px;position:relative;z-index:2;
- filter:drop-shadow(0 9px 8px rgba(0,0,0,.3));
-}
-.bc-pole-window{
- position:absolute;left:8px;right:8px;top:22px;bottom:22px;
- overflow:hidden;border:5px solid #233f76;border-radius:8px;
- background:#f8f8f8;box-shadow:inset 6px 0 8px rgba(0,0,0,.25),inset -5px 0 8px rgba(0,0,0,.17);
-}
-.bc-pole-stripes{
- position:absolute;inset:-40px -30px;
- background:repeating-linear-gradient(155deg,
- #f9fafb 0px,#f9fafb 22px,#d44455 22px,#d44455 43px,
- #f7f8f8 43px,#f7f8f8 62px,#345caa 62px,#345caa 83px);
- background-size:145px 165px;animation:bcPoleMove 1.1s linear infinite;
-}
-.bc-pole-cap{position:absolute;left:-1px;right:-1px;height:32px;
- background:linear-gradient(180deg,#6b8bbd,#d8e2f9 45%,#5672a8);
- border:5px solid #203e79;border-radius:20px;z-index:4;
-}
-.bc-cap-top{top:0}.bc-cap-bottom{bottom:0}
-.bc-pole-bracket{position:absolute;width:72px;height:10px;top:81px;left:78px;border-radius:5px;background:#f5ce73;box-shadow:0 0 0 5px #223b6b;z-index:1}
-.bc-pole-bracket::after{content:"";position:absolute;width:12px;height:95px;right:-4px;top:-42px;background:#f6cc6d;border:5px solid #223b6b;border-radius:8px}
-.bc-pole-glow{position:absolute;z-index:0;width:124px;height:124px;border-radius:50%;background:rgba(228,173,86,.1);filter:blur(15px)}
-@keyframes bcPoleMove{from{transform:translateY(-60px)}to{transform:translateY(60px)}}
-.bc-loading-ellipsis{display:flex;justify-content:center;gap:7px;margin-top:15px}
-.bc-loading-ellipsis i{width:7px;height:7px;border-radius:50%;background:#e9c78e;animation:bcDot .85s ease-in-out infinite alternate}
-.bc-loading-ellipsis i:nth-child(2){animation-delay:.17s}.bc-loading-ellipsis i:nth-child(3){animation-delay:.34s}
-@keyframes bcDot{to{opacity:.2;transform:translateY(-5px)}}
-body.bc-reserva-bloqueada{overflow:hidden!important}
-.receipt{display:grid;gap:9px;margin:17px 0;font-size:14px}
-.receipt-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:9px 0;border-bottom:1px solid rgba(194,226,202,.18)}
-.receipt-row span{color:#b8c8bf}
-.receipt-row strong{max-width:62%;text-align:right;overflow-wrap:anywhere}
-.confirmation-hint,.confirmation-optional{font-size:13px!important;line-height:1.6}
-.confirmation-optional{color:#d4e3d7}
-#waDespues{margin-top:9px;display:inline-flex;gap:8px;max-width:100%;text-align:center}
-@media(prefers-reduced-motion:reduce){
- .bc-pole-stripes,.bc-loading-ellipsis i{animation:none}
-}
-
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#101115;--surface:#1e2026;--line:#383b43;--text:#faf8f2;--muted:#abb0b9;--gold:#e6c28e;--green:#15924c}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--bg);color:var(--text);padding-bottom:76px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}header{position:sticky;top:0;z-index:10;background:#111216eF;border-bottom:1px solid #35363b;backdrop-filter:blur(10px);padding:10px 13px}
+.head{max-width:1100px;margin:auto;display:flex;align-items:center;gap:10px}.logo{width:49px;height:49px;border-radius:13px;object-fit:contain;background:#23252d;padding:4px;flex:none}.brand{flex:1;min-width:0}.brand strong{display:block;font-size:clamp(14px,2.7vw,19px);line-height:1.2}.brand small{color:var(--muted);font-size:11px}.wa{display:inline-flex;align-items:center;gap:6px;background:#178a49;border:1px solid #32b66e;border-radius:12px;padding:10px 12px;font-weight:750;font-size:12px;color:#fff}
+main{width:min(100%,1100px);margin:auto;padding:17px 14px 50px}.intro{display:flex;align-items:end;justify-content:space-between;gap:8px;margin:10px 0 17px}.intro h1{font-size:clamp(23px,5vw,34px);line-height:1.15;margin:0 0 5px}.intro p{font-size:13px;color:var(--muted);margin:0}.count{color:var(--gold);font-size:12px;white-space:nowrap}
+.search{background:var(--surface);border:1px solid #454851;border-radius:14px;display:flex;align-items:center;gap:8px;padding:0 13px}.search input{border:0;outline:0;background:transparent;color:var(--text);width:100%;height:47px;min-width:0}.search span{color:var(--gold)}
+.categories{display:flex;gap:8px;overflow-x:auto;padding:12px 0 15px;scrollbar-width:none}.categories::-webkit-scrollbar{display:none}.chip{flex-shrink:0;border:1px solid #484b54;border-radius:22px;padding:9px 15px;background:#23252b;color:#eee;font-size:12px;font-weight:650}.chip.active{background:var(--gold);color:#171717;border-color:var(--gold)}
+.sort-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sort-row select{background:var(--surface);color:var(--text);border:1px solid #474a53;border-radius:9px;padding:8px 9px;font-size:12px}.sort-row small{color:var(--muted)}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}@media(min-width:680px){.products{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:950px){.products{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.product{min-width:0;border:1px solid #3c3e46;background:var(--surface);border-radius:15px;overflow:hidden;display:flex;flex-direction:column}.photo{width:100%;aspect-ratio:1 / 1.08;position:relative;background:#252831;display:grid;place-items:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}.photo-fallback{font-size:43px;color:#a39e95}.photo-click{border:0;padding:0;text-align:center;cursor:zoom-in}.photo-click:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}.photo-count{position:absolute;right:8px;bottom:8px;border:1px solid #6667;background:#101216cd;color:#fff;font-size:10px;padding:5px 7px;border-radius:8px}
+.content{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}.tag{text-transform:uppercase;letter-spacing:.09em;color:var(--gold);font-size:10px;font-weight:800}.content h3{margin:0;font-size:15px;line-height:1.3;overflow-wrap:anywhere}.desc{font-size:12px;color:var(--muted);line-height:1.45;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.prices{display:grid;gap:4px;margin-top:auto}.prices div{display:flex;gap:6px;justify-content:space-between;align-items:baseline}.prices span{font-size:11px;color:#afb3bc}.prices strong{font-size:14px}.duration{font-size:11px;color:var(--muted)}.gold{background:var(--gold);color:#171717;border:0;border-radius:10px;padding:11px 9px;font-weight:800;font-size:12px;width:100%}.gold:hover{background:#f0d4a4}
+.section-card{border:1px solid #40444c;background:var(--surface);padding:19px;border-radius:20px;margin-top:24px}.section-card h2{font-size:22px;margin:0 0 7px}.section-card p{color:var(--muted);line-height:1.5}.selected{border:1px solid #61563e;background:#302a20;padding:12px;border-radius:11px;display:grid;gap:3px;margin:15px 0}.selected strong{font-size:17px}.selected small{color:#e4c996}.section-label{color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800;margin:18px 0 9px}.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mode{padding:14px;border:1px solid #555962;background:#272930;color:#fff;border-radius:12px;text-align:left}.mode.selected-mode{border:2px solid var(--gold);background:#383021}.mode span{display:block;color:var(--muted);font-size:12px;margin-top:5px}.mode.selected-mode span{color:#e9d0a5}
+label{display:grid;gap:6px;margin:12px 0;color:#ddd;font-size:13px}input,textarea{width:100%;background:#16181e;border:1px solid #555962;color:#fff;border-radius:11px;padding:12px;min-width:0}input:focus,textarea:focus{outline:2px solid #c5a472}.times{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:11px 0}.time{border:1px solid #53565d;background:#272930;color:#fff;border-radius:11px;padding:13px 5px}.time.selected-time{background:var(--gold);color:#171717;font-weight:750;border-color:var(--gold)}
+.status{color:#e2bd88;min-height:22px;line-height:1.5;font-size:13px}.status.error{color:#ffaaa0}.success{background:#132f22;border:1px solid #37684e;border-radius:16px;padding:18px;margin-top:18px}.success h2{color:#acecc2}.receipt{display:grid;gap:8px;margin:14px 0}.receipt-line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #ffffff24;padding:7px 0}.receipt-line span{font-size:12px;color:#bfcec5}.receipt-line strong{font-size:13px;max-width:60%;text-align:right;overflow-wrap:anywhere}.muted{color:var(--muted)}
+footer{border-top:1px solid #3c3d40;text-align:center;margin:28px auto 0;padding:27px 0;color:#aaa;font-size:12px}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:20;border-top:1px solid #383a3d;background:#1b1d22f8;display:flex;justify-content:space-around;padding:9px 0 max(9px,env(safe-area-inset-bottom))}.nav a{font-size:11px;text-align:center;color:#d7c3a6;display:grid;gap:3px}.nav b{font-size:20px}
+.modal[hidden],.busy[hidden]{display:none!important}.modal,.busy{position:fixed;inset:0;z-index:100;background:#07090beA;display:flex;align-items:center;justify-content:center;padding:20px}.modal-body{position:relative;width:min(95vw,520px);border-radius:18px;background:#1a1c22;border:1px solid #4a4c51;padding:12px}.modal-body img{width:100%;height:min(65vh,560px);object-fit:contain;border-radius:10px;background:#101216}.modal-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px}.modal-controls button{border:1px solid #60636b;color:#fff;background:#30343b;border-radius:10px;padding:9px 13px}.close{position:absolute;top:18px;right:18px;z-index:1;background:#111c!important;border-radius:50%!important;font-size:20px!important}
+.busy{z-index:200;background:#0c0e13eF;backdrop-filter:blur(11px)}.busy-box{width:min(95vw,340px);border:1px solid #5a4c39;background:#1b1d24;border-radius:22px;padding:22px;text-align:center}.busy-box h2{font-size:18px}.busy-box p{font-size:13px;color:#d0c8b9;line-height:1.5}.pole{height:136px;width:62px;border:6px solid #24467e;border-top:19px solid #dce7ff;border-bottom:19px solid #dce7ff;border-radius:22px;margin:12px auto;position:relative;overflow:hidden;box-shadow:0 10px 24px #0009}.pole::before{content:"";position:absolute;inset:-85px -30px;background:repeating-linear-gradient(155deg,#fefefe 0 21px,#c84053 21px 42px,#fff 42px 63px,#3464b9 63px 84px);animation:spinbar 1.1s linear infinite}@keyframes spinbar{to{transform:translateY(80px)}}@media(prefers-reduced-motion:reduce){.pole::before{animation:none}}
+@media(max-width:370px){.products{gap:9px}.content{padding:10px}.content h3{font-size:13px}.prices strong{font-size:12px}.brand strong{font-size:13px}.wa{padding:9px 8px;font-size:11px}}
 </style>
 </head>
 <body>
-<header id="inicio">
-<div class="header-inner">
- <div class="brand-mark" id="marcaIcono"><span id="marcaIniciales">✂</span><img id="marcaLogo" alt="Logo de la barbería" hidden></div>
- <div class="brand-copy"><div id="marcaNombre" class="brand-name">BarberControl</div><div id="marcaSlogan" class="brand-sub">Tu estilo comienza aquí</div></div>
- <a id="whatsappTop" class="header-contact" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="whatsapp-icon" aria-hidden="true">☎</span> WhatsApp</a>
-</div>
-</header>
-<main>
- <div class="hero">
-  <div class="hero-logo-panel" aria-label="Identidad de la barbería">
-    <div class="hero-logo-frame">
-      <img id="heroLogo" alt="Logotipo de la barbería" hidden>
-      <span id="heroLogoFallback" aria-hidden="true">✂</span>
-    </div>
-  </div>
-  <div class="eyebrow">✦ Elige tu próximo look</div>
-  <h1>Un gran estilo empieza aquí.</h1>
-  <p>Explora nuestros cortes y servicios, encuentra el que te gusta y reserva tu horario en minutos. Sin llamadas ni registros.</p>
-  <div class="hero-actions">
-   <a href="#catalogo" class="btn-primary">Explorar estilos <span aria-hidden="true">↓</span></a>
-   <a id="whatsappHero" class="btn-whatsapp" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="whatsapp-icon" aria-hidden="true">☎</span> Contactar por WhatsApp</a>
-  </div>
- </div>
-
- <section id="catalogo">
-  <div class="section-head"><div><h2>Explora nuestros estilos</h2><small>Encuentra el servicio ideal para ti</small></div><span class="section-count" id="catalogCount">Cargando…</span></div>
-  <div class="searchwrap"><span aria-hidden="true">⌕</span><input type="search" id="buscar" placeholder="Buscar degradado, barba, masaje…" aria-label="Buscar servicios y estilos"></div>
-  <nav id="categorias" class="categories" aria-label="Categorías"></nav>
-  <div class="toolbar"><small id="resultCount"></small><select id="orden" aria-label="Ordenar catálogo">
-    <option value="destacado">Recomendados</option><option value="precioAsc">Menor precio</option>
-    <option value="precioDesc">Mayor precio</option><option value="az">A a Z</option>
-  </select></div>
-  <div id="productos" class="products"><div class="empty">Preparando los estilos disponibles…</div></div>
- </section>
-
- <section class="booking" id="reservar" hidden>
-  <div class="step-label">Tu próxima cita · Paso 1 de 2</div>
-  <h2>Elige cuándo te atendemos</h2>
-  <p>Ya elegiste tu estilo. Selecciona un día y después la hora que mejor te funcione.</p>
-  <div class="selected-style"><div style="font-size:29px;color:var(--gold)">✂</div><div><strong id="estiloElegido"></strong><span id="detalleElegido"></span></div></div>
-  <div class="calendar-tools"><label>Fecha de atención<input id="fecha" type="date" required></label><span id="horarioInfo" style="font-size:12px;color:var(--muted);padding-bottom:12px">Horarios libres</span></div>
-  <div id="dias" class="days" aria-label="Próximos siete días"></div>
-  <div class="step-label">Horarios disponibles</div>
-  <div id="horarios" class="slots"><small>Elige primero una fecha.</small></div>
-  <div id="datosCliente" hidden>
-   <div class="step-label">Paso 2 de 2 · Tus datos</div>
-   <form id="formularioReserva" onsubmit="event.preventDefault();return false;">
-    <div class="book-fields">
-      <label>Nombre y apellido<input id="clienteNombre" type="text" required minlength="3" maxlength="90" autocomplete="name" placeholder="Tu nombre completo"></label>
-      <label>Número de WhatsApp<input id="clienteTelefono" type="tel" required minlength="8" maxlength="20" autocomplete="tel" placeholder="8888 8888"></label>
-      <label>Comentario (opcional)<textarea id="clienteComentario" maxlength="500" rows="2" placeholder="Detalles del corte o indicaciones adicionales"></textarea></label>
-    </div>
-    <div id="estadoReserva" class="booking-status" role="status"></div>
-    <button type="button" id="confirmarReserva" class="btn-primary">Confirmar mi cita</button>
-   </form>
-  </div>
-  <div id="reservaExitosa" class="success" hidden aria-live="polite">
-   <h3>✓ Tu cita está confirmada</h3>
-   <div id="comprobante" class="receipt" aria-label="Detalles de tu reserva confirmada"></div>
-   <p class="confirmation-hint">¡Te esperamos! Conserva tu código de reserva para cualquier consulta.</p>
-   <p class="confirmation-optional">Si quieres, puedes avisarle al barbero por WhatsApp. Tu cita ya está confirmada, así que este aviso es opcional.</p>
-   <a id="waDespues" class="btn-whatsapp" target="_blank" rel="noopener noreferrer" hidden>☎ Avisar al barbero por WhatsApp</a>
-  </div>
- </section>
-
- <footer class="footer"><span id="footerNombre">BarberControl</span> · Tu barbería, tu horario.</footer>
-</main>
-<div id="reservaOverlay" class="bc-reserva-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="bcOverlayTitle" tabindex="-1">
- <div class="bc-loading-panel">
-  <div class="bc-pole-scene" aria-hidden="true">
-   <span class="bc-pole-bracket"></span>
-   <div class="bc-pole-shell">
-    <div class="bc-pole-cap bc-cap-top"></div>
-    <div class="bc-pole-window"><div class="bc-pole-stripes"></div></div>
-    <div class="bc-pole-cap bc-cap-bottom"></div>
-   </div>
-   <span class="bc-pole-glow"></span>
-  </div>
-  <h2 id="bcOverlayTitle">Estamos reservando tu cita</h2>
-  <p>Comprobando tu horario y preparando la confirmación…</p>
-  <span class="bc-loading-ellipsis" aria-hidden="true"><i></i><i></i><i></i></span>
-  <small>Por favor, evita cerrar esta página.</small>
- </div>
-</div>
-<nav class="bottom-nav" aria-label="Navegación inferior">
- <button type="button" onclick="document.getElementById('inicio').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">⌂</span>Inicio</button>
- <button type="button" onclick="document.getElementById('catalogo').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">✂</span>Estilos</button>
- <button type="button" onclick="document.getElementById('reservar').hidden?document.getElementById('catalogo').scrollIntoView({behavior:'smooth'}):document.getElementById('reservar').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▦</span>Mi cita</button>
- <a id="whatsappBottom" href="#" target="_blank" rel="noopener noreferrer" hidden><span class="nav-icon">✆</span>Contacto</a>
-</nav>
+<header><div class="head"><img id="logo" class="logo" alt="Logotipo de la barbería" hidden><span id="logoFallback" style="font-size:28px">✂</span><div class="brand"><strong id="brand">BarberControl</strong><small id="slogan">Tu estilo comienza aquí</small></div><a id="whatsappTop" class="wa" target="_blank" rel="noopener noreferrer" hidden>☎ WhatsApp</a></div></header>
+<main id="app">
+<section id="catalogo"><div class="intro"><div><h1>Explora nuestros estilos</h1><p>Encuentra el corte ideal y reserva tu horario</p></div><span class="count" id="count"></span></div>
+<div class="search"><span>⌕</span><input id="search" aria-label="Buscar cortes" placeholder="Buscar corte, barba, masaje…" autocomplete="off"></div>
+<div id="categories" class="categories" aria-label="Filtrar por categoría"></div>
+<div class="sort-row"><small id="results"></small><select id="sort" aria-label="Ordenar estilos"><option value="recommended">Recomendados</option><option value="az">Nombre A–Z</option><option value="cheap">Precio menor</option><option value="expensive">Precio mayor</option></select></div>
+<div id="products" class="products"><p class="muted">Cargando estilos…</p></div></section>
+<section id="booking" class="section-card" hidden><h2>Reserva tu cita</h2><p>Elige cómo quieres atenderte, una fecha y un horario disponible.</p><div id="chosen" class="selected"></div>
+<div class="section-label">¿Dónde prefieres el servicio?</div><div id="modes" class="modes"></div>
+<label id="addressLabel" hidden>Dirección para atenderte a domicilio<textarea id="address" maxlength="350" rows="2" placeholder="Barrio, calle, número y referencias"></textarea></label>
+<label>Fecha de atención<input id="date" type="date"></label>
+<div class="section-label">Horarios disponibles</div><div id="slots" class="times"></div><p id="availabilityStatus" class="status"></p>
+<div id="clientFields" hidden><div class="section-label">Tus datos</div>
+<label>Nombre y apellido<input id="clientName" type="text" maxlength="90" autocomplete="name" placeholder="¿Cómo te llamas?"></label>
+<label>Número de WhatsApp<input id="clientPhone" type="tel" maxlength="20" autocomplete="tel" placeholder="8888 8888"></label>
+<label>Comentario (opcional)<textarea id="comment" rows="2" maxlength="500" placeholder="Indicación adicional para el barbero"></textarea></label>
+<p id="bookingError" class="status" role="alert"></p><button type="button" class="gold" id="confirm">Confirmar mi cita</button></div>
+<div id="confirmed" class="success" hidden><h2>✓ ¡Tu cita está confirmada!</h2><div id="receipt" class="receipt"></div><p>¡Te esperamos! Conserva el código para cualquier consulta.</p><p class="muted">Si quieres, avisa al barbero por WhatsApp. El aviso es opcional.</p><a id="notify" class="wa" target="_blank" rel="noopener noreferrer" hidden>☎ Avisar al barbero por WhatsApp</a></div>
+</section>
+<footer><span id="footerName">BarberControl</span> · Tu barbería, tu horario.</footer></main>
+<nav class="nav" aria-label="Navegación inferior"><a href="#catalogo"><b>⌂</b>Estilos</a><a href="#booking"><b>▦</b>Mi cita</a><a id="navWa" href="#catalogo"><b>◉</b>Contacto</a></nav>
+<div id="galleryModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Fotos del estilo"><div class="modal-body"><button type="button" id="galleryClose" class="close" aria-label="Cerrar">×</button><img id="galleryImage" alt="Fotografía del corte"><div class="modal-controls"><button type="button" id="galleryPrev">‹ Anterior</button><span id="galleryCounter"></span><button type="button" id="galleryNext">Siguiente ›</button></div></div></div>
+<div id="busy" class="busy" hidden role="dialog" aria-modal="true" aria-labelledby="busyTitle" tabindex="-1"><div class="busy-box"><div class="pole" aria-hidden="true"></div><h2 id="busyTitle">Preparando tu cita…</h2><p id="busyMessage">Comprobando información…</p></div></div>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const state={data:null,category:'Todo',sort:'destacado',query:'',selected:null,slot:null,requestId:'',seq:0};
-const currency=n=>'C$'+Number(n||0).toLocaleString('es-NI',{maximumFractionDigits:2});
-function api(name,args){return new Promise((resolve,reject)=>
- google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...(args||[])));}
-
-/*
- * Caché de catálogo público. Nunca guardar en localStorage datos de clientes,
- * citas, tokens, disponibilidad ni comentarios.
- */
-const BC_STORE='barbercontrol-public-v6';
-let bcRevision='',bcIdentity='';
-const bcMemory=new Map(),bcPending=new Map();
-function bcRead(key){try{return localStorage.getItem(key);}catch(e){return null;}}
-function bcWrite(key,val){try{localStorage.setItem(key,val);return true;}catch(e){return false;}}
-function bcRemove(key){try{localStorage.removeItem(key);}catch(e){}}
-function bcJson(key){try{return JSON.parse(bcRead(key)||'null');}catch(e){return null;}}
-function bcSignature(info){return String(info.identidad||'')+'/'+String(info.version||'0');}
-function bcAssetKey(tipo,id){return BC_STORE+':foto:'+bcIdentity+':'+bcRevision+':'+tipo+':'+id;}
-function bcSetRevision(info){
- const before=bcIdentity+'/'+bcRevision;
- bcIdentity=String(info.identidad||'');bcRevision=String(info.version||'0');
- if(before===bcIdentity+'/'+bcRevision)return;
- bcMemory.clear();bcPending.clear();
- const keys=bcJson(BC_STORE+':images')||[];
- if(!Array.isArray(keys))return;
- const valid=keys.filter(row=>{
-  if(row&&typeof row.key==='string'&&!row.key.startsWith(BC_STORE+':foto:'+bcIdentity+':'+bcRevision+':')){
-   bcRemove(row.key);return false;
-  }
-  return row&&typeof row.key==='string';
- });
- bcWrite(BC_STORE+':images',JSON.stringify(valid));
-}
-function bcStoreImage(key,uri){
- if(typeof uri!=='string'||!uri.startsWith('data:image/')||uri.length>700000)return;
- let items=bcJson(BC_STORE+':images')||[];
- if(!Array.isArray(items))items=[];
- items=items.filter(x=>x&&x.key!==key&&typeof x.key==='string');
- let sum=items.reduce((n,x)=>n+Number(x.size||0),0);
- while(items.length&&sum+uri.length>1800000){
-  const old=items.shift();sum-=Number(old.size||0);bcRemove(old.key);
- }
- if(sum+uri.length>1800000||!bcWrite(key,uri))return;
- items.push({key:key,size:uri.length});
- bcWrite(BC_STORE+':images',JSON.stringify(items));
-}
-function bcGetImage(tipo,id){
- const key=bcAssetKey(tipo,id);
- if(bcMemory.has(key))return Promise.resolve(bcMemory.get(key));
- const saved=bcRead(key);
- if(saved&&saved.startsWith('data:image/')){
-  bcMemory.set(key,saved);return Promise.resolve(saved);
- }
- if(bcPending.has(key))return bcPending.get(key);
- const pending=(tipo==='LOGO'?api('obtenerLogoPublico',[]):api('obtenerImagenPublica',[tipo,id,'']))
- .then(uri=>{
-  if(typeof uri==='string'&&uri.startsWith('data:image/')){
-   bcMemory.set(key,uri);bcStoreImage(key,uri);
-  }
-  return uri;
- }).finally(()=>bcPending.delete(key));
- bcPending.set(key,pending);return pending;
-}
-function bcPresentCatalog(data){
- state.data=data;setupBrand(data);categoryButtons();renderProducts();
-}
-function bcReadCatalog(){
- const stored=bcJson(BC_STORE+':catalog');
- if(!stored||!stored.info||!stored.data||!Array.isArray(stored.data.productos))return null;
- bcSetRevision(stored.info);return stored.data;
-}
-function bcSaveCatalog(version,data){
- bcWrite(BC_STORE+':catalog',JSON.stringify({info:version,data:data}));
-}
-async function bcStartCatalog(){
- const cached=bcReadCatalog();
- if(cached)bcPresentCatalog(cached);
- try{
-  const versionTask=api('obtenerVersionEscaparate',[]);
-  // Primera visita: se consultan versión y catálogo en paralelo.
-  const firstCatalog=cached?null:api('obtenerEscaparatePublico',[]);
-  const version=await versionTask;
-  if(cached&&bcSignature(version)===bcIdentity+'/'+bcRevision)return;
-  const catalog=firstCatalog?await firstCatalog:await api('obtenerEscaparatePublico',[]);
-  if(!catalog||!Array.isArray(catalog.productos))throw new Error('Catálogo inválido.');
-  bcSetRevision(version);bcSaveCatalog(version,catalog);bcPresentCatalog(catalog);
- }catch(error){
-  if(!cached){
-   $('productos').textContent='';const notice=document.createElement('div');
-   notice.className='empty';
-   notice.textContent='No se pudo cargar el catálogo. Revisa la conexión y actualiza la página.';
-   $('productos').append(notice);$('catalogCount').textContent='Sin conexión';
-  }
- }
-}
-let bcLastCheck=0;
-async function bcCheckChanges(){
- if(!state.data||Date.now()-bcLastCheck<60000)return;
- bcLastCheck=Date.now();
- try{
-  const version=await api('obtenerVersionEscaparate',[]);
-  if(bcSignature(version)===bcIdentity+'/'+bcRevision)return;
-  const fresh=await api('obtenerEscaparatePublico',[]);
-  bcSetRevision(version);bcSaveCatalog(version,fresh);bcPresentCatalog(fresh);
- }catch(error){/* Mantener catálogo local cuando no hay conexión. */}
-}
-
-function dateKey(date){return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');}
-function safeDate(s){return new Date(String(s)+'T12:00:00');}
-function status(text,error){const el=$('estadoReserva');el.textContent=text;el.classList.toggle('error',Boolean(error));}
-function scroll(id){$(id).scrollIntoView({behavior:'smooth',block:'start'});}
-function whatsapp(){
- const tel=state.data.telefono;
- if(!/^\d{8,15}$/.test(tel||''))return '';
- return 'https://wa.me/'+tel+'?text='+encodeURIComponent('Hola, quisiera información sobre los servicios de '+state.data.nombre+'.');
-}
-function setupBrand(data){
- $('marcaNombre').textContent=data.nombre;
- $('marcaSlogan').textContent=data.eslogan||'Tu estilo comienza aquí';
- $('footerNombre').textContent=data.nombre;
- document.title=data.nombre+' | Reserva tu estilo';
- const wa=whatsapp();
- ['whatsappTop','whatsappHero','whatsappBottom','waDespues'].forEach(id=>{
-  $(id).hidden=!wa;if(wa)$(id).href=wa;
- });
- if(data.tieneLogo){
-  const revision=bcRevision;
-  bcGetImage('LOGO','principal').then(uri=>{
-   if(revision!==bcRevision)return;
-   if(uri){
-    $('marcaLogo').src=uri;$('marcaLogo').hidden=false;$('marcaIniciales').hidden=true;
-    $('heroLogo').src=uri;$('heroLogo').hidden=false;$('heroLogoFallback').hidden=true;
-   }
-  }).catch(()=>{});
- }
-}
-function categoryButtons(){
- const list=['Todo',...(state.data.categorias||[])];
- const existing=new Set(list);
- state.data.productos.forEach(p=>{if(!existing.has(p.categoria)){list.push(p.categoria);existing.add(p.categoria);}});
- const host=$('categorias');host.textContent='';
- list.forEach(cat=>{
-  const b=document.createElement('button');b.type='button';b.className='category';
-  b.textContent=cat;b.classList.toggle('active',state.category===cat);
-  b.addEventListener('click',()=>{state.category=cat;categoryButtons();renderProducts();});
-  host.append(b);
- });
-}
-function card(item){
- const article=document.createElement('article');article.className='product';
- const picture=document.createElement('div');picture.className='product-picture';
- const placeholder=document.createElement('span');placeholder.className='picture-placeholder';placeholder.textContent='✂';
- picture.append(placeholder);
- if(item.tieneImagen){
-  const img=document.createElement('img');img.alt='Estilo '+item.nombre;img.loading='lazy';img.decoding='async';
-  img.dataset.tipo=item.tipoImagen;img.dataset.id=item.id;
-  img.addEventListener('error',()=>img.remove());
-  picture.append(img);
-  if(observer)observer.observe(img);else loadImage(img);
- }
- const label=document.createElement('span');label.className='product-label';
- label.textContent=item.duracion+' min';picture.append(label);article.append(picture);
- const body=document.createElement('div');body.className='product-body';
- const cat=document.createElement('div');cat.className='product-category';cat.textContent=item.categoria;body.append(cat);
- const title=document.createElement('h3');title.className='product-title';title.textContent=item.nombre;body.append(title);
- const desc=document.createElement('p');desc.className='product-desc';
- desc.textContent=item.descripcion||item.servicioNombre||'Servicio personalizado';body.append(desc);
- const foot=document.createElement('div');foot.className='product-foot';
- const price=document.createElement('span');price.className='product-price';price.textContent=currency(item.precio);
- const duration=document.createElement('span');duration.className='product-time';duration.textContent=item.duracion+' min';
- foot.append(price,duration);body.append(foot);
- const b=document.createElement('button');b.type='button';b.className='btn-primary';
- b.textContent=item.reservable?'Reservar este estilo':'No disponible';
- b.disabled=!item.reservable;
- b.onclick=()=>choose(item);body.append(b);article.append(body);
- return article;
-}
-function loadImage(img){
- if(img.dataset.loading)return;img.dataset.loading='1';
- const revision=bcRevision;
- bcGetImage(img.dataset.tipo,img.dataset.id)
-  .then(uri=>{if(img.isConnected&&uri&&revision===bcRevision)img.src=uri;})
-  .catch(()=>{if(img.isConnected)img.remove()});
-}
-const observer=('IntersectionObserver' in window)?new IntersectionObserver(entries=>{
- entries.forEach(e=>{if(e.isIntersecting){observer.unobserve(e.target);loadImage(e.target);}});
-},{rootMargin:'150px'}):null;
-function renderProducts(){
- if(!state.data)return;
- const q=state.query.toLocaleLowerCase('es').trim();
- let products=state.data.productos.filter(p=>
-   (state.category==='Todo'||p.categoria===state.category) &&
-   (!q||[p.nombre,p.categoria,p.descripcion,p.servicioNombre,p.tecnica].join(' ').toLocaleLowerCase('es').includes(q)));
- if(state.sort==='precioAsc')products.sort((a,b)=>a.precio-b.precio);
- else if(state.sort==='precioDesc')products.sort((a,b)=>b.precio-a.precio);
- else if(state.sort==='az')products.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
- const host=$('productos');host.textContent='';
- $('catalogCount').textContent=state.data.productos.length+' estilos';
- $('resultCount').textContent=products.length+' resultado'+(products.length===1?'':'s');
- if(!products.length){const el=document.createElement('div');el.className='empty';el.textContent='Todavía no hay estilos en esta categoría. Prueba con otra.';host.append(el);return;}
- products.forEach(p=>host.append(card(p)));
-}
-function choose(item){
- state.selected=item;state.slot=null;state.requestId='';
- $('reservar').hidden=false;$('reservaExitosa').hidden=true;$('datosCliente').hidden=true;
- $('estiloElegido').textContent=item.nombre;
- $('detalleElegido').textContent=item.servicioNombre+' · '+currency(item.precio)+' · '+item.duracion+' minutos';
- const now=new Date();
- if(!$('fecha').value||$('fecha').value<dateKey(now))$('fecha').value=dateKey(now);
- renderDays();availability();scroll('reservar');
-}
-function renderDays(){
- const host=$('dias');host.textContent='';
- const selected=$('fecha').value||dateKey(new Date());
- const first=safeDate(selected);
- const today=dateKey(new Date());
- for(let i=0;i<7;i++){
-  const d=new Date(first);d.setDate(d.getDate()+i);
-  const key=dateKey(d);
-  const b=document.createElement('button');b.type='button';b.className='day';
-  const weekday=document.createElement('span');weekday.textContent=new Intl.DateTimeFormat('es',{weekday:'short'}).format(d);
-  const num=document.createElement('b');num.textContent=d.getDate();
-  b.append(weekday,num);b.classList.toggle('active',i===0);
-  b.disabled=key<today;
-  b.onclick=()=>{$('fecha').value=key;renderDays();availability();};
-  host.append(b);
- }
-}
-async function availability(){
- if(!state.selected)return;
- state.slot=null;state.requestId='';$('datosCliente').hidden=true;
- const host=$('horarios');host.textContent='';
- $('horarioInfo').textContent='Consultando horarios…';
- const seq=++state.seq,fecha=$('fecha').value,service=state.selected.servicioId;
- try{
-  const response=await api('obtenerDisponibilidad',[fecha,service]);
-  if(seq!==state.seq||fecha!==$('fecha').value)return;
-  $('horarioInfo').textContent=response.horarios.length+' horarios libres';
-  if(!response.horarios.length){
-   const info=document.createElement('div');info.className='empty';
-   info.textContent='No quedan horarios para ese día. Selecciona otra fecha.';host.append(info);
-  }
-  response.horarios.forEach(item=>{
-   const b=document.createElement('button');b.type='button';b.className='slot';b.textContent=item.inicio;
-   b.onclick=()=>{
-    state.slot=item;
-    host.querySelectorAll('.slot').forEach(x=>x.classList.toggle('active',x===b));
-    $('datosCliente').hidden=false;status('Horario elegido: '+item.inicio+' a '+item.fin);
-    $('datosCliente').scrollIntoView({behavior:'smooth',block:'nearest'});
-   };host.append(b);
-  });
- }catch(e){if(seq===state.seq){$('horarioInfo').textContent='No se pudo consultar la agenda';status(e.message||String(e),true);}}
-}
-
-/** Fecha legible, independiente de la zona horaria del navegador. */
-function fechaReservaLegible(fecha){
- const parts=String(fecha||'').split('-').map(Number);
- if(parts.length!==3||parts.some(n=>!Number.isInteger(n)))
-   return String(fecha||'');
- const d=new Date(Date.UTC(parts[0],parts[1]-1,parts[2],12,0,0));
- return new Intl.DateTimeFormat('es-NI',{
-  weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'
- }).format(d).replace(/,\s*/, ' ');
-}
-function horaReservaLegible(hora){
- const match=/^(\d{2}):(\d{2})$/.exec(String(hora||''));
- if(!match)return String(hora||'');
- const h=Number(match[1]),m=match[2];
- return String(h%12||12)+':'+m+' '+(h>=12?'p. m.':'a. m.');
-}
-/**
- * La solicitud no se puede cancelar desde el navegador después de enviarla:
- * si vence el plazo, el usuario debe verificar la agenda antes de reintentar.
- */
-function apiReservaConLimite(args,ms){
+const state={catalog:null,category:'Todo',query:'',sort:'recommended',cut:null,mode:null,slot:null,
+  signature:'',imageCache:new Map(),imageTasks:new Map(),seq:0,requestId:'',gallery:[],galleryIndex:0};
+const STORE='bc-catalog-v7',PHOTO_MAX=1700000;
+function api(name,...args){
  return new Promise((resolve,reject)=>{
-  let completed=false;
-  const timer=setTimeout(()=>{
-   if(completed)return;
-   completed=true;
-   reject(new Error('El servidor tardó demasiado en responder. Verifica si la cita aparece registrada antes de intentar otra vez.'));
-  },ms||60000);
-  google.script.run.withSuccessHandler(result=>{
-   if(completed)return;completed=true;clearTimeout(timer);resolve(result);
-  }).withFailureHandler(error=>{
-   if(completed)return;completed=true;clearTimeout(timer);reject(error);
-  }).reservarCita(args);
+   google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
  });
 }
-let previousFocus=null;
-function bloquearMientrasReserva(bloquear){
- const overlay=$('reservaOverlay');
- if(!overlay)return;
- if(bloquear)previousFocus=document.activeElement;
- overlay.hidden=!bloquear;
- document.body.classList.toggle('bc-reserva-bloqueada',bloquear);
- // Impide navegar por teclado a controles detrás del diálogo.
- [document.querySelector('header'),document.querySelector('main'),
-  document.querySelector('nav.bottom-nav')].forEach(element=>{
-  if(element&&'inert' in element)element.inert=bloquear;
+function busy(active,title,message){
+ $('busy').hidden=!active;document.body.style.overflow=active?'hidden':'';
+ $('busyTitle').textContent=title||'Procesando…';
+ $('busyMessage').textContent=message||'Comprobando información…';
+ if('inert' in $('app'))$('app').inert=active;
+ if('inert' in document.querySelector('header'))document.querySelector('header').inert=active;
+ if(active)$('busy').focus({preventScroll:true});
+}
+async function wait(task,title,message){
+ busy(true,title,message);
+ try{return await task();}
+ finally{busy(false);}
+}
+function read(key){try{return localStorage.getItem(key);}catch(e){return null;}}
+function write(key,value){try{localStorage.setItem(key,value);}catch(e){}}
+function stored(key){try{return JSON.parse(read(key)||'null');}catch(e){return null;}}
+function imageKey(type,id,photoId){return STORE+':img:'+state.signature+':'+type+':'+id+':'+(photoId||'');}
+async function picture(type,id,photoId){
+ const key=imageKey(type,id,photoId);
+ if(state.imageCache.has(key))return state.imageCache.get(key);
+ const saved=read(key);if(saved&&saved.startsWith('data:image/')){state.imageCache.set(key,saved);return saved;}
+ if(state.imageTasks.has(key))return state.imageTasks.get(key);
+ const req=(type==='LOGO'?api('obtenerLogoPublico'):api('obtenerImagenPublica',type,id,photoId||'')).then(src=>{
+  if(typeof src==='string'&&src.startsWith('data:image/')){
+   state.imageCache.set(key,src);
+   if(src.length<450000){
+    const keys=stored(STORE+':images')||[];
+    while(keys.length>4){const first=keys.shift();try{localStorage.removeItem(first);}catch(e){}}
+    if(!keys.includes(key))keys.push(key);
+    write(STORE+':images',JSON.stringify(keys));
+    write(key,src);
+   }
+  }return src;
+ }).finally(()=>state.imageTasks.delete(key));
+ state.imageTasks.set(key,req);return req;
+}
+function photoTo(img,type,id,photoId){
+ const sig=state.signature;
+ picture(type,id,photoId).then(uri=>{if(img.isConnected&&sig===state.signature&&uri)img.src=uri;}).catch(()=>{});
+}
+function money(n){return 'C$'+Number(n).toLocaleString('es-NI',{maximumFractionDigits:2});}
+function smallPrice(c){return [c.precioLocal,c.precioDomicilio].filter(x=>Number.isFinite(x)).sort((a,b)=>a-b)[0]||0;}
+function renderBrand(){
+ const c=state.catalog||{};$('brand').textContent=c.nombre||'BarberControl';
+ $('slogan').textContent=c.eslogan||'Tu estilo comienza aquí';
+ $('footerName').textContent=c.nombre||'BarberControl';
+ document.title=(c.nombre||'BarberControl')+' · Reservas';
+ const phone=c.telefono;
+ if(phone){$('whatsappTop').href='https://wa.me/'+phone;$('whatsappTop').hidden=false;
+  $('navWa').href='https://wa.me/'+phone;$('navWa').target='_blank';$('navWa').rel='noopener noreferrer';}
+ else $('whatsappTop').hidden=true;
+ if(c.tieneLogo)photoTo($('logo'),'LOGO','principal','');
+ $('logo').hidden=!c.tieneLogo;$('logoFallback').hidden=!!c.tieneLogo;
+}
+function renderCategories(){
+ const host=$('categories');host.textContent='';
+ ['Todo',...(state.catalog.categorias||[])].forEach(cat=>{
+  const b=document.createElement('button');b.type='button';b.className='chip';
+  b.classList.toggle('active',cat===state.category);b.textContent=cat;
+  b.onclick=()=>{state.category=cat;renderCategories();renderProducts();};host.append(b);
  });
- if(bloquear)overlay.focus({preventScroll:true});
- else if(previousFocus&&typeof previousFocus.focus==='function')
-  previousFocus.focus({preventScroll:true});
 }
-function mostrarComprobanteReserva(result){
- const host=$('comprobante');host.textContent='';
- const rows=[
-  ['Servicio',result.estilo||result.servicio],
-  ['Día',fechaReservaLegible(result.fecha)],
-  ['Hora',horaReservaLegible(result.inicio)+' – '+horaReservaLegible(result.fin)],
-  ['Precio',currency(result.precio)],
-  ['Código',result.codigo]
- ];
- rows.forEach(pair=>{
-  const row=document.createElement('div');row.className='receipt-row';
-  const label=document.createElement('span');label.textContent=pair[0];
-  const value=document.createElement('strong');value.textContent=pair[1];
-  row.append(label,value);host.append(row);
+function addPhotoBox(parent,cut){
+ const hasExtra=cut.fotosAdicionales>0;
+ const pic=document.createElement(hasExtra?'button':'div');
+ pic.className='photo'+(hasExtra?' photo-click':'');
+ if(hasExtra){pic.type='button';pic.setAttribute('aria-label','Ver todas las fotos de '+cut.nombre);pic.onclick=()=>openGallery(cut);}
+ const span=document.createElement('span');span.className='photo-fallback';span.textContent='✂';pic.append(span);
+ if(cut.tieneImagen){const img=document.createElement('img');img.alt=cut.nombre;img.loading='lazy';pic.append(img);photoTo(img,'CORTE',cut.id,'');}
+ if(hasExtra){const label=document.createElement('span');label.className='photo-count';label.textContent='▣ '+(cut.fotosAdicionales+1)+' fotos';pic.append(label);}
+ parent.append(pic);
+}
+function renderProducts(){
+ if(!state.catalog)return;
+ const q=state.query.toLocaleLowerCase('es'),list=state.catalog.productos.filter(c=>
+  (state.category==='Todo'||c.categoria===state.category)&&
+  (c.nombre+' '+c.descripcion+' '+c.categoria).toLocaleLowerCase('es').includes(q));
+ if(state.sort==='az')list.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+ else if(state.sort==='cheap')list.sort((a,b)=>smallPrice(a)-smallPrice(b));
+ else if(state.sort==='expensive')list.sort((a,b)=>smallPrice(b)-smallPrice(a));
+ $('count').textContent=state.catalog.productos.length+' estilos';$('results').textContent=list.length+' resultados';
+ const host=$('products');host.textContent='';
+ if(!list.length){const p=document.createElement('p');p.className='muted';p.textContent='No encontramos cortes en esta categoría.';host.append(p);return;}
+ list.forEach(c=>{
+  const article=document.createElement('article');article.className='product';addPhotoBox(article,c);
+  const content=document.createElement('div');content.className='content';
+  const tag=document.createElement('div');tag.className='tag';tag.textContent=c.categoria;content.append(tag);
+  const h=document.createElement('h3');h.textContent=c.nombre;content.append(h);
+  if(c.descripcion){const p=document.createElement('p');p.className='desc';p.textContent=c.descripcion;content.append(p);}
+  const prices=document.createElement('div');prices.className='prices';
+  [['En local',c.precioLocal],['A domicilio',c.precioDomicilio]].forEach(pair=>{
+   if(!Number.isFinite(pair[1]))return;
+   const line=document.createElement('div');const label=document.createElement('span'),value=document.createElement('strong');
+   label.textContent=pair[0];value.textContent=money(pair[1]);line.append(label,value);prices.append(line);
+  });content.append(prices);
+  const duration=document.createElement('div');duration.className='duration';duration.textContent=c.duracion+' minutos';content.append(duration);
+  const book=document.createElement('button');book.className='gold';book.type='button';book.textContent='Reservar este estilo';
+  book.onclick=()=>choose(c);content.append(book);article.append(content);host.append(article);
  });
- const button=$('waDespues');
- const tel=state.data&&state.data.telefono;
- if(tel&&/^\d{8,15}$/.test(tel)){
-  const message='Hola, solo para avisarte que hice una reservación para el '+
-   fechaReservaLegible(result.fecha)+' a las '+horaReservaLegible(result.inicio)+
-   '. Elegí '+(result.estilo||result.servicio)+
-   '. Mi código de reserva es '+result.codigo+'. ¡Gracias!';
-  button.href='https://wa.me/'+tel+'?text='+encodeURIComponent(message);
-  button.hidden=false;
- }else{button.hidden=true;button.removeAttribute('href');}
 }
-
-function requestId(){
- if(!state.requestId){
-  state.requestId=(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')
-  ?crypto.randomUUID()
-  :'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
-    const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);
-   });
- }
- return state.requestId;
-}
-async function confirm(){
- if($('reservaOverlay')&&!$('reservaOverlay').hidden)return;
- if(!state.selected||!state.slot){
-  status('Selecciona primero el estilo y la hora.',true);return;
- }
- const name=$('clienteNombre').value.trim(),phone=$('clienteTelefono').value.trim();
- if(name.length<3||phone.replace(/\D/g,'').length<8){
-  status('Completa tu nombre y teléfono de contacto.',true);return;
- }
- const btn=$('confirmarReserva');
- btn.disabled=true;btn.textContent='Confirmando…';
- status('Estamos comprobando nuevamente el horario disponible…');
- bloquearMientrasReserva(true);
+function applyCatalog(data){state.catalog=data;renderBrand();renderCategories();renderProducts();}
+async function loadCatalog(){
+ const old=stored(STORE+':catalog');
+ if(old&&old.data&&Array.isArray(old.data.productos)){state.signature=old.signature||'';applyCatalog(old.data);}
  try{
-  const result=await apiReservaConLimite([{
-   nombre:name,telefono:phone,comentario:$('clienteComentario').value,
-   fecha:$('fecha').value,inicio:state.slot.inicio,
-   servicioId:state.selected.servicioId,estiloId:state.selected.estiloId||'',
-   galeriaId:'',idempotencia:requestId()
-  }],60000);
-  mostrarComprobanteReserva(result);
-  status('');
-  $('datosCliente').hidden=true;$('reservaExitosa').hidden=false;
-  state.slot=null;state.requestId='';
-  // El éxito se muestra al cerrar el diálogo, con fecha y hora legibles.
-  scroll('reservaExitosa');
- }catch(e){
-  status('No pudimos confirmar el resultado: '+(e.message||String(e))+
-   ' Si la cita aparece en Google Calendar o en tus registros, no la repitas.',true);
- }finally{
-  bloquearMientrasReserva(false);
-  btn.disabled=false;btn.textContent='Confirmar mi cita';
+  const check=api('obtenerVersionEscaparate');
+  const first=old?null:api('obtenerEscaparatePublico');
+  const version=await check;
+  const signature=version.identidad+':'+version.version;
+  if(old&&signature===old.signature)return;
+  const data=first?await first:await api('obtenerEscaparatePublico');
+  state.signature=signature;state.imageCache.clear();state.imageTasks.clear();
+  try{const keys=stored(STORE+':images')||[];keys.forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});write(STORE+':images','[]');}catch(e){}
+  write(STORE+':catalog',JSON.stringify({signature:signature,data:data}));
+  applyCatalog(data);
+ }catch(err){
+  if(!state.catalog)$('products').textContent='No pudimos cargar el catálogo. Actualiza la página para intentar de nuevo.';
  }
 }
-
-$('buscar').addEventListener('input',e=>{state.query=e.target.value;renderProducts();});
-$('orden').addEventListener('change',e=>{state.sort=e.target.value;renderProducts();});
-$('fecha').addEventListener('change',()=>{renderDays();availability();});
-$('confirmarReserva').addEventListener('click',()=>{try{confirm();}catch(e){status(e.message||String(e),true);}});
-$('formularioReserva').addEventListener('submit',e=>e.preventDefault());
-(async()=>{
- $('fecha').min=dateKey(new Date());$('fecha').value=dateKey(new Date());
- await bcStartCatalog();bcLastCheck=Date.now();
-})();
-document.addEventListener('visibilitychange',()=>{
- if(document.visibilityState==='visible')bcCheckChanges();
-});
+let lastVersionCheck=0;
+async function checkVersion(){
+ if(!state.catalog||Date.now()-lastVersionCheck<60000)return;lastVersionCheck=Date.now();
+ try{const v=await api('obtenerVersionEscaparate');if(v.identidad+':'+v.version===state.signature)return;await loadCatalog();}catch(e){}
+}
+async function openGallery(cut){
+ if(!(cut.fotosAdicionales>0))return;
+ try{
+  await wait(async()=>{
+   const photos=await api('obtenerFotosCortePublico',cut.id);
+   if(photos.length<2)return;
+   state.gallery=photos.map(p=>({cutId:cut.id,type:p.tipo==='PRINCIPAL'?'CORTE':'FOTO_CORTE',photoId:p.tipo==='PRINCIPAL'?'':p.id}));
+   state.galleryIndex=0;$('galleryModal').hidden=false;await showGalleryImage();
+  },'Abriendo fotografías','Preparando las fotos del estilo…');
+ }catch(err){alert('No pudimos abrir las fotos: '+(err.message||err));}
+}
+async function showGalleryImage(){
+ const entry=state.gallery[state.galleryIndex];if(!entry)return;
+ $('galleryImage').removeAttribute('src');$('galleryCounter').textContent=(state.galleryIndex+1)+' / '+state.gallery.length;
+ $('galleryPrev').disabled=state.galleryIndex===0;$('galleryNext').disabled=state.galleryIndex===state.gallery.length-1;
+ try{const uri=await picture(entry.type,entry.cutId,entry.photoId);if(entry===state.gallery[state.galleryIndex])$('galleryImage').src=uri;}catch(e){$('galleryImage').alt='No se pudo mostrar esta fotografía';}
+}
+function closeGallery(){$('galleryModal').hidden=true;state.gallery=[];}
+function dateKey(date){
+ const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
+ return y+'-'+m+'-'+d;
+}
+function readableDate(iso){
+ const a=String(iso).split('-').map(Number);const d=new Date(Date.UTC(a[0],a[1]-1,a[2],12));
+ return new Intl.DateTimeFormat('es-NI',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(d).replace(/,\s*/,' ');
+}
+function readableTime(clock){
+ const m=/^(\d{2}):(\d{2})$/.exec(clock||'');if(!m)return clock||'';
+ const h=Number(m[1]);return (h%12||12)+':'+m[2]+' '+(h>=12?'p. m.':'a. m.');
+}
+function choose(cut){
+ state.cut=cut;state.slot=null;state.requestId='';
+ $('booking').hidden=false;$('confirmed').hidden=true;$('clientFields').hidden=true;$('address').value='';
+ const chosen=$('chosen');chosen.textContent='';
+ const name=document.createElement('strong');name.textContent=cut.nombre;
+ const meta=document.createElement('small');meta.textContent=cut.categoria+' · '+cut.duracion+' minutos';
+ chosen.append(name,meta);const modeHost=$('modes');modeHost.textContent='';
+ const available=[['LOCAL','En el local',cut.precioLocal],['DOMICILIO','A domicilio',cut.precioDomicilio]]
+  .filter(m=>Number.isFinite(m[2]));
+ available.forEach(m=>{
+  const b=document.createElement('button');b.type='button';b.className='mode';
+  b.textContent=m[1];const p=document.createElement('span');p.textContent=money(m[2]);b.append(p);
+  b.onclick=()=>{state.mode=m[0];state.slot=null;
+   modeHost.querySelectorAll('button').forEach(x=>x.classList.toggle('selected-mode',x===b));
+   $('addressLabel').hidden=m[0]!=='DOMICILIO';slots();};modeHost.append(b);
+ });
+ if(available.length===1)modeHost.firstChild.click();
+ else {state.mode=null;$('slots').textContent='Selecciona una modalidad.';}
+ const today=dateKey(new Date());$('date').min=today;if(!$('date').value||$('date').value<today)$('date').value=today;
+ $('booking').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function slots(){
+ if(!state.cut||!state.mode)return;
+ const seq=++state.seq,cut=state.cut,mode=state.mode,fecha=$('date').value;
+ state.slot=null;state.requestId='';$('clientFields').hidden=true;$('availabilityStatus').textContent='';
+ const host=$('slots');host.textContent='';
+ try{
+  const data=await wait(()=>api('obtenerDisponibilidad',fecha,cut.id,mode),
+   'Consultando horarios','Buscando las horas libres para tu corte…');
+  if(seq!==state.seq||state.cut!==cut||state.mode!==mode||$('date').value!==fecha)return;
+  if(!data.horarios.length){$('availabilityStatus').textContent='No hay horarios libres para ese día. Intenta otra fecha.';return;}
+  data.horarios.forEach(item=>{
+   const btn=document.createElement('button');btn.type='button';btn.className='time';
+   btn.textContent=readableTime(item.inicio);
+   btn.onclick=()=>{state.slot=item;host.querySelectorAll('.time').forEach(x=>x.classList.toggle('selected-time',x===btn));$('clientFields').hidden=false;};
+   host.append(btn);
+  });
+ }catch(e){if(seq===state.seq){$('availabilityStatus').textContent='Error al consultar horarios: '+(e.message||e);}}
+}
+function requestKey(){
+ if(!state.requestId){
+  state.requestId=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():
+   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,ch=>{const n=Math.random()*16|0;return (ch==='x'?n:n&3|8).toString(16);});
+ }return state.requestId;
+}
+function showConfirmation(result){
+ const box=$('receipt');box.textContent='';
+ const pairs=[['Corte',result.nombre],['Modalidad',result.modalidad==='DOMICILIO'?'A domicilio':'En el local'],
+ ['Día',readableDate(result.fecha)],['Hora',readableTime(result.inicio)+' – '+readableTime(result.fin)],
+ ['Precio',money(result.precio)],['Código',result.codigo]];
+ pairs.forEach(([key,val])=>{
+  const div=document.createElement('div');div.className='receipt-line';
+  const label=document.createElement('span'),value=document.createElement('strong');
+  label.textContent=key;value.textContent=val;div.append(label,value);box.append(div);
+ });
+ const phone=state.catalog&&state.catalog.telefono,wa=$('notify');
+ if(phone){const msg='Hola, solo para avisarte que hice una reservación para el '+readableDate(result.fecha)+
+  ' a las '+readableTime(result.inicio)+'. Corte: '+result.nombre+
+  '. Atención: '+(result.modalidad==='DOMICILIO'?'a domicilio':'en el local')+
+  '. Mi código es '+result.codigo+'. ¡Gracias!';
+  wa.href='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);wa.hidden=false;
+ }else wa.hidden=true;
+ $('confirmed').hidden=false;$('clientFields').hidden=true;
+ $('confirmed').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function confirmBooking(){
+ if(!$('busy').hidden)return;
+ if(!state.cut||!state.mode||!state.slot){$('bookingError').textContent='Selecciona corte, modalidad y horario.';return;}
+ const name=$('clientName').value.replace(/\s+/g,' ').trim(),phone=$('clientPhone').value.replace(/\D/g,'');
+ const address=$('address').value.trim();
+ if(name.length<2){$('bookingError').textContent='Escribe tu nombre (mínimo 2 caracteres).';return;}
+ if(phone.length<8||phone.length>15){$('bookingError').textContent='Introduce un número de WhatsApp válido.';return;}
+ if(state.mode==='DOMICILIO'&&address.length<8){$('bookingError').textContent='Indica tu dirección a domicilio.';return;}
+ $('bookingError').textContent='';
+ const payload={nombre:name,telefono:phone,comentario:$('comment').value,
+  direccion:address,corteId:state.cut.id,modalidad:state.mode,fecha:$('date').value,
+  inicio:state.slot.inicio,idempotencia:requestKey()};
+ try{
+  // ¡Objeto directo! Nunca [payload]; eso causaba "nombre inválido".
+  const result=await wait(()=>api('reservarCita',payload),
+    'Confirmando tu cita','Verificando el horario y registrando tu reserva…');
+  state.requestId='';state.slot=null;showConfirmation(result);
+ }catch(e){
+  $('bookingError').textContent='No pudimos confirmar el resultado: '+(e.message||e)+
+   '. Verifica si la cita ya aparece registrada antes de intentar nuevamente.';
+ }
+}
+$('search').addEventListener('input',e=>{state.query=e.target.value;renderProducts();});
+$('sort').addEventListener('change',e=>{state.sort=e.target.value;renderProducts();});
+$('date').addEventListener('change',slots);
+$('confirm').addEventListener('click',confirmBooking);
+$('galleryClose').addEventListener('click',closeGallery);
+$('galleryPrev').addEventListener('click',()=>{if(state.galleryIndex>0){state.galleryIndex--;showGalleryImage();}});
+$('galleryNext').addEventListener('click',()=>{if(state.galleryIndex<state.gallery.length-1){state.galleryIndex++;showGalleryImage();}});
+$('galleryModal').addEventListener('click',e=>{if(e.target===$('galleryModal'))closeGallery();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('galleryModal').hidden)closeGallery();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkVersion();});
+$('date').min=dateKey(new Date());$('date').value=dateKey(new Date());
+loadCatalog();
 })();
 </script>
 </body>
