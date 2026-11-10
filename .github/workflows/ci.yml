@@ -22,3 +22,6 @@ jobs:
 
       - name: Probar paquete de conexión Admin → Public
         run: node tests/connection.test.js
+
+      - name: Probar reservas completas de corte y modalidad
+        run: node tests/reservas-v2.test.js
