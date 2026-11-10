@@ -1,98 +1,33 @@
-/**
- * Catálogo visual PÚBLICO. Nunca devuelve números de teléfono, archivos
- * privados ni el ID de Google Drive; solo medios publicados.
- */
-function servicioVisibleCatalogo_(servicioId) {
-  return leerPublico_('Servicios').find(function(s){
-    return String(s.ID)===String(servicioId) &&
-      esVerdad_(s.Activo) && esVerdad_(s.Visible);
-  });
+/** Entrega segura de fotos de cortes sin compartir la carpeta de Drive. */
+function corteVisibleV2_(id){
+  return leerPublico_('Cortes').find(c=>c.ID===String(id)&&
+    esVerdad_(c.Activo)&&esVerdad_(c.Visible));
 }
-function estiloVisibleCatalogo_(id) {
-  return leerPublico_('Estilos').find(function(s){
-    return String(s.ID)===String(id) && esVerdad_(s.Activo) &&
-      esVerdad_(s.Visible) && Boolean(servicioVisibleCatalogo_(s.ServicioId));
-  });
-}
-function trabajoVisibleCatalogo_(id) {
-  return leerPublico_('Galeria').find(function(s){
-    return String(s.ID)===String(id) && esVerdad_(s.Publicado) &&
-      esVerdad_(s.Consentimiento) && Boolean(servicioVisibleCatalogo_(s.ServicioId));
-  });
-}
-function obtenerCatalogoVisualPublico() {
-  const servicios=leerPublico_('Servicios').filter(function(s){
-    return esVerdad_(s.Activo) && esVerdad_(s.Visible);
-  });
-  const servicioIds={};
-  servicios.forEach(function(s){servicioIds[s.ID]=s;});
-  const estilos=leerPublico_('Estilos').filter(function(e){
-    return esVerdad_(e.Activo) && esVerdad_(e.Visible) && Boolean(servicioIds[e.ServicioId]);
-  }).slice(0,60).map(function(e){
-    return {
-      id:e.ID,nombre:e.Nombre,servicioId:e.ServicioId,
-      descripcion:e.Descripcion,origen:e.Origen,tecnica:e.Tecnica,
-      tieneImagen:Boolean(e.ImagenId),
-      reservable:esVerdad_(servicioIds[e.ServicioId].Reservable)
-    };
-  });
-  const publicados=leerPublico_('Galeria').filter(function(g){
-    return esVerdad_(g.Publicado) && esVerdad_(g.Consentimiento) &&
-      Boolean(servicioIds[g.ServicioId]);
-  }).slice(-48).reverse();
-  const medios=leerPublico_('Medios');
-  const trabajos=publicados.map(function(g){
-    const asociados=medios.filter(function(m){
-      return m.GaleriaId===g.ID && esVerdad_(m.Publicado);
-    }).slice(0,12).map(function(m){
-      return {
-        id:m.ID,tipo:m.Tipo,descripcion:m.Descripcion,
-        youtubeId:m.Tipo==='YOUTUBE'&&/^[A-Za-z0-9_-]{11}$/.test(m.YoutubeId)?
-          m.YoutubeId:''
-      };
-    }).filter(function(m){
-      return m.tipo==='FOTO'||(m.tipo==='YOUTUBE'&&m.youtubeId);
+function obtenerFotosCortePublico(corteId){
+  const corte=corteVisibleV2_(corteId);
+  if(!corte)throw new Error('Corte no disponible.');
+  const photos=[];
+  if(corte.ImagenId)photos.push({id:'PORTADA',tipo:'PRINCIPAL'});
+  leerPublico_('FotosCortes').filter(f=>f.CorteId===corteId&&esVerdad_(f.Publicado))
+    .sort((a,b)=>Number(a.Orden)-Number(b.Orden)).slice(0,16).forEach(f=>{
+      photos.push({id:f.ID,tipo:'ADICIONAL'});
     });
-    return {
-      id:g.ID,titulo:g.Titulo,descripcion:g.Descripcion,
-      servicioId:g.ServicioId,estiloId:g.EstiloId,
-      destacado:esVerdad_(g.Destacado),medios:asociados,
-      reservable:esVerdad_(servicioIds[g.ServicioId].Reservable)
-    };
-  }).filter(function(g){return g.medios.length>0;});
-  return {estilos:estilos,trabajos:trabajos};
+  return photos;
 }
-/**
- * Imágenes privadas en Drive, distribuidas en data URI únicamente cuando
- * el servicio, estilo o trabajo correspondiente es público.
- * No aceptar IDs de Drive proporcionados por visitantes.
- */
-function obtenerImagenPublica(tipo,id,medioId) {
-  const kind=String(tipo||'');
-  const ref=String(id||'');
+function obtenerImagenPublica(tipo,id,medioId){
+  const corte=corteVisibleV2_(id);
+  if(!corte)throw new Error('Corte no publicado.');
   let fileId='';
-  if(kind==='ESTILO'){
-    const e=estiloVisibleCatalogo_(ref);
-    if(!e)throw new Error('Estilo no disponible.');
-    fileId=e.ImagenId||'';
-  }else if(kind==='SERVICIO'){
-    const s=servicioVisibleCatalogo_(ref);
-    if(!s)throw new Error('Servicio no disponible.');
-    fileId=s.ImagenId||'';
-  }else if(kind==='GALERIA'){
-    if(!trabajoVisibleCatalogo_(ref))throw new Error('Publicación no disponible.');
-    const media=leerPublico_('Medios').find(function(m){
-      return m.ID===String(medioId) && m.GaleriaId===ref &&
-        m.Tipo==='FOTO' && esVerdad_(m.Publicado);
-    });
-    if(!media)throw new Error('Fotografía no disponible.');
-    fileId=media.DriveId||'';
-  }else{
-    throw new Error('Tipo de recurso no permitido.');
-  }
-  if(!fileId)throw new Error('Fotografía no encontrada.');
+  if(tipo==='CORTE')fileId=String(corte.ImagenId||'');
+  else if(tipo==='FOTO_CORTE'){
+    const media=leerPublico_('FotosCortes').find(f=>f.ID===String(medioId)&&
+      f.CorteId===String(id)&&esVerdad_(f.Publicado));
+    if(!media)throw new Error('Foto no publicada.');
+    fileId=String(media.DriveId||'');
+  }else throw new Error('Tipo de imagen no permitido.');
+  if(!fileId)throw new Error('La foto no está disponible.');
   const file=DriveApp.getFileById(fileId);
-  if(file.getMimeType()!=='image/jpeg')throw new Error('El formato de la imagen no es compatible.');
+  if(file.getMimeType()!=='image/jpeg')throw new Error('Formato incompatible.');
   const bytes=file.getBlob().getBytes();
   if(bytes.length>1250000)throw new Error('Imagen demasiado grande.');
   return 'data:image/jpeg;base64,'+Utilities.base64Encode(bytes);

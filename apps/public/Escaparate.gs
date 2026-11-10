@@ -1,57 +1,41 @@
 /**
- * Escaparate móvil para clientes, solo lectura.
- * Ofrece estilos publicados, servicios sin estilo, categorías y marca.
- * No devuelve IDs de Drive ni información de otros clientes.
+ * Barber Public V2: catálogo único de cortes, sin galería ni "servicios".
+ * Solo se devuelve información de estilos publicados y sus precios ofrecidos.
  */
-function obtenerEscaparatePublico() {
+function cortesPublicos_(){
+  return leerPublico_('Cortes').filter(c=>esVerdad_(c.Activo)&&esVerdad_(c.Visible))
+    .map(c=>{
+      const pl=String(c.PrecioLocal||'').trim(),pd=String(c.PrecioDomicilio||'').trim();
+      return {
+        id:c.ID,nombre:c.Nombre,categoria:c.Categoria,descripcion:c.Descripcion,
+        origen:c.Origen,tecnica:c.Tecnica,precioLocal:pl===''?null:Number(pl.replace(',','.')),
+        precioDomicilio:pd===''?null:Number(pd.replace(',','.')),
+        duracion:Number(c.DuracionMin),tieneImagen:Boolean(c.ImagenId),
+        activo:true
+      };
+    }).filter(c=>Number.isInteger(c.duracion)&&c.duracion>=10&&
+      (Number.isFinite(c.precioLocal)||Number.isFinite(c.precioDomicilio)));
+}
+function obtenerEscaparatePublico(){
   const config=configuracionPublica_();
-  const servicios=leerPublico_('Servicios').filter(function(s){
-    return esVerdad_(s.Activo)&&esVerdad_(s.Visible);
-  });
-  const byId={};
-  servicios.forEach(function(s){byId[s.ID]=s;});
-  const styles=leerPublico_('Estilos').filter(function(e){
-    return esVerdad_(e.Activo)&&esVerdad_(e.Visible)&&Boolean(byId[e.ServicioId]);
-  });
-  const used={};
-  const items=styles.map(function(e){
-    const s=byId[e.ServicioId];used[e.ServicioId]=true;
-    return {
-      id:e.ID,estiloId:e.ID,servicioId:s.ID,
-      nombre:e.Nombre,categoria:s.Categoria,descripcion:e.Descripcion,
-      origen:e.Origen,tecnica:e.Tecnica,
-      precio:Number(s.Precio),duracion:Number(s.DuracionMin),
-      reservable:esVerdad_(s.Reservable),tipoImagen:'ESTILO',tieneImagen:Boolean(e.ImagenId),
-      tipo:'ESTILO',servicioNombre:s.Nombre
-    };
-  });
-  servicios.filter(function(s){return !used[s.ID];}).forEach(function(s){
-    items.push({
-      id:s.ID,estiloId:'',servicioId:s.ID,
-      nombre:s.Nombre,categoria:s.Categoria,descripcion:s.Descripcion,
-      origen:'',tecnica:'',
-      precio:Number(s.Precio),duracion:Number(s.DuracionMin),
-      reservable:esVerdad_(s.Reservable),tipoImagen:'SERVICIO',tieneImagen:Boolean(s.ImagenId),
-      tipo:'SERVICIO',servicioNombre:s.Nombre
-    });
-  });
-  const categorias=leerPublico_('Categorias')
-    .filter(function(c){return esVerdad_(c.Activa);})
-    .sort(function(a,b){return Number(a.Orden)-Number(b.Orden);})
-    .map(function(c){return c.Nombre;});
-  const numero=String(config.TELEFONO_WHATSAPP||'').replace(/\D/g,'');
+  const categories=leerPublico_('Categorias').filter(c=>esVerdad_(c.Activa))
+    .sort((a,b)=>Number(a.Orden)-Number(b.Orden)).map(c=>c.Nombre);
+  const cortes=cortesPublicos_().slice(0,200);
+  const fotos=leerPublico_('FotosCortes').filter(f=>esVerdad_(f.Publicado));
+  const count={};fotos.forEach(f=>{count[f.CorteId]=(count[f.CorteId]||0)+1;});
+  cortes.forEach(c=>c.fotosAdicionales=count[c.id]||0);
+  const phone=String(config.TELEFONO_WHATSAPP||'').replace(/\D/g,'');
   return {
     nombre:config.NOMBRE_NEGOCIO||'BarberControl',
     eslogan:config.ESLOGAN_NEGOCIO||'Tu estilo comienza aquí',
-    telefono:numero.length>=8&&numero.length<=15?numero:'',
+    telefono:/^\d{8,15}$/.test(phone)?phone:'',
     tieneLogo:Boolean(config.LOGO_FILE_ID),
-    categorias:categorias,
-    productos:items.slice(0,100),
+    categorias:categories,
+    productos:cortes,
     moneda:config.MONEDA||'NIO'
   };
 }
-/** Logo del negocio, nunca el ID de archivo: solo bytes PNG controlados. */
-function obtenerLogoPublico() {
+function obtenerLogoPublico(){
   const config=configuracionPublica_();
   const id=String(config.LOGO_FILE_ID||'');
   if(!id)return '';
@@ -61,19 +45,11 @@ function obtenerLogoPublico() {
   if(bytes.length>950000)throw new Error('Logo demasiado grande.');
   return 'data:image/png;base64,'+Utilities.base64Encode(bytes);
 }
-
-/**
- * Versión ligera del escaparate para caché del navegador.
- * La marca cambia cuando Admin edita servicios, estilos, fotos o marca.
- * No cachear aquí horarios disponibles ni reservas: son datos en vivo.
- */
-function obtenerVersionEscaparate() {
+function obtenerVersionEscaparate(){
   bcAutovincularPublico_();
-  const dbId=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-  if(!dbId)throw new Error('El sistema no ha sido configurado.');
-  const hash=Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256, dbId, Utilities.Charset.UTF_8
-  ).map(function(b){return ('0'+(b&255).toString(16)).slice(-2);}).join('');
+  const id=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const hash=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,id,Utilities.Charset.UTF_8)
+    .map(b=>('0'+(b&255).toString(16)).slice(-2)).join('').slice(0,16);
   const conf=configuracionPublica_();
-  return {identidad:hash.slice(0,16),version:String(conf.PUBLIC_CATALOG_VERSION||'0')};
+  return {identidad:hash,version:String(conf.PUBLIC_CATALOG_VERSION||'0')};
 }
