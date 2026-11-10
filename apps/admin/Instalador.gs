@@ -180,3 +180,22 @@ function barberControlOnEditCatalogo_(event) {
   if(['Servicios','Estilos','Categorias','Configuracion'].indexOf(sheetName)===-1)return;
   actualizarVersionEscaparate_();
 }
+
+/**
+ * Paquete de enlace a Barber Public. Solo llamar desde Barber Admin PRIVADO.
+ * No guardarlo en Google Sheets, HTML público ni en repositorios Git.
+ */
+function exportarConexionPublicaAdmin() {
+  const props=PropertiesService.getScriptProperties();
+  const datos={
+    tipo:'BARBERCONTROL_PUBLIC_V1',
+    SPREADSHEET_ID:props.getProperty('SPREADSHEET_ID')||'',
+    CALENDAR_ID:props.getProperty('CALENDAR_ID')||'',
+    BRIDGE_SECRET:props.getProperty('BRIDGE_SECRET')||''
+  };
+  if(!datos.SPREADSHEET_ID || !datos.CALENDAR_ID || !datos.BRIDGE_SECRET){
+    throw new Error('El instalador todavía no ha generado todos los recursos de Google.');
+  }
+  // Se envía únicamente a la interfaz PRIVADA del propietario.
+  return JSON.stringify(datos);
+}
