@@ -4,11 +4,17 @@ Sistema de reservas para barbería, construido con **dos proyectos Google Apps S
 
 ## Versión actual: escaparate móvil de estilos
 
-La interfaz pública ahora muestra **únicamente estilos y servicios**: portada con fotografía destacada de los cortes reales, logotipo del negocio, WhatsApp, buscador, filtros por categoría, ordenamiento, precios, duración y botón **Reservar** en cada tarjeta. Ya no se muestra la galería general de trabajos (los registros y archivos existentes se conservan).
+La interfaz pública ahora muestra **únicamente estilos y servicios**: portada con el logotipo sobre un fondo degradado, logotipo del negocio, WhatsApp, buscador, filtros por categoría, ordenamiento, precios, duración y botón **Reservar** en cada tarjeta. Ya no se muestra la galería general de trabajos (los registros y archivos existentes se conservan).
 
 Al elegir un estilo, el cliente pasa a la agenda interactiva, selecciona fecha y hora y confirma sin iniciar sesión. El nombre del estilo queda tanto en la fila de Sheets como en el título del **nuevo evento** de Google Calendar.
 
 El administrador puede configurar nombre, eslogan, WhatsApp, logotipo PNG transparente y categorías (Cabello, Barba, Combos, Masajes, Diseños, Tratamientos y las nuevas que cree). Cada estilo se relaciona con un servicio que define el precio y la duración.
+
+## Instalación y vinculación 100 % automática
+
+**No necesitas copiar IDs de Sheets o Calendar, ni crear propiedades manualmente.** Admin crea todos los recursos y sus Script Properties mediante `instalarBarberControl`. También registra la configuración en una carpeta privada separada de Drive. Barber Public detecta esa configuración al abrir el catálogo por primera vez y crea automáticamente sus propias Script Properties.
+
+Ambos proyectos se ejecutan como **la misma cuenta de Google**. Si un proyecto ya está configurado, se reutilizan sus propiedades existentes. [Guía actualizada](docs/CONEXION-SIMPLIFICADA.md).
 
 ## Actualización de los proyectos que ya creaste
 
@@ -24,6 +30,7 @@ barberControl/
 │   ├── admin/                  # Proyecto Apps Script PRIVADO
 │   │   ├── Code.gs
 │   │   ├── Instalador.gs       # Idempotente: crea o reutiliza recursos
+│   │   ├── ConexionAutomatica.gs # Comparte configuración por Drive privado
 │   │   ├── Gestion.gs          # Servicios, horarios, bloqueos y agenda
 │   │   ├── Marca.gs            # Nombre, WhatsApp, logo y categorías
 │   │   ├── MarcaPanel.html     # Identidad y categorías en Admin
@@ -33,6 +40,7 @@ barberControl/
 │   │   └── appsscript.json
 │   └── public/                 # Proyecto Apps Script PÚBLICO
 │       ├── Code.gs
+│       ├── ConexionPublica.gs # Autovinculación sin copiar propiedades
 │       ├── Datos.gs
 │       ├── Escaparate.gs       # Marca y productos por categorías
 │       ├── Catalogo.gs        # Validación y entrega privada de imágenes
