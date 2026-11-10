@@ -68,6 +68,7 @@ function obtenerLogoPublico() {
  * No cachear aquí horarios disponibles ni reservas: son datos en vivo.
  */
 function obtenerVersionEscaparate() {
+  bcAutovincularPublico_();
   const dbId=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if(!dbId)throw new Error('El sistema no ha sido configurado.');
   const hash=Utilities.computeDigest(
