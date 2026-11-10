@@ -1,167 +1,343 @@
 <!DOCTYPE html>
 <html lang="es"><head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BarberControl Admin</title>
+<title>BarberControl · Administración</title>
 <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{background:#0f1115;color:#f5f4f1;margin:0}main{width:min(1100px,94vw);margin:auto;padding:25px 0 60px}
-header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding-bottom:20px;border-bottom:1px solid #30343a}
-h1{margin:0;font-size:1.8rem}h2{font-size:1.2rem}.muted{color:#adb2ba;font-size:.9rem}.pill{background:#373126;color:#eed099;padding:8px 12px;border-radius:20px}
-section{background:#1b1e24;border:1px solid #333740;border-radius:16px;margin:20px 0;padding:20px}
-button,input,select,textarea{font:inherit}button{background:#d9b879;color:#181818;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;font-weight:650}button:disabled{opacity:.5;cursor:wait}
-input,select,textarea{background:#101217;color:#f4f4f4;border:1px solid #434750;border-radius:9px;padding:10px;min-width:0}
-label{display:flex;flex-direction:column;gap:6px;color:#d5d6d8;font-size:.9rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.list{display:grid;gap:10px}.item{border:1px solid #343740;border-radius:12px;padding:12px}
-small{color:#bac0c8}a{color:#f2cd88}.alert{background:#402a29;color:#ffd6cf;padding:14px;border-radius:9px}.ok{color:#a8e5b1}
-pre{white-space:pre-wrap;word-break:break-all;background:#111318;padding:12px;border-radius:10px;font-size:.78rem}
-table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{border-bottom:1px solid #343840;padding:10px;text-align:left;white-space:nowrap}
-.hidden{display:none}
-</style></head><body><main>
-<header><div><div class="muted">PANEL PRIVADO · PROPIETARIO</div><h1>✂ BarberControl</h1></div><span class="pill">Administrador</span></header>
-<p id="mensaje" role="status" class="muted">Cargando…</p>
-<section id="instalacion"><h2>1. Instalación automática</h2>
-<p class="muted">Creará o reutilizará un archivo Google Sheets, un calendario de citas y las carpetas de Google Drive. No borra los registros existentes.</p>
-<button id="instalar" onclick="instalar()">Preparar BarberControl en Google</button>
-<div id="resultado"></div>
-</section>
-<div id="gestion" class="hidden">
-<?!= incluirCatalogoAdmin_('MarcaPanel'); ?>
-<section><h2>Configuración de agenda</h2>
-<div class="grid"><label>Intervalo entre horarios ofrecidos (min)<select id="intervalo"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option><option>60</option></select></label></div>
-<p><button onclick="guardarConfig()">Guardar intervalo</button></p></section>
-<section><h2>3. Servicios y precios</h2><p class="muted">Los servicios nuevos estarán disponibles después de guardarlos. Configura precios y duraciones reales antes de compartir la web.</p>
-<form id="servicioForm" onsubmit="guardarServicio(event)">
-<input type="hidden" id="sId"><div class="grid">
-<label>Nombre<input id="sNombre" required minlength="3" maxlength="100" placeholder="Corte degradado"></label>
-<label>Categoría<select id="sCategoria" required><option value="">Preparando categorías…</option></select></label>
-<label>Duración (min)<input id="sDuracion" type="number" min="10" max="360" value="45" required></label>
-<label>Precio (C$)<input id="sPrecio" type="number" min="0" step=".01" required></label>
-</div><p><label>Descripción<textarea id="sDescripcion" rows="2"></textarea></label></p>
-<div class="row">
-<label><input style="width:auto" type="checkbox" id="sActivo" checked> Servicio activo</label>
-<label><input style="width:auto" type="checkbox" id="sVisible" checked> Visible</label>
-<label><input style="width:auto" type="checkbox" id="sReservable" checked> Reservable</label>
-</div><div class="row"><button type="submit">Guardar servicio</button><button type="button" onclick="limpiarServicio()" style="background:#464a53;color:#fff">Nuevo</button></div></form>
-<div id="listaServicios" class="list" style="margin-top:15px"></div></section>
-<section><h2>4. Horarios de atención</h2><div id="listaHorarios" class="list"></div></section>
-<section><h2>5. Bloquear horarios</h2>
-<p class="muted">Primero configura la URL pública y BRIDGE_SECRET. El bloqueo se procesa en el mismo coordinador que las reservas.</p>
-<form onsubmit="guardarBloqueo(event)">
-<div class="grid">
-<label>Tipo<select id="bTipo"><option value="SEMANAL">Cada semana</option><option value="DIARIO">Cada día</option><option value="UNICO">Fecha puntual</option><option value="RANGO">Rango de fechas</option></select></label>
-<label>Día de la semana (si aplica)<select id="bDia"><option value="0">Domingo</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6" selected>Sábado</option></select></label>
-<label>Fecha inicial (si aplica)<input id="bFecha" type="date"></label>
-<label>Fecha final (para rango)<input id="bFechaFin" type="date"></label>
-<label>Inicio<input id="bInicio" type="time" value="12:00" required></label>
-<label>Fin<input id="bFin" type="time" value="12:30" required></label>
-<label>Motivo<input id="bMotivo" maxlength="100" value="Descanso"></label>
-</div><p><button>Agregar bloqueo</button></p></form>
-<div id="bloqueos"></div></section>
-<section><h2>6. Reservaciones registradas</h2><div id="reservas" class="muted"></div></section>
-<section><h2>Conexión automática con Barber Public</h2>
-<p class="muted"><strong>Sin copiar IDs ni claves.</strong> Al ejecutar el instalador, Barber Admin guarda toda la configuración en una carpeta privada de Drive. Barber Public la detectará automáticamente al cargar su catálogo por primera vez, siempre que ambos proyectos se ejecuten con la misma cuenta de Google.</p>
-<p class="muted">No tienes que crear propiedades manualmente en Barber Public. Solo necesitas actualizar su código y publicar una nueva versión.</p>
-<label>URL de aplicación pública /exec (solo necesaria para que Admin envíe bloqueos)<input id="urlPublica" placeholder="https://script.google.com/macros/s/.../exec"></label>
-<button onclick="guardarUrlPublica()">Vincular URL pública para bloqueos</button>
-<p class="muted">La carpeta de configuración es privada. No la compartas ni publiques su contenido.</p>
-</section>
-<?!= incluirCatalogoAdmin_('CatalogoPanel'); ?>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;--bg:#101216;--panel:#1c2026;--line:#393e46;--gold:#e8c58c;--muted:#adb4bd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f6f4f0}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}[hidden]{display:none!important}a{color:var(--gold)}header{background:#17191e;border-bottom:1px solid #40434a;position:sticky;top:0;z-index:10;padding:12px 16px}.top{max-width:1200px;margin:auto;display:flex;align-items:center;gap:10px}.top h1{font-size:21px;flex:1;margin:0}.icon{display:inline-grid;place-items:center;border-radius:11px;border:1px solid #555862;background:#252930;color:#eee;font-size:18px;padding:9px 13px;min-height:43px}.icon.active{background:#433a2b;border-color:var(--gold);color:var(--gold)}
+main{width:min(1200px,100%);margin:auto;padding:17px 15px 60px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:19px;margin:18px 0}.panel h2{font-size:20px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 14px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.gold{background:var(--gold);color:#171717;border:0;border-radius:11px;font-weight:800;padding:11px 15px}.secondary{background:#353a43;color:#eee;border:1px solid #575c65;border-radius:11px;padding:10px 14px}.danger{color:#ffacaa}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}.styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:12px}.style-card{display:flex;gap:11px;border-radius:12px;background:#272b32;padding:9px;border:1px solid #3d424b;min-width:0}.style-card img{width:72px;height:82px;object-fit:cover;border-radius:10px;background:#34373d}.style-info{display:grid;align-content:start;gap:6px;min-width:0;flex:1}.style-info strong{font-size:13px}.style-info small{color:var(--muted);font-size:11px}.style-info button{font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid #8a754e;background:#3a3225;color:#f6d7a9}
+label{display:grid;gap:6px;font-size:13px;color:#d8dae0;margin:11px 0}input,select,textarea{width:100%;padding:11px;background:#12151b;border:1px solid #555b66;color:#fff;border-radius:9px;min-width:0}input[type=checkbox]{width:auto}.check{display:flex;align-items:center;gap:8px}.check input{accent-color:#d8b47c}.note{background:#242b2b;border:1px solid #435e55;border-radius:11px;padding:12px;color:#c2e5d4;font-size:12px}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.muted{color:var(--muted)}.small{font-size:12px}.calendar-top{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:15px}.calendar-title{font-size:16px;font-weight:800;text-transform:capitalize}.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.month .dow{text-align:center;color:#9ea5ae;font-size:11px;padding:5px 0}.date{position:relative;min-width:0;aspect-ratio:1.12;border:1px solid #40454d;background:#272a30;color:#f5f5f5;border-radius:10px;padding:5px;display:flex;align-items:flex-start;justify-content:flex-end;font-size:13px}.date.has{border-color:#a58a5d;background:#302b22}.date.active{outline:2px solid var(--gold)}.date.empty{background:transparent;border-color:transparent;pointer-events:none}.date b{position:absolute;bottom:5px;left:6px;background:var(--gold);color:#181818;border-radius:12px;min-width:18px;min-height:18px;display:grid;place-items:center;font-size:10px}
+.book-list{margin-top:13px;border-top:1px solid #41444b;padding-top:11px;display:grid;gap:9px}.booking{padding:12px;border:1px solid #454951;background:#242831;border-radius:11px}.booking strong{display:block;margin-bottom:6px}.booking p{margin:5px 0;color:#ccd0d6;font-size:12px}.hours{display:grid;gap:8px}.hour-row{display:grid;grid-template-columns:minmax(90px,1fr) 55px 110px 110px auto;gap:8px;align-items:center;border-bottom:1px solid #34383e;padding:9px 0}.hour-row input[type=time]{padding:9px}.hour-row input[type=checkbox]{justify-self:center}.settings-head{font-size:14px;color:var(--gold);margin:15px 0 7px}.categories{display:flex;flex-wrap:wrap;gap:9px}.category{border:1px solid #4d535d;background:#262a32;border-radius:12px;padding:9px;font-size:12px;display:flex;gap:8px;align-items:center}.category button{font-size:11px;padding:4px 7px;border-radius:8px;border:0;background:#4a4e55;color:white}
+dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d644f;border-radius:19px;background:#1a1d23;color:#fff;padding:20px;box-shadow:0 28px 70px #000a}dialog::backdrop{background:#050607dc}.form-actions{display:flex;gap:10px;justify-content:end;align-items:center;flex-wrap:wrap;margin-top:16px}.thumb{width:96px;height:96px;object-fit:cover;background:#333;border-radius:12px}.photos{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.photo-item{display:grid;gap:4px}.photo-item img{width:80px;height:80px;object-fit:cover;border-radius:9px}.photo-item button{font-size:11px;padding:7px;background:#4b505a;color:#fff;border:0;border-radius:8px}.brand-preview{max-height:130px;max-width:180px;object-fit:contain;background:#22252c;border-radius:12px}.busy{position:fixed;inset:0;z-index:100;background:#0c0e13ef;display:flex;align-items:center;justify-content:center;padding:18px}.busy .inner{width:min(90vw,340px);border-radius:19px;background:#22262d;border:1px solid #675436;text-align:center;padding:23px}.busy h2{font-size:19px}.busy p{font-size:13px;color:#d7c7b5}.pole{height:133px;width:62px;margin:14px auto;border:6px solid #24477e;border-top:18px solid #dce7ff;border-bottom:18px solid #dce7ff;border-radius:20px;overflow:hidden;position:relative}.pole::before{content:"";position:absolute;inset:-80px -30px;background:repeating-linear-gradient(155deg,#fff 0 20px,#c64353 20px 40px,#fff 40px 60px,#3a65ad 60px 80px);animation:stripe 1.1s linear infinite}@keyframes stripe{to{transform:translateY(80px)}}@media(max-width:740px){.hour-row{grid-template-columns:1fr 45px 1fr 1fr}.hour-row button{grid-column:1/-1}.hour-row input{font-size:12px}.panel{padding:15px}.month{gap:4px}.date{font-size:12px}}@media(prefers-reduced-motion:reduce){.pole::before{animation:none}}
+</style>
+</head><body>
+<header><div class="top"><span style="font-size:25px">✂</span><h1>BarberControl <span class="muted" style="font-size:12px">Admin</span></h1><button id="homeButton" class="icon active" title="Panel principal" aria-label="Panel principal">⌂</button><button id="settingsButton" class="icon" title="Configuración" aria-label="Configuración">⚙</button></div></header>
+<main id="app">
+<div id="mainPage">
+<section class="panel"><div class="section-head"><div><h2>Estilos de cortes</h2><p class="sub">Registra y edita rápidamente cortes, precios, duración y fotografías.</p></div><button id="newCut" class="gold">+ Nuevo corte</button></div><div id="styles" class="styles">Cargando estilos…</div></section>
+<section class="panel"><div class="section-head"><div><h2>Reservaciones</h2><p class="sub">Los días marcados tienen citas. Pulsa un día para ver los detalles.</p></div><button id="refreshCalendar" class="secondary">↻ Actualizar</button></div>
+<div class="calendar-top"><button id="prevMonth" class="secondary" aria-label="Mes anterior">‹</button><span id="monthTitle" class="calendar-title"></span><button id="nextMonth" class="secondary" aria-label="Mes siguiente">›</button></div>
+<div id="month" class="month"></div><div id="dayBookings" class="book-list"><p class="muted small">Selecciona un día para visualizar sus citas.</p></div></section>
+<section class="panel"><h2>Horarios de atención</h2><p class="sub">Configura los días y las horas de trabajo habituales.</p><div id="hours" class="hours"></div></section>
+<section class="panel"><h2>Bloquear horarios</h2><p class="sub">Crea descansos diarios, bloqueos semanales o para fechas específicas.</p>
+<form id="blockForm"><div class="grid"><label>Repetición<select id="blockType"><option value="DIARIO">Todos los días</option><option value="SEMANAL">Una vez por semana</option><option value="UNICO">Solo una fecha</option><option value="RANGO">Rango de fechas</option></select></label>
+<label id="weekField">Día de la semana<select id="blockDay"></select></label><label id="startDateField" hidden>Fecha inicial<input type="date" id="blockDate"></label><label id="endDateField" hidden>Fecha final<input type="date" id="blockDateEnd"></label><label>Desde<input type="time" id="blockStart" value="12:00" required></label><label>Hasta<input type="time" id="blockEnd" value="12:30" required></label><label>Motivo<input id="blockReason" maxlength="100" value="Descanso"></label></div>
+<button class="gold">Agregar bloqueo</button></form><div id="blocks" class="book-list"></div></section>
 </div>
+<div id="settingsPage" hidden>
+<section class="panel"><h2>Identidad de la barbería</h2><p class="sub">Nombre comercial, logotipo y WhatsApp.</p><div class="grid"><label>Nombre<input id="businessName" maxlength="80"></label><label>Eslogan<input id="slogan" maxlength="140"></label><label>WhatsApp<input id="businessPhone" maxlength="20"></label></div><button id="saveIdentity" class="gold">Guardar identidad</button>
+<div class="row" style="margin-top:16px"><img id="brandLogo" class="brand-preview" alt="Logo actual" hidden><label>Logotipo PNG<input id="logoUpload" type="file" accept="image/png"></label><button id="saveLogo" class="secondary">Guardar logotipo</button></div></section>
+<section class="panel"><h2>Intervalo entre horarios</h2><p class="sub">Cada cuántos minutos se ofrecen nuevas horas de inicio. La duración real depende de cada corte.</p><label>Intervalo<select id="interval"><option value="5">Cada 5 minutos</option><option value="10">Cada 10 minutos</option><option value="15">Cada 15 minutos</option><option value="20">Cada 20 minutos</option><option value="30">Cada 30 minutos</option><option value="60">Cada 60 minutos</option></select></label><button id="saveInterval" class="gold">Guardar intervalo</button></section>
+<section class="panel"><h2>Categorías del catálogo</h2><p class="sub">Desactiva categorías sin cortes o agrega una categoría personalizada.</p><div id="categories" class="categories"></div><div class="row"><input id="categoryName" maxlength="45" placeholder="Nueva categoría" style="max-width:260px"><button id="addCategory" class="gold">Agregar</button></div></section>
+<section class="panel"><h2>Instalación automática</h2><p class="sub">Crear o recuperar Drive, Google Sheets y Calendar sin buscar identificadores manualmente.</p><p id="installationState" class="note">Verificando recursos…</p><button id="installer" class="secondary">Preparar BarberControl en Google</button></section>
+<section class="panel"><h2>Conexión con Barber Public</h2><p class="sub">Los IDs y las claves se sincronizan automáticamente a través de Drive privado. La URL /exec solo se utiliza para enviar bloqueos a la agenda pública.</p><label>URL pública de Apps Script<input id="publicUrl" placeholder="https://script.google.com/macros/s/.../exec"></label><button id="savePublicUrl" class="gold">Guardar enlace público</button></section>
+</div>
+<p id="globalStatus" role="status" class="muted small"></p>
 </main>
+<dialog id="cutDialog"><div class="section-head"><h2 id="cutTitle">Nuevo corte</h2><button id="closeCut" class="icon">×</button></div><form id="cutForm"><input id="cutId" type="hidden">
+<div class="grid"><label>Nombre del corte o estilo<input id="cutName" required minlength="2" maxlength="100"></label><label>Categoría<select id="cutCategory" required></select></label>
+<label>Precio en local (C$) — opcional<input id="cutLocal" type="number" min="0" step=".01" placeholder="Solo si se ofrece en el local"></label>
+<label>Precio a domicilio (C$) — opcional<input id="cutHome" type="number" min="0" step=".01" placeholder="Solo si se ofrece a domicilio"></label>
+<label>Duración (minutos)<input id="cutDuration" type="number" min="10" max="480" required value="45"></label></div>
+<label>Descripción<input id="cutDescription" maxlength="900" placeholder="Descripción breve del estilo"></label>
+<label>Origen o historia (opcional)<textarea id="cutOrigin" rows="2" maxlength="1000"></textarea></label>
+<label>Técnica (opcional)<textarea id="cutTechnique" rows="2" maxlength="1000"></textarea></label>
+<div class="grid"><label>Foto principal (opcional)<input id="cutPrimary" type="file" accept="image/*"></label><label>Fotografías adicionales (opcional, hasta 8)<input id="cutExtra" type="file" accept="image/*" multiple></label></div>
+<div id="savedPhotos" class="photos"></div><label class="check"><input type="checkbox" id="cutPhotoPermission">Tengo autorización para publicar estas fotografías</label>
+<div class="row"><label class="check"><input id="cutActive" type="checkbox" checked> Activo</label><label class="check"><input id="cutVisible" type="checkbox" checked> Visible</label></div>
+<p id="cutError" class="danger small"></p><div class="form-actions"><button type="button" id="cancelCut" class="secondary">Cancelar</button><button type="submit" class="gold">Guardar corte</button></div></form></dialog>
+<div id="busy" class="busy" hidden role="dialog" aria-modal="true" aria-labelledby="busyTitle" tabindex="-1"><div class="inner"><div class="pole" aria-hidden="true"></div><h2 id="busyTitle">Guardando información…</h2><p id="busyDetail">Conectando con Google…</p></div></div>
 <script>
-let panel=null;
+(function(){
+'use strict';
 const $=id=>document.getElementById(id);
 const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function llamar(nombre,args,ok){$('mensaje').textContent='Procesando…';const runner=google.script.run.withSuccessHandler(r=>{$('mensaje').textContent='Operación completada.';ok(r);}).withFailureHandler(e=>{$('mensaje').textContent='Error: '+e.message;});runner[nombre](...(args||[]));}
-function cargar(){llamar('obtenerPanelAdmin',[],render);}
-function instalar(){$('instalar').disabled=true;llamar('instalarBarberControl',[],()=>{cargar();$('instalar').disabled=false;});}
-function render(data){
- panel=data; const instalado=data.estado.instalado;
- $('resultado').innerHTML=instalado?'<p class="ok">✓ Recursos conectados correctamente.</p>':'<p class="muted">Aún no se ha ejecutado el instalador.</p>';
- $('gestion').classList.toggle('hidden',!instalado);
- if(!instalado)return;
- const c=Object.fromEntries(data.configuracion.map(x=>[x.Clave,x.Valor]));
- $('intervalo').value=c.INTERVALO_MIN||'15';
- if(window.bcMarcaRefresh)window.bcMarcaRefresh();
- // No mostramos claves privadas automáticamente en el panel.
- $('urlPublica').value=data.estado.publicWebappUrl||'';
- mostrarBloqueos(data.bloqueos);
- $('listaServicios').innerHTML='';
- data.servicios.forEach(s=>{
-   const div=document.createElement('div');div.className='item';
-   const titulo=document.createElement('strong');titulo.textContent=s.Nombre;div.append(titulo);
-   const p=document.createElement('p');p.className='muted';p.textContent='C$'+s.Precio+' · '+s.DuracionMin+' minutos · '+(s.Activo==='TRUE'||s.Activo==='true'?'Activo':'Inactivo');div.append(p);
-   const b=document.createElement('button');b.textContent='Editar';b.onclick=()=>editar(s);div.append(b);$('listaServicios').append(div);
- });
- if(!data.servicios.length)$('listaServicios').textContent='Todavía no se han agregado servicios.';
- $('listaHorarios').innerHTML='';
- data.horarios.forEach(h=>{
-  const dia=Number(h.DiaSemana);const abierto=String(h.Abierto).toLowerCase()==='true';
-  const div=document.createElement('div');div.className='item row';
-  const nombre=document.createElement('strong');nombre.style.minWidth='100px';nombre.textContent=dias[dia];div.append(nombre);
-  const sel=document.createElement('input');sel.type='checkbox';sel.checked=abierto;sel.title='Atiende este día';div.append(sel);
-  const ini=document.createElement('input');ini.type='time';ini.value=h.Inicio||'08:00';div.append(ini);
-  const fin=document.createElement('input');fin.type='time';fin.value=h.Fin||'18:00';div.append(fin);
-  const b=document.createElement('button');b.textContent='Guardar';b.onclick=()=>llamar('guardarHorarioAdmin',[{dia:dia,abierto:sel.checked,inicio:ini.value,fin:fin.value}],render);div.append(b);
-  $('listaHorarios').append(div);
- });
- const nombresEstilos=Object.fromEntries((data.estilos||[]).map(e=>[e.ID,e.Nombre]));
- const listaReservas=$('reservas');listaReservas.textContent='';
- if(!data.reservas.length){listaReservas.textContent='Todavía no hay citas registradas.';}
- else data.reservas.forEach(r=>{
-   const card=document.createElement('article');card.className='item';
-   const title=document.createElement('strong');title.textContent=r.Fecha+' · '+r.Inicio+'–'+r.Fin+' | '+(r.Estilo||r.Servicio);card.append(title);
-   const detail=document.createElement('p');detail.className='muted';
-   detail.textContent='Cliente: '+r.Cliente+' · '+r.Servicio+' · Estado: '+r.Estado;card.append(detail);
-   if(r.Comentario){const note=document.createElement('p');note.textContent='Indicaciones: '+r.Comentario;card.append(note);}
-   const digits=String(r.Telefono||'').replace(/\D/g,'');
-   if(digits.length>=8&&digits.length<=15){const wa=document.createElement('a');wa.href='https://wa.me/'+(digits.length===8?'505'+digits:digits);
-    wa.target='_blank';wa.rel='noopener noreferrer';wa.textContent='Contactar por WhatsApp';card.append(wa);}
-   if(r.CalendarUrl){const a=document.createElement('a');a.href=r.CalendarUrl;a.target='_blank';
-    a.rel='noopener noreferrer';a.textContent=' · Abrir Google Calendar';card.append(a);}
-   listaReservas.append(card);
- });
- if(window.bcMediaRefresh)window.bcMediaRefresh();
-}
-function guardarConfig(){
- llamar('guardarConfiguracionAdmin',['INTERVALO_MIN',$('intervalo').value],render);
-}
-function guardarServicio(e){e.preventDefault();llamar('guardarServicioAdmin',[{
- id:$('sId').value,nombre:$('sNombre').value,categoria:$('sCategoria').value,
- descripcion:$('sDescripcion').value,duracion:Number($('sDuracion').value),precio:Number($('sPrecio').value),
- activo:$('sActivo').checked,visible:$('sVisible').checked,reservable:$('sReservable').checked
-}],r=>{limpiarServicio();render(r);});}
-function editar(s){$('sId').value=s.ID;$('sNombre').value=s.Nombre;$('sCategoria').value=s.Categoria;$('sDescripcion').value=s.Descripcion;$('sDuracion').value=s.DuracionMin;$('sPrecio').value=s.Precio;
- $('sActivo').checked=String(s.Activo).toLowerCase()==='true';$('sVisible').checked=String(s.Visible).toLowerCase()==='true';$('sReservable').checked=String(s.Reservable).toLowerCase()==='true';window.scrollTo({top:document.getElementById('servicioForm').getBoundingClientRect().top+window.scrollY-70,behavior:'smooth'});}
-function limpiarServicio(){
- $('servicioForm').reset();$('sId').value='';
- const categorias=$('sCategoria').options;
- if(categorias.length)$('sCategoria').value=Array.from(categorias).some(c=>c.value==='Cabello')?'Cabello':categorias[0].value;
- $('sDuracion').value='45';
-}
-
-function guardarUrlPublica(){llamar('configurarPuenteAdmin',[$('urlPublica').value],render);}
-function guardarBloqueo(e){
- e.preventDefault();
- const d={tipo:$('bTipo').value,diaSemana:Number($('bDia').value),
- fechaInicio:$('bFecha').value,fechaFin:$('bFechaFin').value,
- inicio:$('bInicio').value,fin:$('bFin').value,motivo:$('bMotivo').value};
- if(['UNICO','RANGO'].includes(d.tipo)&&!d.fechaInicio){alert('Indica la fecha inicial.');return;}
- if(d.tipo==='RANGO'&&!d.fechaFin){alert('Indica la fecha final.');return;}
- llamar('guardarBloqueoAdmin',[d],render);
-}
-function mostrarBloqueos(list){
- $('bloqueos').innerHTML='';
- (list||[]).forEach(b=>{
-  const p=document.createElement('p');
-  p.textContent=b.Tipo+' '+(b.Tipo==='SEMANAL'?'Día '+b.DiaSemana:b.FechaInicio)+' '+b.Inicio+'–'+b.Fin+' ('+b.Motivo+') ';
-  if(String(b.Activo).toLowerCase()==='true'){
-   const btn=document.createElement('button');btn.textContent='Desactivar';
-   btn.onclick=()=>llamar('desactivarBloqueoAdmin',[b.ID],render);
-   p.appendChild(btn);
-  }$('bloqueos').appendChild(p);
+const state={panel:null,cortes:[],fotos:[],marca:null,year:new Date().getFullYear(),month:new Date().getMonth()+1,selectedDate:'',images:new Map(),busy:false};
+function api(name,...args){
+ return new Promise((resolve,reject)=>{
+  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args);
  });
 }
-
-
-cargar();
+function busy(active,title,detail){
+ state.busy=active;$('busy').hidden=!active;
+ $('busyTitle').textContent=title||'Procesando…';$('busyDetail').textContent=detail||'Conectando con Google…';
+ if('inert' in $('app'))$('app').inert=active;
+ if(active)$('busy').focus({preventScroll:true});
+}
+async function run(task,title){
+ busy(true,title);
+ try{const v=await task();$('globalStatus').textContent='Cambios guardados.';return v;}
+ catch(e){$('globalStatus').textContent='Error: '+(e.message||String(e));throw e;}
+ finally{busy(false);}
+}
+function option(select,value,label){const opt=document.createElement('option');opt.value=value;opt.textContent=label;select.append(opt);}
+function bool(v){return String(v).toLowerCase()==='true';}
+function money(v){return v===''?'No disponible':'C$'+Number(v).toLocaleString('es-NI',{maximumFractionDigits:2});}
+function priceSummary(c){
+ const vals=[];if(c.PrecioLocal!=='')vals.push('Local '+money(c.PrecioLocal));
+ if(c.PrecioDomicilio!=='')vals.push('Domicilio '+money(c.PrecioDomicilio));
+ return vals.join(' · ');
+}
+function renderCortes(){
+ const host=$('styles');host.textContent='';
+ if(!state.cortes.length){host.textContent='Aún no hay cortes registrados. Usa «Nuevo corte».';return;}
+ state.cortes.slice().reverse().forEach(c=>{
+  const card=document.createElement('div');card.className='style-card';
+  if(c.ImagenId){
+   const img=document.createElement('img');img.alt='Foto '+c.Nombre;card.append(img);
+   const key='principal:'+c.ID;
+   if(state.images.has(key))img.src=state.images.get(key);
+   else api('obtenerFotoAdminV2','PRINCIPAL',c.ID,'').then(uri=>{state.images.set(key,uri);if(img.isConnected)img.src=uri;}).catch(()=>{});
+  }
+  const info=document.createElement('div');info.className='style-info';
+  const name=document.createElement('strong');name.textContent=c.Nombre;const desc=document.createElement('small');
+  desc.textContent=c.Categoria+' · '+c.DuracionMin+' min · '+priceSummary(c)+(!bool(c.Activo)?' · INACTIVO':'');
+  const b=document.createElement('button');b.textContent='Editar';b.onclick=()=>editCut(c.ID);
+  info.append(name,desc,b);card.append(info);host.append(card);
+ });
+}
+function renderPhotos(cutId){
+ const host=$('savedPhotos');host.textContent='';
+ state.fotos.filter(f=>f.CorteId===cutId).forEach(f=>{
+  const wrap=document.createElement('div');wrap.className='photo-item';
+  const img=document.createElement('img');img.alt='Foto adicional';
+  api('obtenerFotoAdminV2','ADICIONAL',cutId,f.ID).then(uri=>{if(img.isConnected)img.src=uri;}).catch(()=>{});
+  const button=document.createElement('button');button.type='button';
+  button.textContent=bool(f.Publicado)?'Ocultar':'Publicar';
+  button.onclick=async()=>{try{await run(()=>api('cambiarFotoCorteV2',f.ID,!bool(f.Publicado)),'Actualizando foto…');await refreshCortes();renderPhotos(cutId);}catch(e){alert(e.message);}};
+  wrap.append(img,button);host.append(wrap);
+ });
+}
+function editCut(id){
+ const c=state.cortes.find(c=>c.ID===id);
+ $('cutForm').reset();$('cutError').textContent='';
+ $('cutId').value=c?c.ID:'';$('cutTitle').textContent=c?'Editar corte':'Nuevo corte';
+ $('cutCategory').textContent='';
+ (state.marca?.categorias||[]).filter(x=>bool(x.Activa)).forEach(x=>option($('cutCategory'),x.Nombre,x.Nombre));
+ if(c){
+  $('cutName').value=c.Nombre;$('cutCategory').value=c.Categoria;
+  $('cutLocal').value=c.PrecioLocal;$('cutHome').value=c.PrecioDomicilio;
+  $('cutDuration').value=c.DuracionMin;$('cutDescription').value=c.Descripcion;
+  $('cutOrigin').value=c.Origen;$('cutTechnique').value=c.Tecnica;
+  $('cutActive').checked=bool(c.Activo);$('cutVisible').checked=bool(c.Visible);
+ }else{
+  $('cutDuration').value=45;$('cutActive').checked=true;$('cutVisible').checked=true;
+ }
+ $('cutPhotoPermission').checked=false;renderPhotos(id||'');
+ $('cutDialog').showModal();
+}
+async function jpeg(file){
+ const url=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('No se pudo abrir la foto. Usa JPG o PNG.'));i.src=url;});
+  const ratio=Math.min(1,1000/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+  const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const result=canvas.toDataURL('image/jpeg',.72);
+  if(result.length>1700000)throw new Error('La foto comprimida sigue siendo demasiado grande.');
+  return result;
+ }finally{URL.revokeObjectURL(url);}
+}
+async function logoPng(file){
+ if(!file||file.type!=='image/png')throw new Error('Selecciona un archivo PNG.');
+ const url=URL.createObjectURL(file);
+ try{
+  const image=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('No se pudo leer el PNG.'));i.src=url;});
+  const ratio=Math.min(1,460/Math.max(image.width,image.height));
+  const cv=document.createElement('canvas');cv.width=Math.round(image.width*ratio);cv.height=Math.round(image.height*ratio);cv.getContext('2d').drawImage(image,0,0,cv.width,cv.height);
+  const data=cv.toDataURL('image/png');if(data.length>1300000)throw new Error('Usa un logotipo PNG más pequeño.');
+  return data;
+ }finally{URL.revokeObjectURL(url);}
+}
+async function saveCut(event){
+ event.preventDefault();
+ const files=Array.from($('cutExtra').files),cover=$('cutPrimary').files[0];
+ if(files.length>8){$('cutError').textContent='Selecciona un máximo de 8 fotos por vez.';return;}
+ if((files.length||cover)&&!$('cutPhotoPermission').checked){$('cutError').textContent='Confirma la autorización de publicación.';return;}
+ const data={id:$('cutId').value,nombre:$('cutName').value,categoria:$('cutCategory').value,
+  precioLocal:$('cutLocal').value,precioDomicilio:$('cutHome').value,duracion:Number($('cutDuration').value),
+  descripcion:$('cutDescription').value,origen:$('cutOrigin').value,tecnica:$('cutTechnique').value,
+  activo:$('cutActive').checked,visible:$('cutVisible').checked};
+ try{
+  const result=await run(async()=>{
+   const saved=await api('guardarCorteAdminV2',data);
+   if(cover)await api('subirFotoCorteAdminV2',{corteId:saved.id,principal:true,imagen:await jpeg(cover),autorizacion:true});
+   for(let i=0;i<files.length;i++){
+    $('busyDetail').textContent='Subiendo foto '+(i+1)+' de '+files.length;
+    await api('subirFotoCorteAdminV2',{corteId:saved.id,principal:false,imagen:await jpeg(files[i]),autorizacion:true});
+   }
+   return saved;
+  },'Guardando corte y fotografías…');
+  state.images.delete('principal:'+result.id);
+  $('cutDialog').close();await refreshCortes();
+ }catch(e){$('cutError').textContent=e.message||String(e);}
+}
+async function refreshCortes(){
+ const result=await api('obtenerCortesAdmin');
+ state.cortes=result.cortes;state.fotos=result.fotos;renderCortes();
+}
+function firstDayOfMonth(y,m){return new Date(y,m-1,1);}
+function dateKey(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function dateTitle(key){
+ const d=new Date(key+'T12:00:00');
+ return new Intl.DateTimeFormat('es-NI',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d);
+}
+async function refreshMonth(){
+ const counts=await api('obtenerCalendarioAdminV2',state.year,state.month);
+ const title=firstDayOfMonth(state.year,state.month);
+ $('monthTitle').textContent=new Intl.DateTimeFormat('es-NI',{month:'long',year:'numeric'}).format(title);
+ const host=$('month');host.textContent='';
+ ['L','M','M','J','V','S','D'].forEach(name=>{const d=document.createElement('span');d.className='dow';d.textContent=name;host.append(d);});
+ const offset=(title.getDay()+6)%7,last=new Date(state.year,state.month,0).getDate();
+ for(let i=0;i<offset;i++){const blank=document.createElement('div');blank.className='date empty';host.append(blank);}
+ for(let day=1;day<=last;day++){
+  const date=dateKey(state.year,state.month,day);
+  const b=document.createElement('button');b.type='button';b.className='date';
+  b.textContent=String(day);b.classList.toggle('has',Boolean(counts[date]));
+  b.classList.toggle('active',state.selectedDate===date);
+  if(counts[date]){const marker=document.createElement('b');marker.textContent=counts[date];b.append(marker);}
+  b.onclick=()=>openDay(date);host.append(b);
+ }
+ if(state.selectedDate.startsWith(dateKey(state.year,state.month,1).slice(0,7))){
+  await openDay(state.selectedDate);
+ }else $('dayBookings').textContent='Selecciona un día para revisar las reservas.';
+}
+async function openDay(date){
+ state.selectedDate=date;
+ $('month').querySelectorAll('.date').forEach(b=>b.classList.toggle('active',b.textContent===String(Number(date.slice(-2)))));
+ const records=await api('obtenerReservasDiaAdminV2',date);
+ const host=$('dayBookings');host.textContent='';
+ const title=document.createElement('strong');title.textContent=dateTitle(date);host.append(title);
+ if(!records.length){const p=document.createElement('p');p.className='muted small';p.textContent='No hay reservas para este día.';host.append(p);return;}
+ records.forEach(r=>{
+  const card=document.createElement('div');card.className='booking';
+  const h=document.createElement('strong');h.textContent=r.inicio+'–'+r.fin+' · '+r.nombre;card.append(h);
+  [['Cliente',r.cliente],['Atención',r.modalidad==='DOMICILIO'?'A domicilio':r.modalidad==='LOCAL'?'En local':'Sin especificar'],
+   ['WhatsApp',r.telefono],['Precio',r.precio],['Estado',r.estado],['Dirección',r.direccion],['Comentario',r.comentario]].forEach(([label,value])=>{
+   if(!value)return;const p=document.createElement('p');p.textContent=label+': '+value;card.append(p);
+  });
+  const digits=String(r.telefono||'').replace(/\D/g,'');
+  if(digits.length>=8){const a=document.createElement('a');a.href='https://wa.me/'+(digits.length===8?'505'+digits:digits);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Contactar cliente';card.append(a);}
+  host.append(card);
+ });
+}
+function renderHours(){
+ const host=$('hours');host.textContent='';
+ (state.panel?.horarios||[]).forEach(row=>{
+  const div=document.createElement('div');div.className='hour-row';const n=Number(row.DiaSemana);
+  const name=document.createElement('strong');name.textContent=dias[n];
+  const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=bool(row.Abierto);
+  const from=document.createElement('input');from.type='time';from.value=row.Inicio||'08:00';
+  const to=document.createElement('input');to.type='time';to.value=row.Fin||'18:00';
+  const save=document.createElement('button');save.className='secondary';save.textContent='Guardar';save.onclick=async()=>{
+   try{await run(()=>api('guardarHorarioAdmin',{dia:n,abierto:enabled.checked,inicio:from.value,fin:to.value}),'Guardando horario…');
+    await refreshPanel();}catch(e){alert(e.message);}
+  };
+  div.append(name,enabled,from,to,save);host.append(div);
+ });
+}
+function renderBlocks(){
+ const host=$('blocks');host.textContent='';
+ (state.panel?.bloqueos||[]).filter(b=>bool(b.Activo)).forEach(b=>{
+  const row=document.createElement('div');row.className='row';
+  const label=document.createElement('span');label.className='small';
+  label.textContent=b.Tipo+' · '+(b.Tipo==='SEMANAL'?dias[Number(b.DiaSemana)]:b.FechaInicio||'Todos los días')+
+   ' · '+b.Inicio+'–'+b.Fin+' · '+b.Motivo;row.append(label);
+  const del=document.createElement('button');del.className='secondary';del.textContent='Desactivar';del.onclick=async()=>{
+   if(!confirm('¿Desactivar este bloqueo?'))return;
+   try{await run(()=>api('desactivarBloqueoAdmin',b.ID),'Desactivando bloqueo…');await refreshPanel();}
+   catch(e){alert(e.message);}
+  };row.append(del);host.append(row);
+ });
+ if(!host.children.length)host.textContent='Sin bloqueos activos.';
+}
+async function refreshPanel(){
+ state.panel=await api('obtenerPanelAdmin');renderHours();renderBlocks();
+ $('installationState').textContent=state.panel.estado.instalado?'Recursos Google conectados.':'Falta ejecutar el instalador.';
+ $('publicUrl').value=state.panel.estado.publicWebappUrl||'';
+ const config=Object.fromEntries((state.panel.configuracion||[]).map(c=>[c.Clave,c.Valor]));
+ $('interval').value=config.INTERVALO_MIN||'15';
+}
+async function refreshBrand(){
+ state.marca=await api('obtenerMarcaAdmin');
+ $('businessName').value=state.marca.nombre||'';$('slogan').value=state.marca.eslogan||'';
+ $('businessPhone').value=state.marca.telefono||'';
+ if(state.marca.tieneLogo){
+  try{const image=await api('obtenerLogoAdmin');$('brandLogo').src=image;$('brandLogo').hidden=false;}catch(e){}
+ }
+ const host=$('categories');host.textContent='';
+ state.marca.categorias.forEach(c=>{
+  const row=document.createElement('div');row.className='category';
+  const label=document.createElement('span');label.textContent=c.Nombre+(bool(c.Activa)?'':' (inactiva)');
+  const b=document.createElement('button');b.textContent=bool(c.Activa)?'Desactivar':'Activar';
+  b.onclick=async()=>{try{await run(()=>api('cambiarCategoriaAdmin',c.ID,!bool(c.Activa)),'Actualizando categoría…');
+   await refreshBrand();}catch(e){alert(e.message);}};
+  row.append(label,b);host.append(row);
+ });
+}
+function togglePage(settings){
+ $('mainPage').hidden=settings;$('settingsPage').hidden=!settings;
+ $('homeButton').classList.toggle('active',!settings);$('settingsButton').classList.toggle('active',settings);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function blockFields(){
+ const type=$('blockType').value;
+ $('weekField').hidden=type!=='SEMANAL';
+ $('startDateField').hidden=type!=='UNICO'&&type!=='RANGO';
+ $('endDateField').hidden=type!=='RANGO';
+}
+async function blockSave(e){
+ e.preventDefault();const type=$('blockType').value;
+ if(['UNICO','RANGO'].includes(type)&&!$('blockDate').value){alert('Selecciona la fecha inicial.');return;}
+ if(type==='RANGO'&&!$('blockDateEnd').value){alert('Selecciona la fecha final.');return;}
+ try{await run(()=>api('guardarBloqueoAdmin',{
+  tipo:type,diaSemana:Number($('blockDay').value),fechaInicio:$('blockDate').value,
+  fechaFin:$('blockDateEnd').value,inicio:$('blockStart').value,fin:$('blockEnd').value,
+  motivo:$('blockReason').value
+ }),'Guardando bloqueo…');await refreshPanel();}catch(err){alert(err.message);}
+}
+$('homeButton').onclick=()=>togglePage(false);$('settingsButton').onclick=()=>togglePage(true);
+$('newCut').onclick=()=>editCut('');$('closeCut').onclick=()=>{$('cutDialog').close();};
+$('cancelCut').onclick=()=>{$('cutDialog').close();};$('cutForm').onsubmit=saveCut;
+$('refreshCalendar').onclick=()=>run(refreshMonth,'Actualizando reservas…').catch(e=>alert(e.message));
+$('prevMonth').onclick=()=>{state.month--;if(state.month<1){state.month=12;state.year--;}state.selectedDate='';refreshMonth();};
+$('nextMonth').onclick=()=>{state.month++;if(state.month>12){state.month=1;state.year++;}state.selectedDate='';refreshMonth();};
+$('blockType').onchange=blockFields;$('blockForm').onsubmit=blockSave;
+dias.forEach((d,i)=>option($('blockDay'),String(i),d));$('blockDay').value='6';blockFields();
+$('saveIdentity').onclick=async()=>{
+ try{await run(()=>api('guardarMarcaAdmin',{nombre:$('businessName').value,eslogan:$('slogan').value,
+  telefono:$('businessPhone').value}),'Guardando identidad…');await refreshBrand();}
+ catch(e){alert(e.message);}
+};
+$('saveLogo').onclick=async()=>{
+ const file=$('logoUpload').files[0];if(!file){alert('Selecciona un PNG.');return;}
+ try{await run(async()=>api('subirLogoAdmin',await logoPng(file)),'Guardando logotipo…');await refreshBrand();}
+ catch(e){alert(e.message);}
+};
+$('saveInterval').onclick=async()=>{
+ try{await run(()=>api('guardarConfiguracionAdmin','INTERVALO_MIN',$('interval').value),'Guardando intervalo…');await refreshPanel();}
+ catch(e){alert(e.message);}
+};
+$('addCategory').onclick=async()=>{
+ const nombre=$('categoryName').value.trim();if(!nombre)return;
+ try{await run(()=>api('crearCategoriaAdmin',nombre),'Creando categoría…');$('categoryName').value='';await refreshBrand();}
+ catch(e){alert(e.message);}
+};
+$('installer').onclick=async()=>{
+ try{await run(()=>api('instalarBarberControl'),'Preparando Google Drive, Sheets y Calendar…');
+  await Promise.all([refreshPanel(),refreshCortes(),refreshBrand(),refreshMonth()]);}
+ catch(e){alert(e.message);}
+};
+$('savePublicUrl').onclick=async()=>{
+ try{await run(()=>api('configurarPuenteAdmin',$('publicUrl').value),'Guardando conexión pública…');await refreshPanel();}
+ catch(e){alert(e.message);}
+};
+(async()=>{
+ try{
+  await run(async()=>{await refreshPanel();
+   if(!state.panel.estado.instalado){togglePage(true);return;}
+   await Promise.all([refreshCortes(),refreshBrand(),refreshMonth()]);
+  },'Cargando BarberControl…');
+ }catch(e){$('globalStatus').textContent='Error al iniciar: '+(e.message||e);}
+})();
+})();
 </script></body></html>
