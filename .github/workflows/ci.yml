@@ -25,3 +25,6 @@ jobs:
 
       - name: Probar reservas completas de corte y modalidad
         run: node tests/reservas-v2.test.js
+
+      - name: Probar migración sin pérdida ni duplicados
+        run: node tests/migracion-v2.test.js
