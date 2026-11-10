@@ -57,7 +57,13 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{bord
 <div id="bloqueos"></div></section>
 <section><h2>6. Reservaciones registradas</h2><div id="reservas" class="muted"></div></section>
 <section><h2>Conexión con el proyecto público</h2><p class="muted">Copia los identificadores a las Script Properties del proyecto Apps Script público. No compartas esta pantalla con clientes.</p>
-<pre id="conexion"></pre>
+<p class="muted">Los identificadores de Sheets y Calendar, y la clave del puente, ya se guardaron automáticamente. Puedes preparar la conexión pública en un único paquete.</p>
+<div class="row">
+ <button type="button" onclick="generarPaqueteConexion()">Generar paquete para Barber Public</button>
+ <button type="button" id="copiarPaqueteBoton" onclick="copiarPaqueteConexion()" style="background:#3f4650;color:#fff" hidden>Copiar paquete</button>
+</div>
+<textarea id="paqueteConexion" readonly hidden rows="5" style="width:100%;margin-top:10px" aria-label="Paquete privado de conexión para Barber Public"></textarea>
+<p class="muted" id="estadoPaquete">El paquete contiene una clave privada. No lo compartas en mensajes, capturas ni repositorios.</p>
 <label>URL de aplicación pública /exec<input id="urlPublica" placeholder="https://script.google.com/macros/s/.../exec"></label>
 <button onclick="guardarUrlPublica()">Vincular URL pública</button>
 <p class="muted">La clave BRIDGE_SECRET únicamente se copia a las Script Properties del proyecto público, nunca a GitHub.</p></section>
@@ -80,7 +86,7 @@ function render(data){
  const c=Object.fromEntries(data.configuracion.map(x=>[x.Clave,x.Valor]));
  $('intervalo').value=c.INTERVALO_MIN||'15';
  if(window.bcMarcaRefresh)window.bcMarcaRefresh();
- $('conexion').textContent=JSON.stringify(data.estado.propiedadesPublicas,null,2);
+ // No mostramos claves privadas automáticamente en el panel.
  $('urlPublica').value=data.estado.publicWebappUrl||'';
  mostrarBloqueos(data.bloqueos);
  $('listaServicios').innerHTML='';
@@ -158,6 +164,31 @@ function mostrarBloqueos(list){
    p.appendChild(btn);
   }$('bloqueos').appendChild(p);
  });
+}
+
+
+function generarPaqueteConexion(){
+ llamar('exportarConexionPublicaAdmin',[],texto=>{
+   $('paqueteConexion').value=texto;
+   $('paqueteConexion').hidden=false;
+   $('copiarPaqueteBoton').hidden=false;
+   $('estadoPaquete').textContent='Paquete preparado. Copia este texto en la propiedad PAQUETE_BARBERCONTROL del proyecto Público, únicamente desde su editor de Apps Script.';
+ });
+}
+async function copiarPaqueteConexion(){
+ const el=$('paqueteConexion');
+ if(!el.value)return;
+ try{
+   if(!navigator.clipboard||!navigator.clipboard.writeText)throw new Error('Clipboard API no disponible');
+   await navigator.clipboard.writeText(el.value);
+   $('estadoPaquete').textContent='Paquete copiado. Pégalo en las propiedades del proyecto Barber Public.';
+ }catch(err){
+   el.focus();el.select();
+   try{
+     const ok=document.execCommand('copy');
+     $('estadoPaquete').textContent=ok?'Paquete copiado.':'Selecciona y copia manualmente el contenido del cuadro.';
+   }catch(e){$('estadoPaquete').textContent='Selecciona y copia manualmente el contenido del cuadro.';}
+ }
 }
 
 cargar();
