@@ -1,42 +1,80 @@
-# Conectar Barber Admin y Barber Public con un único paquete
+# BarberControl — Instalación y vinculación automática (sin copiar IDs)
 
-Los dos proyectos Apps Script **no comparten Script Properties**. El instalador privado crea y guarda sus valores; no tienes que buscarlos en Google Sheets, Calendar o Drive.
+## Resultado esperado
 
-## Una sola configuración, sin copiar tres identificadores
+**No tienes que buscar identificadores de Google Sheets, Calendar o Drive, ni crear Script Properties manualmente.**
 
-### 1. Barber Admin (privado)
-1. Desde GitHub copia las versiones actuales de `apps/admin/Instalador.gs` y `apps/admin/Index.html` a los archivos correspondientes del proyecto privado de Google Apps Script.
-2. Guarda y publica una **nueva versión** del despliegue Admin.
-3. Abre el panel y baja a **Conexión con el proyecto público**.
-4. Pulsa **Generar paquete para Barber Public** y luego **Copiar paquete**.
-5. El paquete contiene `SPREADSHEET_ID`, `CALENDAR_ID` y `BRIDGE_SECRET`. **Es secreto**. No lo envíes por WhatsApp, capturas, chats o repositorios. Úsalo solo en la configuración del proyecto público.
+- `Barber Admin` crea y recupera recursos, guarda sus IDs en `PropertiesService` y deja un manifiesto en una carpeta privada separada de las fotos y la base de datos comercial.
+- `Barber Public` encuentra automáticamente ese manifiesto desde Google Drive, valida los recursos y crea sus propias propiedades cuando se usa por primera vez.
+- Ambas aplicaciones deben estar **desplegadas con la MISMA cuenta propietaria de Google** y ejecutarse como su propietario.
 
-Si no hay recursos, ejecuta `instalarBarberControl` una vez desde el proyecto Admin.
+### Qué crea Admin
 
-### 2. Barber Public (editor privado del proyecto)
-1. Crea un archivo de **secuencia de comandos** llamado `ConexionPublica.gs` y copia el contenido de [ConexionPublica.gs](../apps/public/ConexionPublica.gs).
-2. Abre **Configuración del proyecto → Propiedades de las secuencias de comandos**.
-3. Pulsa **Editar propiedades** y añade una sola propiedad:
-   - Nombre: `PAQUETE_BARBERCONTROL`
-   - Valor: pega el texto completo copiado de Admin.
-4. Guarda.
-5. En el selector de funciones del editor, elige `aplicarPaqueteConexionPublica` y pulsa **Ejecutar**. Autoriza el acceso a Google Sheets/Calendar si se solicita.
-6. Comprueba el **Registro de ejecución**. Si todo fue bien, verás el nombre de la hoja y calendario conectados.
-7. Verifica las propiedades: ya deben aparecer `SPREADSHEET_ID`, `CALENDAR_ID` y `BRIDGE_SECRET`. La propiedad temporal `PAQUETE_BARBERCONTROL` se elimina automáticamente.
-8. **Elimina el archivo temporal `ConexionPublica.gs` del proyecto público** después de ejecutarlo: no se necesita para recibir reservas ni debe estar disponible para visitantes.
-9. Publica una nueva versión del despliegue Público.
+| Recurso | Creación |
+|---|---|
+| Carpeta `BarberControl` y subcarpetas | Automática |
+| Archivo `BarberControl_DB` y pestañas | Automática |
+| Calendario `BarberControl - Citas` | Automática |
+| Propiedades `SPREADSHEET_ID`, `CALENDAR_ID`, `ROOT_FOLDER_ID`, `BRIDGE_SECRET` | Automática |
+| Carpeta `BarberControl - CONFIG PRIVADA NO COMPARTIR` y manifiesto | Automática |
 
-No borres los archivos actuales `Datos.gs`, `Disponibilidad.gs`, `Reservas.gs` ni `Puente.gs`.
+La carpeta de configuración privada se mantiene **separada** de `BarberControl` para reducir el riesgo de compartir accidentalmente el secreto del puente administrativo. No debes compartir esa carpeta con nadie.
 
-### 3. Completar el enlace entre aplicaciones
+## 1. Actualizar Barber Admin
 
-En Admin, guarda la URL `/exec` de la aplicación Pública en **Vincular URL pública**. Esta URL no forma parte de la configuración inicial porque se obtiene al desplegar el proyecto público.
+En el proyecto existente `Barber Admin`, conserva tus demás archivos y actualiza solamente:
 
-## Importante para la seguridad
+1. [Instalador.gs](../apps/admin/Instalador.gs) — reemplazar.
+2. [ConexionAutomatica.gs](../apps/admin/ConexionAutomatica.gs) — **crear archivo nuevo** de tipo `Secuencia de comandos`.
+3. [Index.html](../apps/admin/Index.html) — reemplazar si deseas ver el texto actualizado de conexión automática en el panel.
 
-- **El instalador no escribe automáticamente en las propiedades de otro proyecto**: Google separa los almacenes de propiedades entre scripts.
-- Para evitar habilitar una ruta de instalación anónima que pudiera ser abusada, la importación se ejecuta **manualmente desde el editor privado**, nunca desde una pantalla web de clientes.
-- No almacenes `BRIDGE_SECRET` en Google Sheets ni en archivos del repositorio.
-- Si publicaste una captura con el valor de `BRIDGE_SECRET`, se recomienda **rotar esa clave** en Admin y volver a importar un paquete nuevo en Public antes de utilizar el sistema con clientes.
-- El nombre `ROOT_FOLDER_ID` solamente se necesita en Admin; no es necesario copiarlo a Public.
-- Si ya configuraste Public con las tres propiedades, no necesitas repetir la instalación. El paquete es una alternativa cómoda para instalaciones nuevas o para recuperar una conexión.
+Haz copia de seguridad de `BarberControl_DB` antes de actualizar.
+
+En el editor de Apps Script selecciona y ejecuta **`instalarBarberControl`**. El instalador:
+- reutilizará tu Sheets y Calendar existentes si sus IDs están guardados;
+- recuperará los IDs desde el manifiesto cuando ya exista;
+- creará el manifiesto privado si aún no existe;
+- generará automáticamente las propiedades faltantes;
+- no pedirá que escribas nombres, IDs ni claves.
+
+Si el proyecto ya existía antes de esta mejora, **no borres sus Script Properties antes de ejecutar por primera vez el instalador actualizado**. Hasta entonces aún no se ha creado el manifiesto de recuperación.
+
+Puedes publicar una **nueva versión** del despliegue Admin después de actualizar su interfaz.
+
+## 2. Actualizar Barber Public
+
+En el proyecto Apps Script existente `Barber Public`, copia los archivos actualizados:
+
+1. [ConexionPublica.gs](../apps/public/ConexionPublica.gs) — reemplazar si existía o crear archivo `.gs` nuevo.
+2. [Datos.gs](../apps/public/Datos.gs) — reemplazar.
+3. [Escaparate.gs](../apps/public/Escaparate.gs) — reemplazar.
+4. [Puente.gs](../apps/public/Puente.gs) — reemplazar.
+
+**No crees ninguna Script Property. No copies IDs ni paquetes. No tienes que ejecutar ninguna función adicional en Public.**
+
+Guarda y utiliza **Implementar → Administrar implementaciones → Editar → Nueva versión → Implementar**.
+
+La primera consulta al catálogo crea automáticamente `SPREADSHEET_ID`, `CALENDAR_ID` y `BRIDGE_SECRET` dentro de las Script Properties de Barber Public. No devuelve sus valores al cliente.
+
+Si Public ya tiene propiedades correctas de una instalación anterior, las reutilizará sin modificarlas. Por eso **no necesitas borrar las propiedades que ya funcionan**.
+
+## 3. Probar
+
+1. Ejecuta el instalador de Admin y comprueba que terminó sin errores.
+2. En Drive, confirma que existe la carpeta `BarberControl - CONFIG PRIVADA NO COMPARTIR`. No abras ni compartas su archivo de configuración.
+3. Abre la URL `/exec` de Public, preferiblemente en ventana incógnita.
+4. Verifica que se muestran el nombre comercial, estilos y precios.
+5. En el editor de Public (no la página pública) abre **Configuración del proyecto → Propiedades de las secuencias de comandos**. Ahora deben aparecer automáticamente `SPREADSHEET_ID`, `CALENDAR_ID` y `BRIDGE_SECRET`.
+6. Prueba una reserva y verifica la coincidencia en Sheets y Calendar.
+
+Para que Admin pueda crear y desactivar bloqueos mediante el proyecto público, sigue siendo necesario **registrar una sola vez la URL `/exec` pública en Admin**. Esa URL se genera al desplegar Public, por eso no se puede conocer antes.
+
+## Seguridad y limitaciones
+
+- Las operaciones de autovinculación están en funciones privadas de Apps Script terminadas en `_` y no pueden llamarse directamente desde `google.script.run`.
+- El manifiesto contiene una clave secreta. Debe permanecer privado, nunca en Google Sheets ni en el contenido público de la aplicación.
+- Los proyectos deben pertenecer y ejecutarse bajo la misma cuenta; si cambias el propietario, se requiere revalidar permisos.
+- Si hay varias carpetas privadas con el mismo nombre, falla de manera segura en lugar de elegir recursos arbitrarios.
+- El instalador automático no pretende gestionar varias barberías distintas desde una sola cuenta Google; esa capacidad necesitaría identificación de instancia.
+- Si una de las aplicaciones ya apunta a otra base de datos, la autovinculación se detiene para evitar sobrescribirla.
+- Si se cambia `BRIDGE_SECRET` después de una vinculación previa, habrá que coordinar su actualización en Public; la autovinculación inicial no reemplaza automáticamente una configuración completa ya existente.
