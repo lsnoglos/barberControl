@@ -1,80 +1,70 @@
-# BarberControl ✂
+# BarberControl ✂️
 
-Sistema de reservas para barbería, construido con **dos proyectos Google Apps Script independientes**, Google Sheets, Google Calendar y Google Drive.
+Sistema de reservas para barbería con **dos proyectos independientes de Google Apps Script** y un único catálogo de cortes. Datos en Google Sheets, citas en Calendar e imágenes en Drive.
 
-## Versión actual: escaparate móvil de estilos
+## Versión actual — Catálogo único de cortes
 
-La interfaz pública ahora muestra **únicamente estilos y servicios**: portada con el logotipo sobre un fondo degradado, logotipo del negocio, WhatsApp, buscador, filtros por categoría, ordenamiento, precios, duración y botón **Reservar** en cada tarjeta. Ya no se muestra la galería general de trabajos (los registros y archivos existentes se conservan).
+**El cliente:** entra directamente al catálogo móvil, busca y filtra por categorías, consulta fotografías de cada corte, ve precio **en el local**, **a domicilio** o ambos, y elige su modalidad. La disponibilidad se calcula según la duración del corte y los bloqueos de agenda. Puede reservar sin iniciar sesión y, tras confirmación, avisar opcionalmente al barbero por WhatsApp.
 
-Al elegir un estilo, el cliente pasa a la agenda interactiva, selecciona fecha y hora y confirma sin iniciar sesión. El nombre del estilo queda tanto en la fila de Sheets como en el título del **nuevo evento** de Google Calendar.
+**El barbero:** administra los cortes, precios, fotografías, reservas en un calendario mensual, horarios y bloqueos. Desde el engranaje ⚙ gestiona identidad, WhatsApp, categorías, intervalo, instalación y conexión con Public.
 
-El administrador puede configurar nombre, eslogan, WhatsApp, logotipo PNG transparente y categorías (Cabello, Barba, Combos, Masajes, Diseños, Tratamientos y las nuevas que cree). Cada estilo se relaciona con un servicio que define el precio y la duración.
+Las pantallas de carga muestran un **tubo de barbería animado**. La caché local guarda fotografías y catálogo públicos; **nunca** guarda clientes, reservas ni horas libres.
 
-## Instalación y vinculación 100 % automática
-
-**No necesitas copiar IDs de Sheets o Calendar, ni crear propiedades manualmente.** Admin crea todos los recursos y sus Script Properties mediante `instalarBarberControl`. También registra la configuración en una carpeta privada separada de Drive. Barber Public detecta esa configuración al abrir el catálogo por primera vez y crea automáticamente sus propias Script Properties.
-
-Ambos proyectos se ejecutan como **la misma cuenta de Google**. Si un proyecto ya está configurado, se reutilizan sus propiedades existentes. [Guía actualizada](docs/CONEXION-SIMPLIFICADA.md).
-
-## Actualización de los proyectos que ya creaste
-
-**[Guía paso a paso: ACTUALIZAR-ESCAPARATE.md](docs/ACTUALIZAR-ESCAPARATE.md)**
-
-Primero se actualiza **Barber Admin**, luego se ejecuta una vez el instalador actualizado para crear `Categorias` y los nuevos campos de configuración (sin borrar citas). Después se reemplazan los archivos indicados en **Barber Public** y se publican nuevas versiones de ambos despliegues.
-
-## Organización del repositorio
+## Archivos de cada proyecto
 
 ```text
-barberControl/
-├── apps/
-│   ├── admin/                  # Proyecto Apps Script PRIVADO
-│   │   ├── Code.gs
-│   │   ├── Instalador.gs       # Idempotente: crea o reutiliza recursos
-│   │   ├── ConexionAutomatica.gs # Comparte configuración por Drive privado
-│   │   ├── Gestion.gs          # Servicios, horarios, bloqueos y agenda
-│   │   ├── Marca.gs            # Nombre, WhatsApp, logo y categorías
-│   │   ├── MarcaPanel.html     # Identidad y categorías en Admin
-│   │   ├── Catalogos.gs       # Almacenamiento multimedia y estilos
-│   │   ├── CatalogoPanel.html  # Solo gestión de estilos
-│   │   ├── Index.html
-│   │   └── appsscript.json
-│   └── public/                 # Proyecto Apps Script PÚBLICO
-│       ├── Code.gs
-│       ├── ConexionPublica.gs # Autovinculación sin copiar propiedades
-│       ├── Datos.gs
-│       ├── Escaparate.gs       # Marca y productos por categorías
-│       ├── Catalogo.gs        # Validación y entrega privada de imágenes
-│       ├── Disponibilidad.gs
-│       ├── Reservas.gs        # Refleja el estilo en Google Calendar
-│       ├── Puente.gs
-│       ├── Index.html         # Catálogo móvil + reservas
-│       ├── GaleriaPublica.html # Histórico, ya NO se incorpora a la interfaz
-│       └── appsscript.json
-├── docs/
-└── tests/
+apps/
+├── admin/                          # Solo propietario
+│   ├── Code.gs                      # Acceso al panel privado
+│   ├── Index.html                   # Panel principal y ajustes ⚙
+│   ├── CortesAdminV2.gs             # Cortes, imágenes y agenda mensual
+│   ├── Instalador.gs                # Instalación y migración
+│   ├── ConexionAutomatica.gs        # Configuración privada de Drive
+│   ├── Gestion.gs                   # Horarios, bloqueos y puente
+│   ├── Marca.gs                     # Logo, nombre, WhatsApp, categorías
+│   ├── VersionCatalogo.gs           # Invalida caché pública
+│   ├── Catalogos.gs                 # Funciones multimedia reutilizadas/legado
+│   ├── CatalogoPanel.html           # Plantilla antigua, no visible en v2
+│   ├── MarcaPanel.html              # Plantilla antigua, no visible en v2
+│   └── appsscript.json
+└── public/                         # Clientes, sin inicio de sesión
+    ├── Code.gs
+    ├── Index.html                   # Catálogo móvil, carrusel, reserva
+    ├── Escaparate.gs                # Cortes y marca pública
+    ├── Catalogo.gs                  # Acceso seguro a fotografías
+    ├── Disponibilidad.gs            # Horarios por corte y modalidad
+    ├── Reservas.gs                  # Confirmación con validación/idempotencia
+    ├── Datos.gs                     # Lectura privada de Sheets/Calendar
+    ├── Puente.gs                    # Bloqueos firmados desde Admin
+    ├── ConexionPublica.gs           # Autovinculación inicial
+    ├── GaleriaPublica.html          # Plantilla antigua, no visible en v2
+    └── appsscript.json
 ```
 
-## Seguridad y datos
+## Actualizar tus aplicaciones existentes
 
-- La web pública se ejecuta sin login; el panel Admin debe desplegarse como **Solo yo**.
-- No se publican credenciales, ID de Drive del logo, datos personales ni fotos privadas sin autorización.
-- Los datos de reservas y la galería anterior permanecen en Sheets/Drive. El instalador no debe ejecutarse en una cuenta distinta a la propietaria.
-- Apps Script tiene cuotas y Google Sheets/Calendar no comparten una transacción atómica: aún faltan pruebas reales de concurrencia, monitoreo y recuperación de errores antes de escalar.
+**[Guía principal: Actualizar a BarberControl v2](docs/ACTUALIZAR-V2-CORTES.md).**
 
-## Estado de pruebas
+1. Respaldar `BarberControl_DB`.
+2. Actualizar los archivos indicados de **Admin**, agregar `CortesAdminV2.gs`, y ejecutar `instalarBarberControl` una vez. El instalador crea `Cortes` y `FotosCortes`, migra los estilos existentes sin duplicarlos y amplía las reservas sin borrar información.
+3. Publicar una nueva versión de **Admin**.
+4. Actualizar los cinco archivos indicados de **Public**.
+5. Publicar una nueva versión de **Public** y realizar una reserva de prueba.
 
-CI valida sintaxis y lógica de catálogo, consentimiento, privacidad, identidad y reserva con estilo utilizando simulaciones. **No equivale a pruebas reales en la cuenta de Google.** Confirma el flujo completo en tus dos implementaciones antes de compartir el enlace a clientes.
+**No borres** las hojas antiguas `Servicios`, `Estilos` ni `Galeria`: se conservan para migración e historial, aunque ya no figuran en la interfaz. Ambas aplicaciones deben ejecutarse con la misma cuenta propietaria.
 
-[Arquitectura](docs/ARQUITECTURA.md) · [Despliegue inicial](docs/DESPLIEGUE.md) · [Actualización de esta versión](docs/ACTUALIZAR-ESCAPARATE.md)
+## Instalación desde cero
 
-## Reserva animada y caché versionada
+La instalación y vinculación son automáticas: Admin crea Sheets, Calendar y carpetas Drive, y guarda sus identificadores en una carpeta de configuración privada. Public los recupera automáticamente con la misma cuenta de Google, sin copiar IDs ni propiedades manualmente.
 
-Al confirmar una cita, la aplicación muestra una animación de tubo de barbería, bloquea interacciones y entrega un comprobante con fecha/hora legibles y opción de aviso por WhatsApp. El catálogo y las fotos públicas cuentan con caché local que se invalida mediante `PUBLIC_CATALOG_VERSION` en Sheets (incluye detector de edición manual).
+Solo hay que vincular una vez la URL pública `/exec` en Admin para que sus bloqueos se coordinen con las reservas.
 
-[Actualizar ambos proyectos Apps Script](docs/ACTUALIZAR-RESERVAS-CACHE.md).
+[Guía de autovinculación](docs/CONEXION-SIMPLIFICADA.md).
 
-## BarberControl v2 — Cortes y reservaciones
+## Seguridad y pruebas
 
-El catálogo de clientes se construye ahora directamente desde `Cortes` y `FotosCortes`. Un mismo corte puede ofrecer precio en local, a domicilio o ambos. El cliente elige modalidad, ve disponibilidad según la duración y puede consultar fotografías adicionales en un carrusel. Se corrigió la entrega del objeto de reserva para evitar el error «Introduce un nombre válido».
+Las citas y las reglas de bloqueo se coordinan en el proyecto público con `LockService`, y las operaciones administrativas de bloqueo se autentican mediante firma HMAC. Las fotografías de clientes requieren permiso de publicación. La información personal de cada reserva no se expone en el catálogo.
 
-La administración se dividió en una pantalla principal (cortes, calendario mensual, horarios y bloqueos) y configuración adicional (identidad, categorías, intervalo, instalación y conexión). Se conserva la información histórica de `Servicios` y `Estilos` para migración. **Guía para actualizar tus proyectos existentes:** [docs/ACTUALIZAR-V2-CORTES.md](docs/ACTUALIZAR-V2-CORTES.md).
+El código cuenta con pruebas automatizadas de sintaxis, permisos, catálogo, modalidad de precios, imágenes, formato de fechas, reservas idempotentes y migración sin pérdida de filas anteriores. **Aún se deben realizar pruebas con tu cuenta real de Apps Script**: los tests no sustituyen la validación del despliegue, los permisos ni la concurrencia real de Sheets y Calendar.
+
+[Historial y pruebas](https://github.com/lsnoglos/barberControl/actions) · [Guía completa de v2](docs/ACTUALIZAR-V2-CORTES.md).
