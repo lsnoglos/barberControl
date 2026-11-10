@@ -169,6 +169,9 @@ async function saveCut(event){
   descripcion:$('cutDescription').value,origen:$('cutOrigin').value,tecnica:$('cutTechnique').value,
   activo:$('cutActive').checked,visible:$('cutVisible').checked};
  try{
+  // Un diálogo nativo permanece encima de overlays ordinarios.
+  // Cerrar primero permite mostrar la animación y bloquear la pantalla.
+  $('cutDialog').close();
   const result=await run(async()=>{
    const saved=await api('guardarCorteAdminV2',data);
    if(cover)await api('subirFotoCorteAdminV2',{corteId:saved.id,principal:true,imagen:await jpeg(cover),autorizacion:true});
@@ -179,8 +182,8 @@ async function saveCut(event){
    return saved;
   },'Guardando corte y fotografías…');
   state.images.delete('principal:'+result.id);
-  $('cutDialog').close();await refreshCortes();
- }catch(e){$('cutError').textContent=e.message||String(e);}
+  await refreshCortes();
+ }catch(e){$('cutDialog').showModal();$('cutError').textContent=e.message||String(e);}
 }
 async function refreshCortes(){
  const result=await api('obtenerCortesAdmin');
@@ -203,7 +206,7 @@ async function refreshMonth(){
  for(let day=1;day<=last;day++){
   const date=dateKey(state.year,state.month,day);
   const b=document.createElement('button');b.type='button';b.className='date';
-  b.textContent=String(day);b.classList.toggle('has',Boolean(counts[date]));
+  b.textContent=String(day);b.dataset.date=date;b.classList.toggle('has',Boolean(counts[date]));
   b.classList.toggle('active',state.selectedDate===date);
   if(counts[date]){const marker=document.createElement('b');marker.textContent=counts[date];b.append(marker);}
   b.onclick=()=>openDay(date);host.append(b);
@@ -214,7 +217,7 @@ async function refreshMonth(){
 }
 async function openDay(date){
  state.selectedDate=date;
- $('month').querySelectorAll('.date').forEach(b=>b.classList.toggle('active',b.textContent===String(Number(date.slice(-2)))));
+ $('month').querySelectorAll('.date').forEach(b=>b.classList.toggle('active',b.dataset.date===date));
  const records=await api('obtenerReservasDiaAdminV2',date);
  const host=$('dayBookings');host.textContent='';
  const title=document.createElement('strong');title.textContent=dateTitle(date);host.append(title);
