@@ -6,11 +6,13 @@
 const BC_TZ_ = 'America/Managua';
 
 function dbPublica_() {
+  bcAutovincularPublico_();
   const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if (!id) throw new Error('BarberControl no esta configurado. Falta SPREADSHEET_ID.');
   return SpreadsheetApp.openById(id);
 }
 function calendarioPublico_() {
+  bcAutovincularPublico_();
   const id=PropertiesService.getScriptProperties().getProperty('CALENDAR_ID');
   if (!id) throw new Error('Falta CALENDAR_ID en la configuracion publica.');
   const calendar=CalendarApp.getCalendarById(id);
