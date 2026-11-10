@@ -20,6 +20,8 @@ function instalarBarberControl() {
   lock.waitLock(30000);
   try {
     const props = PropertiesService.getScriptProperties();
+    // Recuperar los IDs existentes desde Drive antes de crear algo nuevo.
+    bcRecuperarPropsAdmin_();
     let root;
     if (props.getProperty('ROOT_FOLDER_ID')) {
       root = DriveApp.getFolderById(props.getProperty('ROOT_FOLDER_ID'));
@@ -126,6 +128,9 @@ function instalarBarberControl() {
     if (!props.getProperty('BRIDGE_SECRET')) {
       props.setProperty('BRIDGE_SECRET',Utilities.getUuid()+Utilities.getUuid());
     }
+    // Guardar los IDs y el secreto en una carpeta privada independiente.
+    // Barber Public los descubrirá automáticamente al ejecutar su asistente.
+    bcGuardarManifiestoPrivado_();
     return obtenerEstadoInstalacion_();
   } finally {
     lock.releaseLock();
