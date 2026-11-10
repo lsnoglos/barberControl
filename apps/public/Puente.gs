@@ -16,6 +16,7 @@ function firmaValida_(payload,secret) {
 }
 
 function procesarPeticionAdmin_(payload) {
+  bcAutovincularPublico_();
   const lock=LockService.getScriptLock();
   lock.waitLock(30000);
   try {
