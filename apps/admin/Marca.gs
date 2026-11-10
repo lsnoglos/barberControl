@@ -66,10 +66,10 @@ function cambiarCategoriaAdmin(id,activa) {
   if(index<0)throw new Error('Categoría no encontrada.');
   const nombre=String(values[index][1]);
   if(!activa){
-    const enUso=leerFilasAdmin_('Servicios').some(function(s){
+    const enUso=leerFilasAdmin_('Cortes').some(function(s){
       return s.Categoria===nombre&&String(s.Activo).toLowerCase()==='true';
     });
-    if(enUso)throw new Error('Hay servicios activos en esa categoría. Reasígnalos antes de desactivarla.');
+    if(enUso)throw new Error('Hay cortes activos en esa categoría. Reasígnalos antes de desactivarla.');
   }
   sheet.getRange(index+1,4).setValue(activa===true);
   auditarAdmin_('ESTADO','Categoria',id,String(activa===true));
