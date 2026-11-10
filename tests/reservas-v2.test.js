@@ -20,6 +20,7 @@ const sheet={
 const ctx=vm.createContext({
  LockService:{getScriptLock:()=>({waitLock:()=>{},releaseLock:()=>{}})},
  leerPublico_:()=>saved.map(row=>Object.fromEntries(headers.map((h,i)=>[h,row[i]]))),
+ cortesPublicos_:()=>[{id:'CRT-1',nombre:'Low Fade'}],
  calcularIntervalos_:(fecha,corteId,modalidad)=>({
   corte:{id:corteId,nombre:'Low Fade',precio:modalidad==='LOCAL'?80:125,duracion:45},
   horarios:[{inicio:'14:15',fin:'15:00'}]
