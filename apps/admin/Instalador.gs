@@ -99,6 +99,8 @@ function instalarBarberControl() {
       ['ANTICIPACION_MIN','60','Anticipacion minima de reservas'],
       ['DIAS_ADELANTO','30','Ventana maxima de reserva'],
       ['BUFFER_MIN','0','Tiempo extra entre servicios'],
+      ['AVISOS_LOCAL','30,15','Notificaciones antes de citas en local, minutos'],
+      ['AVISOS_DOMICILIO','60,30,15','Notificaciones antes de citas a domicilio, minutos'],
       ['TELEFONO_WHATSAPP','','WhatsApp comercial, código internacional'],
       ['ESLOGAN_NEGOCIO','Tu estilo comienza aquí','Eslogan público'],
       ['LOGO_FILE_ID','','Archivo PNG con transparencia en Drive'],
