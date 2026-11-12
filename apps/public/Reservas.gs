@@ -6,6 +6,23 @@ function textoSeguroHoja_(value){
   const text=String(value==null?'':value);
   return /^[=+@\-]/.test(text)?"'"+text:text;
 }
+/**
+ * Avisos emergentes en el Calendar del propietario.
+ * Se configuran en Configuracion: AVISOS_LOCAL, AVISOS_DOMICILIO.
+ * Máximo 5 avisos, entre 5 minutos y 4 semanas antes del inicio.
+ * No configura notificaciones del teléfono: el barbero debe activarlas.
+ */
+function configurarAvisosCalendar_(event, modalidad, config) {
+  const key=modalidad==='DOMICILIO'?'AVISOS_DOMICILIO':'AVISOS_LOCAL';
+  const defaultValue=modalidad==='DOMICILIO'?'60,30,15':'30,15';
+  const raw=String(config[key]===undefined?defaultValue:config[key]).trim();
+  if(raw==='0'||raw==='')return;
+  const reminders=[...new Set(raw.split(',').map(x=>Number(x.trim())))]
+    .filter(n=>Number.isInteger(n)&&n>=5&&n<=40320).slice(0,5);
+  const remaining=Math.floor((event.getStartTime().getTime()-Date.now())/60000);
+  reminders.filter(n=>n<remaining).forEach(n=>event.addPopupReminder(n));
+}
+
 function reservarCita(solicitud){
   // Aceptar UN OBJETO, nunca un arreglo. El error anterior ocurría
   // porque el navegador enviaba [objeto] como único argumento.
@@ -53,13 +70,21 @@ function reservarCita(solicitud){
     const token=Utilities.getUuid()+'-'+Utilities.getUuid();
     const hash=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,token,Utilities.Charset.UTF_8)
       .map(b=>('0'+(b&255).toString(16)).slice(-2)).join('');
+    const config=configuracionPublica_();
     const event=calendarioPublico_().createEvent(
-      '✂ '+corte.nombre+' | '+(modalidad==='LOCAL'?'En local':'A domicilio'),
+      '✂ '+nombre+' · '+corte.nombre+' | '+(modalidad==='LOCAL'?'En local':'A domicilio'),
       fechaLocal_(fecha,inicio),fechaLocal_(fecha,slot.fin),{
         description:'Reserva: '+id+'\nCorte: '+corte.nombre+'\nModalidad: '+modalidad+
           '\nCliente: '+nombre+'\nWhatsApp: '+telefono+
-          (direccion?'\nDirección: '+direccion:'')+'\nComentarios: '+comentario
+          (direccion?'\nDirección: '+direccion:'')+'\nComentarios: '+comentario,
+        location:modalidad==='DOMICILIO'?direccion:'Barbería (en local)'
       });
+    // Una alerta no debe impedir la confirmación ni dejar un evento huérfano.
+    try{
+      configurarAvisosCalendar_(event,modalidad,config);
+    }catch(reminderError){
+      console.error('AVISOS CALENDAR '+id+': '+(reminderError.message||reminderError));
+    }
     try{
       const sheet=dbPublica_().getSheetByName('Reservas');
       const headers=sheet.getRange(1,1,1,sheet.getLastColumn()).getDisplayValues()[0];
