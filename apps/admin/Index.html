@@ -27,6 +27,29 @@ dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d6
 <section class="panel"><h2>Identidad de la barbería</h2><p class="sub">Nombre comercial, logotipo y WhatsApp.</p><div class="grid"><label>Nombre<input id="businessName" maxlength="80"></label><label>Eslogan<input id="slogan" maxlength="140"></label><label>WhatsApp<input id="businessPhone" maxlength="20"></label></div><button id="saveIdentity" class="gold">Guardar identidad</button>
 <div class="row" style="margin-top:16px"><img id="brandLogo" class="brand-preview" alt="Logo actual" hidden><label>Logotipo PNG<input id="logoUpload" type="file" accept="image/png"></label><button id="saveLogo" class="secondary">Guardar logotipo</button></div></section>
 <section class="panel"><h2>Intervalo entre horarios</h2><p class="sub">Cada cuántos minutos se ofrecen nuevas horas de inicio. La duración real depende de cada corte.</p><label>Intervalo<select id="interval"><option value="5">Cada 5 minutos</option><option value="10">Cada 10 minutos</option><option value="15">Cada 15 minutos</option><option value="20">Cada 20 minutos</option><option value="30">Cada 30 minutos</option><option value="60">Cada 60 minutos</option></select></label><button id="saveInterval" class="gold">Guardar intervalo</button></section>
+<section class="panel"><h2>Recordatorios de Google Calendar</h2>
+<p class="sub">Recibe avisos en tu teléfono antes de las citas. Los recordatorios se incorporan a las reservas nuevas; debes activar las notificaciones de «BarberControl - Citas» en Google Calendar.</p>
+<div class="grid">
+<label>Citas en el local
+<select id="alertsLocal">
+<option value="30,15">30 y 15 minutos antes</option>
+<option value="30">30 minutos antes</option>
+<option value="15">15 minutos antes</option>
+<option value="60,30,15">60, 30 y 15 minutos antes</option>
+<option value="0">Sin recordatorios</option>
+</select></label>
+<label>Citas a domicilio
+<select id="alertsHome">
+<option value="60,30,15">60, 30 y 15 minutos antes</option>
+<option value="120,60,30,15">120, 60, 30 y 15 minutos antes</option>
+<option value="30,15">30 y 15 minutos antes</option>
+<option value="15">15 minutos antes</option>
+<option value="0">Sin recordatorios</option>
+</select></label>
+</div>
+<p class="sub">Para domicilio, el aviso es previo a la hora de atención: no calcula automáticamente el tiempo de viaje.</p>
+<button id="saveAlerts" class="gold">Guardar recordatorios</button>
+</section>
 <section class="panel"><h2>Categorías del catálogo</h2><p class="sub">Desactiva categorías sin cortes o agrega una categoría personalizada.</p><div id="categories" class="categories"></div><div class="row"><input id="categoryName" maxlength="45" placeholder="Nueva categoría" style="max-width:260px"><button id="addCategory" class="gold">Agregar</button></div></section>
 <section class="panel"><h2>Instalación automática</h2><p class="sub">Crear o recuperar Drive, Google Sheets y Calendar sin buscar identificadores manualmente.</p><p id="installationState" class="note">Verificando recursos…</p><button id="installer" class="secondary">Preparar BarberControl en Google</button></section>
 <section class="panel"><h2>Conexión con Barber Public</h2><p class="sub">Los IDs y las claves se sincronizan automáticamente a través de Drive privado. La URL /exec solo se utiliza para enviar bloqueos a la agenda pública.</p><label>URL pública de Apps Script<input id="publicUrl" placeholder="https://script.google.com/macros/s/.../exec"></label><button id="savePublicUrl" class="gold">Guardar enlace público</button></section>
@@ -273,6 +296,8 @@ async function refreshPanel(){
  $('publicUrl').value=state.panel.estado.publicWebappUrl||'';
  const config=Object.fromEntries((state.panel.configuracion||[]).map(c=>[c.Clave,c.Valor]));
  $('interval').value=config.INTERVALO_MIN||'15';
+ $('alertsLocal').value=config.AVISOS_LOCAL||'30,15';
+ $('alertsHome').value=config.AVISOS_DOMICILIO||'60,30,15';
 }
 async function refreshBrand(){
  state.marca=await api('obtenerMarcaAdmin');
@@ -333,6 +358,12 @@ $('saveLogo').onclick=async()=>{
 $('saveInterval').onclick=async()=>{
  try{await run(()=>api('guardarConfiguracionAdmin','INTERVALO_MIN',$('interval').value),'Guardando intervalo…');await refreshPanel();}
  catch(e){alert(e.message);}
+};
+$('saveAlerts').onclick=async()=>{
+ try{
+  await run(()=>api('guardarAvisosAdmin',$('alertsLocal').value,$('alertsHome').value),'Guardando recordatorios…');
+  await refreshPanel();
+ }catch(e){alert(e.message);}
 };
 $('addCategory').onclick=async()=>{
  const nombre=$('categoryName').value.trim();if(!nombre)return;
