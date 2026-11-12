@@ -84,6 +84,28 @@ function guardarConfiguracionAdmin(nombre,valor) {
   return obtenerPanelAdmin();
 }
 
+/**
+ * Configuración de alertas en Google Calendar. La cuenta propietaria debe
+ * activar las notificaciones del calendario BarberControl - Citas en su móvil.
+ */
+function guardarAvisosAdmin(local,domicilio) {
+  const permitidos=['0','15','30','30,15','60,30,15','120,60,30,15'];
+  const vLocal=String(local||'').trim(),vDomicilio=String(domicilio||'').trim();
+  if(permitidos.indexOf(vLocal)<0||permitidos.indexOf(vDomicilio)<0)
+    throw new Error('Selecciona combinaciones de avisos válidas.');
+  const sheet=obtenerDbAdmin_().getSheetByName('Configuracion');
+  const values=sheet.getDataRange().getValues();
+  const keys=values.map(row=>String(row[0]));
+  [['AVISOS_LOCAL',vLocal],['AVISOS_DOMICILIO',vDomicilio]].forEach(pair=>{
+    const idx=keys.indexOf(pair[0]);
+    if(idx<1)sheet.appendRow([pair[0],pair[1],'Recordatorios Google Calendar, minutos']);
+    else sheet.getRange(idx+1,2).setValue(pair[1]);
+  });
+  SpreadsheetApp.flush();
+  auditarAdmin_('CONFIGURACION','Recordatorios','Calendar','Local='+vLocal+', Domicilio='+vDomicilio);
+  return obtenerPanelAdmin();
+}
+
 function guardarHorarioAdmin(data) {
   const dia=Number(data.dia);
   const abierto=data.abierto===true;
