@@ -16,6 +16,8 @@ function configurarAvisosCalendar_(event, modalidad, config) {
   const key=modalidad==='DOMICILIO'?'AVISOS_DOMICILIO':'AVISOS_LOCAL';
   const defaultValue=modalidad==='DOMICILIO'?'60,30,15':'30,15';
   const raw=String(config[key]===undefined?defaultValue:config[key]).trim();
+  // Evita alertas duplicadas al sustituir las notificaciones predeterminadas.
+  event.removeAllReminders();
   if(raw==='0'||raw==='')return;
   const reminders=[...new Set(raw.split(',').map(x=>Number(x.trim())))]
     .filter(n=>Number.isInteger(n)&&n>=5&&n<=40320).slice(0,5);
