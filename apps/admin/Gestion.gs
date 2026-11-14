@@ -183,3 +183,14 @@ function obtenerReservasDetalladasAdmin_() {
     };
   });
 }
+
+/** Preferencia visual privada del administrador, persistente entre dispositivos. */
+function obtenerTemaAdmin(){
+  const theme=PropertiesService.getUserProperties().getProperty('BARBERCONTROL_UI_THEME');
+  return theme==='light'||theme==='dark'?theme:'';
+}
+function guardarTemaAdmin(theme){
+  if(theme!=='light'&&theme!=='dark')throw new Error('Tema no válido.');
+  PropertiesService.getUserProperties().setProperty('BARBERCONTROL_UI_THEME',theme);
+  return theme;
+}
