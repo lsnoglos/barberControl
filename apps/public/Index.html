@@ -25,6 +25,40 @@ footer{border-top:1px solid #3c3d40;text-align:center;margin:28px auto 0;padding
 .modal[hidden],.busy[hidden]{display:none!important}.modal,.busy{position:fixed;inset:0;z-index:100;background:#07090beA;display:flex;align-items:center;justify-content:center;padding:20px}.modal-body{position:relative;width:min(95vw,520px);border-radius:18px;background:#1a1c22;border:1px solid #4a4c51;padding:12px}.modal-body img{width:100%;height:min(65vh,560px);object-fit:contain;border-radius:10px;background:#101216}.modal-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px}.modal-controls button{border:1px solid #60636b;color:#fff;background:#30343b;border-radius:10px;padding:9px 13px}.close{position:absolute;top:18px;right:18px;z-index:1;background:#111c!important;border-radius:50%!important;font-size:20px!important}
 .busy{z-index:200;background:#0c0e13eF;backdrop-filter:blur(11px)}.busy-box{width:min(95vw,340px);border:1px solid #5a4c39;background:#1b1d24;border-radius:22px;padding:22px;text-align:center}.busy-box h2{font-size:18px}.busy-box p{font-size:13px;color:#d0c8b9;line-height:1.5}.pole{height:136px;width:62px;border:6px solid #24467e;border-top:19px solid #dce7ff;border-bottom:19px solid #dce7ff;border-radius:22px;margin:12px auto;position:relative;overflow:hidden;box-shadow:0 10px 24px #0009}.pole::before{content:"";position:absolute;inset:-85px -30px;background:repeating-linear-gradient(155deg,#fefefe 0 21px,#c84053 21px 42px,#fff 42px 63px,#3464b9 63px 84px);animation:spinbar 1.1s linear infinite}@keyframes spinbar{to{transform:translateY(80px)}}@media(prefers-reduced-motion:reduce){.pole::before{animation:none}}
 @media(max-width:370px){.products{gap:9px}.content{padding:10px}.content h3{font-size:13px}.prices strong{font-size:12px}.brand strong{font-size:13px}.wa{padding:9px 8px;font-size:11px}}
+
+/* Apariencia y navegación local dentro del iframe de Apps Script. */
+.nav button,.nav a{appearance:none;border:0;background:transparent;text-decoration:none;color:#d7c3a6;font-size:11px;font-weight:600;text-align:center;display:grid;gap:3px;place-items:center;cursor:pointer;flex:1;padding:3px 2px;min-width:0}
+.nav button[aria-current="page"]{color:#f3d39f}.nav button:focus-visible,.nav a:focus-visible{outline:2px solid var(--gold);border-radius:8px}
+#appearance{scroll-margin-top:90px}.theme-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.theme-choice{display:grid;gap:10px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);font-weight:700}
+.theme-choice[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:1px}
+.theme-sample{height:58px;display:grid;gap:7px;padding:10px;border-radius:8px}.theme-sample i{height:6px;border-radius:8px;background:currentColor;opacity:.42;width:75%}.theme-sample i:last-child{width:48%}
+.sample-light{background:#faf8f2;color:#3b3428;border:1px solid #e2dbce}.sample-dark{background:#14161b;color:#e5c18a;border:1px solid #404249}
+.gallery-close-text{color:#fff}.photo-count{pointer-events:none}
+.modal-body .close{width:42px;height:42px;padding:0;border:1px solid #777;background:#12151bdd!important;color:#fff;display:grid;place-items:center}
+.modal-controls{min-height:45px}.modal-body img{cursor:zoom-in;touch-action:pan-x pan-y pinch-zoom}
+:root[data-theme="light"]{color-scheme:light;--bg:#f6f4ef;--surface:#fff;--line:#e1dbd1;--text:#25221d;--muted:#625e55;--gold:#d8ae70;--green:#11763c}
+:root[data-theme="light"] header{background:#fffcf6f5;border-color:#e5ded2}
+:root[data-theme="light"] .logo{background:#eee8dd}
+:root[data-theme="light"] .count,:root[data-theme="light"] .tag,:root[data-theme="light"] .section-label,:root[data-theme="light"] .search span{color:#805619}
+:root[data-theme="light"] .search,:root[data-theme="light"] .sort-row select,:root[data-theme="light"] .product,:root[data-theme="light"] .section-card{border-color:#e0d8ca;box-shadow:0 3px 12px #57401c09}
+:root[data-theme="light"] .chip,:root[data-theme="light"] .mode,:root[data-theme="light"] .time{background:#faf8f3;color:#342c21;border-color:#ddd4c5}
+:root[data-theme="light"] .chip.active,:root[data-theme="light"] .time.selected-time{background:#d8ae70;color:#231b0f;border-color:#b78b4a}
+:root[data-theme="light"] .mode.selected-mode,:root[data-theme="light"] .selected{background:#fcf0d9;border-color:#c6a36d;color:#493113}
+:root[data-theme="light"] .mode.selected-mode span,:root[data-theme="light"] .selected small{color:#6f4b1e}
+:root[data-theme="light"] .prices span,:root[data-theme="light"] label{color:#625b51}
+:root[data-theme="light"] input,:root[data-theme="light"] textarea{background:#fffdf8;color:#29251f;border-color:#d6cdbf}
+:root[data-theme="light"] .search input{background:transparent;border:0}
+:root[data-theme="light"] .status{color:#75501e}:root[data-theme="light"] .status.error{color:#a32626}
+:root[data-theme="light"] .success{background:#eaf7ee;border-color:#a0c8ac;color:#1f4d32}
+:root[data-theme="light"] .success h2{color:#176137}:root[data-theme="light"] .receipt-line{border-color:#d1e5d7}:root[data-theme="light"] .receipt-line span{color:#46634f}
+:root[data-theme="light"] footer{border-color:#e0d8cc;color:#746c61}
+:root[data-theme="light"] .nav{background:#fffcf6f8;border-color:#e2dacd}
+:root[data-theme="light"] .nav button,:root[data-theme="light"] .nav a{color:#655840}:root[data-theme="light"] .nav button[aria-current="page"]{color:#805619}
+:root[data-theme="light"] .photo{background:#eee8de}:root[data-theme="light"] .photo-fallback{color:#a29b8e}
+:root[data-theme="light"] .modal-body{background:#fff;border-color:#d8cbb6}:root[data-theme="light"] .modal-controls button:not(.close){background:#f1e9dc;color:#30271a;border-color:#d2c3ad}
+:root[data-theme="light"] .busy-box{background:#fffaf0;border-color:#d3b47b;color:#352b1c}:root[data-theme="light"] .busy-box p{color:#6b5b46}
+
 </style>
 </head>
 <body>
@@ -35,6 +69,8 @@ footer{border-top:1px solid #3c3d40;text-align:center;margin:28px auto 0;padding
 <div id="categories" class="categories" aria-label="Filtrar por categoría"></div>
 <div class="sort-row"><small id="results"></small><select id="sort" aria-label="Ordenar estilos"><option value="recommended">Recomendados</option><option value="az">Nombre A–Z</option><option value="cheap">Precio menor</option><option value="expensive">Precio mayor</option></select></div>
 <div id="products" class="products"><p class="muted">Cargando estilos…</p></div></section>
+<section id="bookingEmpty" class="section-card" hidden><h2>Mi cita</h2><p>Primero elige el corte o estilo que te gusta para reservar tu horario.</p><button type="button" class="gold" id="goCatalog">Explorar estilos</button></section>
+<section id="appearance" class="section-card" hidden><h2>Configuración</h2><p>Elige cómo prefieres ver el catálogo. Tu selección se guarda en este navegador.</p><div class="theme-options"><button type="button" id="themeLight" class="theme-choice" aria-pressed="false"><span class="theme-sample sample-light"><i></i><i></i></span>☀ Modo claro</button><button type="button" id="themeDark" class="theme-choice" aria-pressed="false"><span class="theme-sample sample-dark"><i></i><i></i></span>☾ Modo oscuro</button></div></section>
 <section id="booking" class="section-card" hidden><h2>Reserva tu cita</h2><p>Elige cómo quieres atenderte, una fecha y un horario disponible.</p><div id="chosen" class="selected"></div>
 <div class="section-label">¿Dónde prefieres el servicio?</div><div id="modes" class="modes"></div>
 <label id="addressLabel" hidden>Dirección para atenderte a domicilio<textarea id="address" maxlength="350" rows="2" placeholder="Barrio, calle, número y referencias"></textarea></label>
@@ -48,7 +84,7 @@ footer{border-top:1px solid #3c3d40;text-align:center;margin:28px auto 0;padding
 <div id="confirmed" class="success" hidden><h2>✓ ¡Tu cita está confirmada!</h2><div id="receipt" class="receipt"></div><p>¡Te esperamos! Conserva el código para cualquier consulta.</p><p class="muted">Si quieres, avisa al barbero por WhatsApp. El aviso es opcional.</p><a id="notify" class="wa" target="_blank" rel="noopener noreferrer" hidden>☎ Avisar al barbero por WhatsApp</a></div>
 </section>
 <footer><span id="footerName">BarberControl</span> · Tu barbería, tu horario.</footer></main>
-<nav class="nav" aria-label="Navegación inferior"><a href="#catalogo"><b>⌂</b>Estilos</a><a href="#booking"><b>▦</b>Mi cita</a><a id="navWa" href="#catalogo"><b>◉</b>Contacto</a></nav>
+<nav class="nav" aria-label="Navegación inferior"><button type="button" id="navCatalog" aria-current="page"><b>⌂</b>Estilos</button><button type="button" id="navBooking"><b>▦</b>Mi cita</button><a id="navWa" target="_blank" rel="noopener noreferrer" aria-disabled="true"><b>◉</b>Contacto</a><button type="button" id="navSettings"><b>⚙</b>Ajustes</button></nav>
 <div id="galleryModal" class="modal" hidden role="dialog" aria-modal="true" aria-label="Fotos del estilo"><div class="modal-body"><button type="button" id="galleryClose" class="close" aria-label="Cerrar">×</button><img id="galleryImage" alt="Fotografía del corte"><div class="modal-controls"><button type="button" id="galleryPrev">‹ Anterior</button><span id="galleryCounter"></span><button type="button" id="galleryNext">Siguiente ›</button></div></div></div>
 <div id="busy" class="busy" hidden role="dialog" aria-modal="true" aria-labelledby="busyTitle" tabindex="-1"><div class="busy-box"><div class="pole" aria-hidden="true"></div><h2 id="busyTitle">Preparando tu cita…</h2><p id="busyMessage">Comprobando información…</p></div></div>
 <script>
@@ -124,7 +160,8 @@ function renderBrand(){
  const phone=c.telefono;
  if(phone){$('whatsappTop').href='https://wa.me/'+phone;$('whatsappTop').hidden=false;
   $('navWa').href='https://wa.me/'+phone;$('navWa').target='_blank';$('navWa').rel='noopener noreferrer';}
- else $('whatsappTop').hidden=true;
+ else {$('whatsappTop').hidden=true;$('navWa').removeAttribute('href');$('navWa').setAttribute('aria-disabled','true');}
+ if(phone)$('navWa').removeAttribute('aria-disabled');
  if(c.tieneLogo)photoTo($('logo'),'LOGO','principal','');
  $('logo').hidden=!c.tieneLogo;$('logoFallback').hidden=!!c.tieneLogo;
 }
@@ -137,13 +174,13 @@ function renderCategories(){
  });
 }
 function addPhotoBox(parent,cut){
- const hasExtra=cut.fotosAdicionales>0;
- const pic=document.createElement(hasExtra?'button':'div');
- pic.className='photo'+(hasExtra?' photo-click':'');
- if(hasExtra){pic.type='button';pic.setAttribute('aria-label','Ver todas las fotos de '+cut.nombre);pic.onclick=()=>openGallery(cut);}
+ const hasExtra=cut.fotosAdicionales>0,hasPhoto=Boolean(cut.tieneImagen)||hasExtra;
+ const pic=document.createElement(hasPhoto?'button':'div');
+ pic.className='photo'+(hasPhoto?' photo-click':'');
+ if(hasPhoto){pic.type='button';pic.setAttribute('aria-label','Ampliar fotografías de '+cut.nombre);pic.onclick=()=>openGallery(cut);}
  const span=document.createElement('span');span.className='photo-fallback';span.textContent='✂';pic.append(span);
  if(cut.tieneImagen){const img=document.createElement('img');img.alt=cut.nombre;img.loading='lazy';pic.append(img);photoTo(img,'CORTE',cut.id,'');}
- if(hasExtra){const label=document.createElement('span');label.className='photo-count';label.textContent='▣ '+(cut.fotosAdicionales+1)+' fotos';pic.append(label);}
+ if(hasPhoto){const label=document.createElement('span');label.className='photo-count';const total=Number(cut.fotosAdicionales||0)+(cut.tieneImagen?1:0);label.textContent=total>1?'▣ '+total+' fotos':'⌕ Ampliar';pic.append(label);}
  parent.append(pic);
 }
 function renderProducts(){
@@ -199,10 +236,10 @@ async function checkVersion(){
  try{const v=await api('obtenerVersionEscaparate');if(v.identidad+':'+v.version===state.signature)return;await loadCatalog();}catch(e){}
 }
 async function openGallery(cut){
- if(!(cut.fotosAdicionales>0))return;
+ if(!cut.tieneImagen&&!(cut.fotosAdicionales>0))return;
  try{
   await wait(async()=>{
-   const photos=await api('obtenerFotosCortePublico',cut.id);
+   const photos=cut.tieneImagen&&!(cut.fotosAdicionales>0)?[{id:'PORTADA',tipo:'PRINCIPAL'}]:await api('obtenerFotosCortePublico',cut.id);
    if(!photos.length)return;
    state.gallery=photos.map(p=>({cutId:cut.id,type:p.tipo==='PRINCIPAL'?'CORTE':'FOTO_CORTE',photoId:p.tipo==='PRINCIPAL'?'':p.id}));
    state.galleryIndex=0;$('galleryModal').hidden=false;await showGalleryImage();
@@ -212,6 +249,7 @@ async function openGallery(cut){
 async function showGalleryImage(){
  const entry=state.gallery[state.galleryIndex];if(!entry)return;
  $('galleryImage').removeAttribute('src');$('galleryCounter').textContent=(state.galleryIndex+1)+' / '+state.gallery.length;
+ $('galleryPrev').hidden=$('galleryNext').hidden=state.gallery.length===1;
  $('galleryPrev').disabled=state.galleryIndex===0;$('galleryNext').disabled=state.galleryIndex===state.gallery.length-1;
  try{const uri=await picture(entry.type,entry.cutId,entry.photoId);if(entry===state.gallery[state.galleryIndex])$('galleryImage').src=uri;}catch(e){$('galleryImage').alt='No se pudo mostrar esta fotografía';}
 }
@@ -230,7 +268,7 @@ function readableTime(clock){
 }
 function choose(cut){
  state.cut=cut;state.slot=null;state.requestId='';
- $('booking').hidden=false;$('confirmed').hidden=true;$('clientFields').hidden=true;$('address').value='';
+ $('booking').hidden=false;$('bookingEmpty').hidden=true;$('appearance').hidden=true;setNav('navBooking');$('confirmed').hidden=true;$('clientFields').hidden=true;$('address').value='';
  const chosen=$('chosen');chosen.textContent='';
  const name=document.createElement('strong');name.textContent=cut.nombre;
  const meta=document.createElement('small');meta.textContent=cut.categoria+' · '+cut.duracion+' minutos';
@@ -311,10 +349,44 @@ async function confirmBooking(){
     'Confirmando tu cita','Verificando el horario y registrando tu reserva…');
   state.requestId='';state.slot=null;showConfirmation(result);
  }catch(e){
+  $('bookingError').classList.add('error');
   $('bookingError').textContent='No pudimos confirmar el resultado: '+(e.message||e)+
    '. Verifica si la cita ya aparece registrada antes de intentar nuevamente.';
  }
 }
+
+const THEME_KEY='bc-public-theme-v1';
+function applyTheme(value,persist){
+ const theme=value==='light'?'light':'dark';
+ document.documentElement.dataset.theme=theme;
+ $('themeLight').setAttribute('aria-pressed',String(theme==='light'));
+ $('themeDark').setAttribute('aria-pressed',String(theme==='dark'));
+ if(persist)write(THEME_KEY,theme);
+}
+function setNav(id){
+ ['navCatalog','navBooking','navSettings'].forEach(key=>{
+  if(key===id)$(key).setAttribute('aria-current','page');else $(key).removeAttribute('aria-current');
+ });
+}
+function navigateTo(id){
+ $('appearance').hidden=id!=='navSettings';
+ $('bookingEmpty').hidden=true;
+ setNav(id);
+ if(id==='navCatalog'){$('catalogo').hidden=false;$('catalogo').scrollIntoView({behavior:'smooth',block:'start'});}
+ else if(id==='navBooking'){
+  const target=state.cut?$('booking'):$('bookingEmpty');
+  target.hidden=false;target.scrollIntoView({behavior:'smooth',block:'start'});
+ }else $('appearance').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('navCatalog').onclick=()=>navigateTo('navCatalog');
+$('navBooking').onclick=()=>navigateTo('navBooking');
+$('navSettings').onclick=()=>navigateTo('navSettings');
+$('goCatalog').onclick=()=>navigateTo('navCatalog');
+$('themeLight').onclick=()=>applyTheme('light',true);
+$('themeDark').onclick=()=>applyTheme('dark',true);
+$('navWa').addEventListener('click',e=>{if(!$('navWa').hasAttribute('href')){e.preventDefault();alert('Aún no se ha configurado el número de WhatsApp.');}});
+applyTheme(read(THEME_KEY),false);
+
 $('search').addEventListener('input',e=>{state.query=e.target.value;renderProducts();});
 $('sort').addEventListener('change',e=>{state.sort=e.target.value;renderProducts();});
 $('date').addEventListener('change',slots);
