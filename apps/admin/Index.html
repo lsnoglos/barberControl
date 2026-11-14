@@ -8,22 +8,62 @@ main{width:min(1200px,100%);margin:auto;padding:17px 15px 60px}.panel{background
 label{display:grid;gap:6px;font-size:13px;color:#d8dae0;margin:11px 0}input,select,textarea{width:100%;padding:11px;background:#12151b;border:1px solid #555b66;color:#fff;border-radius:9px;min-width:0}input[type=checkbox]{width:auto}.check{display:flex;align-items:center;gap:8px}.check input{accent-color:#d8b47c}.note{background:#242b2b;border:1px solid #435e55;border-radius:11px;padding:12px;color:#c2e5d4;font-size:12px}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.muted{color:var(--muted)}.small{font-size:12px}.calendar-top{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:15px}.calendar-title{font-size:16px;font-weight:800;text-transform:capitalize}.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.month .dow{text-align:center;color:#9ea5ae;font-size:11px;padding:5px 0}.date{position:relative;min-width:0;aspect-ratio:1.12;border:1px solid #40454d;background:#272a30;color:#f5f5f5;border-radius:10px;padding:5px;display:flex;align-items:flex-start;justify-content:flex-end;font-size:13px}.date.has{border-color:#a58a5d;background:#302b22}.date.active{outline:2px solid var(--gold)}.date.empty{background:transparent;border-color:transparent;pointer-events:none}.date b{position:absolute;bottom:5px;left:6px;background:var(--gold);color:#181818;border-radius:12px;min-width:18px;min-height:18px;display:grid;place-items:center;font-size:10px}
 .book-list{margin-top:13px;border-top:1px solid #41444b;padding-top:11px;display:grid;gap:9px}.booking{padding:12px;border:1px solid #454951;background:#242831;border-radius:11px}.booking strong{display:block;margin-bottom:6px}.booking p{margin:5px 0;color:#ccd0d6;font-size:12px}.hours{display:grid;gap:8px}.hour-row{display:grid;grid-template-columns:minmax(90px,1fr) 55px 110px 110px auto;gap:8px;align-items:center;border-bottom:1px solid #34383e;padding:9px 0}.hour-row input[type=time]{padding:9px}.hour-row input[type=checkbox]{justify-self:center}.settings-head{font-size:14px;color:var(--gold);margin:15px 0 7px}.categories{display:flex;flex-wrap:wrap;gap:9px}.category{border:1px solid #4d535d;background:#262a32;border-radius:12px;padding:9px;font-size:12px;display:flex;gap:8px;align-items:center}.category button{font-size:11px;padding:4px 7px;border-radius:8px;border:0;background:#4a4e55;color:white}
 dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d644f;border-radius:19px;background:#1a1d23;color:#fff;padding:20px;box-shadow:0 28px 70px #000a}dialog::backdrop{background:#050607dc}.form-actions{display:flex;gap:10px;justify-content:end;align-items:center;flex-wrap:wrap;margin-top:16px}.thumb{width:96px;height:96px;object-fit:cover;background:#333;border-radius:12px}.photos{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.photo-item{display:grid;gap:4px}.photo-item img{width:80px;height:80px;object-fit:cover;border-radius:9px}.photo-item button{font-size:11px;padding:7px;background:#4b505a;color:#fff;border:0;border-radius:8px}.brand-preview{max-height:130px;max-width:180px;object-fit:contain;background:#22252c;border-radius:12px}.busy{position:fixed;inset:0;z-index:100;background:#0c0e13ef;display:flex;align-items:center;justify-content:center;padding:18px}.busy .inner{width:min(90vw,340px);border-radius:19px;background:#22262d;border:1px solid #675436;text-align:center;padding:23px}.busy h2{font-size:19px}.busy p{font-size:13px;color:#d7c7b5}.pole{height:133px;width:62px;margin:14px auto;border:6px solid #24477e;border-top:18px solid #dce7ff;border-bottom:18px solid #dce7ff;border-radius:20px;overflow:hidden;position:relative}.pole::before{content:"";position:absolute;inset:-80px -30px;background:repeating-linear-gradient(155deg,#fff 0 20px,#c64353 20px 40px,#fff 40px 60px,#3a65ad 60px 80px);animation:stripe 1.1s linear infinite}@keyframes stripe{to{transform:translateY(80px)}}@media(max-width:740px){.hour-row{grid-template-columns:1fr 45px 1fr 1fr}.hour-row button{grid-column:1/-1}.hour-row input{font-size:12px}.panel{padding:15px}.month{gap:4px}.date{font-size:12px}}@media(prefers-reduced-motion:reduce){.pole::before{animation:none}}
+
+/* Calendario operativo, accesibilidad y formato de hora de 12 horas. */
+.calendar-refresh{width:100%;font-size:16px;min-height:50px;padding:13px 20px;box-shadow:0 3px 12px #0002}
+.calendar-loading{margin:15px 0 3px;display:grid;gap:8px;color:var(--muted);font-size:12px}
+.barber-progress{height:11px;border-radius:20px;overflow:hidden;border:1px solid #747a83;background:repeating-linear-gradient(125deg,#e34c4c 0 13px,#fff 13px 26px,#3b6ac3 26px 39px,#fff 39px 52px);background-size:90px 100%;animation:barberSlide .85s linear infinite}
+@keyframes barberSlide{to{background-position:90px 0}}@media(prefers-reduced-motion:reduce){.barber-progress{animation:none}}
+.day-heading{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:5px 0 3px}.day-heading strong{font-size:15px;text-transform:capitalize}.day-total{font-size:11px;color:var(--muted)}
+.day-empty{padding:22px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px}
+.booking{display:grid;gap:9px;padding:15px;border-left:3px solid #c79c5e}.booking-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:6px}.booking-heading strong{font-size:16px;margin:0}.booking-time{color:var(--gold);font-size:13px;font-weight:750}
+.booking-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(145px,100%),1fr));gap:10px 12px}.booking-field{display:grid;gap:3px;min-width:0}.booking-field small{color:var(--muted);font-size:11px}.booking-field span{font-size:13px;overflow-wrap:anywhere}
+.booking-status{font-size:10px;border-radius:15px;padding:5px 8px;background:#284738;color:#c5efcf;font-weight:750}
+.booking-actions{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding-top:11px}
+.booking-actions a{min-height:42px;display:inline-flex;justify-content:center;align-items:center;gap:6px;padding:10px 13px;border-radius:10px;text-decoration:none;font-weight:750;font-size:12px}
+.wa-confirm{background:#167e43;color:#fff;border:1px solid #249a56}.wa-message{background:transparent;border:1px solid #348a58;color:#a5e6bd}
+.clock-picker{display:grid;grid-template-columns:minmax(44px,1fr) minmax(44px,1fr) minmax(58px,1.2fr);gap:4px;align-items:center;min-width:0}.clock-picker select{padding:8px 4px;min-width:0;font-size:12px;min-height:42px}.clock-field{display:grid;gap:6px;align-content:start;margin:11px 0;font-size:13px;color:#d8dae0;min-width:0}.hour-clock{display:grid;gap:4px}.hour-clock small{color:var(--muted);font-size:10px}
+.hour-row{grid-template-columns:minmax(80px,1fr) 40px minmax(150px,1.6fr) minmax(150px,1.6fr) auto}
+@media(max-width:740px){.hour-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.hour-row>strong{grid-column:1}.hour-row>input[type=checkbox]{grid-column:2;justify-self:end}.hour-row>button{grid-column:1/-1}.booking-actions a{flex:1 1 140px}.clock-picker select{font-size:11px}}
+.theme-select{display:grid;grid-template-columns:1fr 1fr;gap:12px}.theme-card{display:grid;gap:11px;text-align:left;background:var(--panel);color:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;font-weight:700}.theme-card[aria-pressed="true"]{outline:2px solid #bd954f;outline-offset:1px}.theme-preview{height:52px;border-radius:8px;display:grid;gap:6px;padding:10px}.theme-preview i{height:6px;border-radius:10px;background:currentColor;opacity:.45;width:74%}.theme-preview i:last-child{width:48%}.theme-preview.light{background:#faf8f2;color:#514532;border:1px solid #e5dcd0}.theme-preview.dark{background:#14171f;color:#d9b981;border:1px solid #454851}
+:root[data-theme="light"]{color-scheme:light;--bg:#f5f2eb;--panel:#fff;--line:#e1dace;--gold:#d8ad6d;--muted:#655f55}
+:root[data-theme="light"] body{color:#28231c}:root[data-theme="light"] header{background:#fffcf6;border-color:#e1d9cc}
+:root[data-theme="light"] .panel{box-shadow:0 4px 18px #49391608}
+:root[data-theme="light"] .icon,:root[data-theme="light"] .secondary{background:#f4efe6;color:#493d2b;border-color:#dbd0bf}
+:root[data-theme="light"] .icon.active{background:#eedbb9;color:#614218;border-color:#c9a571}
+:root[data-theme="light"] a:not(.wa-confirm):not(.wa-message){color:#805619}
+:root[data-theme="light"] .style-card,:root[data-theme="light"] .booking,:root[data-theme="light"] .category{background:#fcfaf6;border-color:#e1d9cb}
+:root[data-theme="light"] .style-card img,:root[data-theme="light"] .brand-preview,:root[data-theme="light"] .thumb{background:#eee8df}
+:root[data-theme="light"] .style-info button,:root[data-theme="light"] .category button,:root[data-theme="light"] .photo-item button{background:#f2e8d7;color:#5d4629;border-color:#d9c6a6}
+:root[data-theme="light"] label,:root[data-theme="light"] .clock-field{color:#514a40}
+:root[data-theme="light"] input,:root[data-theme="light"] select,:root[data-theme="light"] textarea{background:#fffdf9;color:#2c261e;border-color:#d8cdbd}
+:root[data-theme="light"] .note{background:#e9f6ec;border-color:#b9d9c0;color:#235b34}
+:root[data-theme="light"] .month .dow{color:#645e55}:root[data-theme="light"] .date{background:#fbf9f4;border-color:#e2d9cb;color:#332a20}:root[data-theme="light"] .date.has{background:#f5e4c5;border-color:#c9a875}:root[data-theme="light"] .date.active{outline-color:#a7762b}:root[data-theme="light"] .date.empty{background:transparent;border-color:transparent}
+:root[data-theme="light"] .book-list,:root[data-theme="light"] .hour-row{border-color:#e4dcd0}
+:root[data-theme="light"] .booking-time,:root[data-theme="light"] .settings-head{color:#865b22}
+:root[data-theme="light"] .booking-status{background:#e0f2e5;color:#27633b}
+:root[data-theme="light"] .wa-message{color:#166438;border-color:#91bca0;background:#f1faf3}
+:root[data-theme="light"] dialog{background:#fffdf8;color:#30291e;border-color:#d0baa0}
+:root[data-theme="light"] .busy .inner{background:#fffaf0;color:#31291c;border-color:#d4b780}:root[data-theme="light"] .busy p{color:#64553e}
+:root[data-theme="light"] .danger{color:#ad2929}
+
 </style>
 </head><body>
 <header><div class="top"><span style="font-size:25px">✂</span><h1>BarberControl <span class="muted" style="font-size:12px">Admin</span></h1><button id="homeButton" class="icon active" title="Panel principal" aria-label="Panel principal">⌂</button><button id="settingsButton" class="icon" title="Configuración" aria-label="Configuración">⚙</button></div></header>
 <main id="app">
 <div id="mainPage">
 <section class="panel"><div class="section-head"><div><h2>Estilos de cortes</h2><p class="sub">Registra y edita rápidamente cortes, precios, duración y fotografías.</p></div><button id="newCut" class="gold">+ Nuevo corte</button></div><div id="styles" class="styles">Cargando estilos…</div></section>
-<section class="panel"><div class="section-head"><div><h2>Reservaciones</h2><p class="sub">Los días marcados tienen citas. Pulsa un día para ver los detalles.</p></div><button id="refreshCalendar" class="secondary">↻ Actualizar</button></div>
-<div class="calendar-top"><button id="prevMonth" class="secondary" aria-label="Mes anterior">‹</button><span id="monthTitle" class="calendar-title"></span><button id="nextMonth" class="secondary" aria-label="Mes siguiente">›</button></div>
-<div id="month" class="month"></div><div id="dayBookings" class="book-list"><p class="muted small">Selecciona un día para visualizar sus citas.</p></div></section>
+<section class="panel"><div class="section-head"><div><h2>Reservaciones</h2><p class="sub">Los días marcados tienen citas. Pulsa un día para ver los detalles.</p></div></div><button id="refreshCalendar" class="gold calendar-refresh" type="button">↻ Actualizar reservaciones</button>
+<div class="calendar-top" style="margin-top:16px"><button id="prevMonth" class="secondary" aria-label="Mes anterior">‹</button><span id="monthTitle" class="calendar-title"></span><button id="nextMonth" class="secondary" aria-label="Mes siguiente">›</button></div>
+<div id="month" class="month"></div><div id="calendarLoading" class="calendar-loading" hidden role="status"><div class="barber-progress" aria-hidden="true"></div><span id="calendarLoadingText">Consultando reservaciones…</span></div><div id="dayBookings" class="book-list"><p class="muted small">Selecciona un día para visualizar sus citas.</p></div></section>
 <section class="panel"><h2>Horarios de atención</h2><p class="sub">Configura los días y las horas de trabajo habituales.</p><div id="hours" class="hours"></div></section>
 <section class="panel"><h2>Bloquear horarios</h2><p class="sub">Crea descansos diarios, bloqueos semanales o para fechas específicas.</p>
 <form id="blockForm"><div class="grid"><label>Repetición<select id="blockType"><option value="DIARIO">Todos los días</option><option value="SEMANAL">Una vez por semana</option><option value="UNICO">Solo una fecha</option><option value="RANGO">Rango de fechas</option></select></label>
-<label id="weekField">Día de la semana<select id="blockDay"></select></label><label id="startDateField" hidden>Fecha inicial<input type="date" id="blockDate"></label><label id="endDateField" hidden>Fecha final<input type="date" id="blockDateEnd"></label><label>Desde<input type="time" id="blockStart" value="12:00" required></label><label>Hasta<input type="time" id="blockEnd" value="12:30" required></label><label>Motivo<input id="blockReason" maxlength="100" value="Descanso"></label></div>
+<label id="weekField">Día de la semana<select id="blockDay"></select></label><label id="startDateField" hidden>Fecha inicial<input type="date" id="blockDate"></label><label id="endDateField" hidden>Fecha final<input type="date" id="blockDateEnd"></label><div class="clock-field"><span>Desde</span><div id="blockStartPicker"></div></div><div class="clock-field"><span>Hasta</span><div id="blockEndPicker"></div></div><label>Motivo<input id="blockReason" maxlength="100" value="Descanso"></label></div>
 <button class="gold">Agregar bloqueo</button></form><div id="blocks" class="book-list"></div></section>
 </div>
 <div id="settingsPage" hidden>
+<section class="panel"><h2>Apariencia</h2><p class="sub">Elige tu tema. Se guarda en la cuenta del administrador.</p><div class="theme-select"><button id="themeLight" type="button" class="theme-card" aria-pressed="false"><span class="theme-preview light"><i></i><i></i></span>☀ Modo claro</button><button id="themeDark" type="button" class="theme-card" aria-pressed="false"><span class="theme-preview dark"><i></i><i></i></span>☾ Modo oscuro</button></div><p class="sub" id="themeStatus" role="status"></p></section>
 <section class="panel"><h2>Identidad de la barbería</h2><p class="sub">Nombre comercial, logotipo y WhatsApp.</p><div class="grid"><label>Nombre<input id="businessName" maxlength="80"></label><label>Eslogan<input id="slogan" maxlength="140"></label><label>WhatsApp<input id="businessPhone" maxlength="20"></label></div><button id="saveIdentity" class="gold">Guardar identidad</button>
 <div class="row" style="margin-top:16px"><img id="brandLogo" class="brand-preview" alt="Logo actual" hidden><label>Logotipo PNG<input id="logoUpload" type="file" accept="image/png"></label><button id="saveLogo" class="secondary">Guardar logotipo</button></div></section>
 <section class="panel"><h2>Intervalo entre horarios</h2><p class="sub">Cada cuántos minutos se ofrecen nuevas horas de inicio. La duración real depende de cada corte.</p><label>Intervalo<select id="interval"><option value="5">Cada 5 minutos</option><option value="10">Cada 10 minutos</option><option value="15">Cada 15 minutos</option><option value="20">Cada 20 minutos</option><option value="30">Cada 30 minutos</option><option value="60">Cada 60 minutos</option></select></label><button id="saveInterval" class="gold">Guardar intervalo</button></section>
@@ -74,7 +114,7 @@ dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d6
 'use strict';
 const $=id=>document.getElementById(id);
 const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const state={panel:null,cortes:[],fotos:[],marca:null,year:new Date().getFullYear(),month:new Date().getMonth()+1,selectedDate:'',images:new Map(),busy:false};
+const state={panel:null,cortes:[],fotos:[],marca:null,year:new Date().getFullYear(),month:new Date().getMonth()+1,selectedDate:'',calendarSeq:0,images:new Map(),busy:false};
 function api(name,...args){
  return new Promise((resolve,reject)=>{
   let settled=false;
@@ -106,6 +146,63 @@ async function run(task,title){
 function option(select,value,label){const opt=document.createElement('option');opt.value=value;opt.textContent=label;select.append(opt);}
 function bool(v){return String(v).toLowerCase()==='true';}
 function money(v){return v===''?'No disponible':'C$'+Number(v).toLocaleString('es-NI',{maximumFractionDigits:2});}
+
+/** La interfaz usa am/pm; el servidor recibe HH:mm sin modificar el esquema. */
+function readableTime(clock){
+ const m=/^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(String(clock||''));
+ if(!m)return '—';
+ const h=Number(m[1]),min=Number(m[2]);
+ if(h>23||min>59)return '—';
+ return (h%12||12)+':'+m[2]+' '+(h>=12?'p. m.':'a. m.');
+}
+function makeClock(value,label){
+ const box=document.createElement('div');box.className='clock-picker';
+ const hour=document.createElement('select'),minute=document.createElement('select'),period=document.createElement('select');
+ hour.setAttribute('aria-label',label+' hora');minute.setAttribute('aria-label',label+' minutos');period.setAttribute('aria-label',label+' a. m. o p. m.');
+ for(let i=1;i<=12;i++)option(hour,String(i),String(i));
+ for(let i=0;i<60;i++){const n=String(i).padStart(2,'0');option(minute,n,n);}
+ option(period,'AM','a. m.');option(period,'PM','p. m.');
+ const m=/^(\d{1,2}):(\d{2})/.exec(String(value||'08:00')),h=m?Number(m[1]):8;
+ hour.value=String(h%12||12);minute.value=m?m[2]:'00';period.value=h>=12?'PM':'AM';
+ box.append(hour,minute,period);
+ return {element:box,get value(){return String(Number(hour.value)%12+(period.value==='PM'?12:0)).padStart(2,'0')+':'+minute.value;}};
+}
+const ADMIN_THEME_KEY='bc-admin-theme-v1';
+let themeRevision=0,themeQueue=Promise.resolve();
+function applyAdminTheme(value){
+ const theme=value==='light'?'light':'dark';
+ document.documentElement.dataset.theme=theme;
+ $('themeLight').setAttribute('aria-pressed',String(theme==='light'));
+ $('themeDark').setAttribute('aria-pressed',String(theme==='dark'));
+ try{localStorage.setItem(ADMIN_THEME_KEY,theme);}catch(e){}
+ return theme;
+}
+function chooseAdminTheme(value){
+ const revision=++themeRevision,theme=applyAdminTheme(value);
+ $('themeStatus').textContent='Guardando preferencia…';
+ themeQueue=themeQueue.catch(()=>{}).then(()=>api('guardarTemaAdmin',theme));
+ themeQueue.then(()=>{if(revision===themeRevision)$('themeStatus').textContent='Preferencia guardada.';})
+  .catch(()=>{if(revision===themeRevision)$('themeStatus').textContent='Guardado en este navegador; no se pudo sincronizar con Google.';});
+}
+function initAdminTheme(){
+ let local='dark';try{local=localStorage.getItem(ADMIN_THEME_KEY)||'dark';}catch(e){}
+ applyAdminTheme(local);
+ const revision=themeRevision;
+ api('obtenerTemaAdmin').then(theme=>{if(revision===themeRevision&&(theme==='light'||theme==='dark'))applyAdminTheme(theme);}).catch(()=>{});
+}
+function clientWhatsApp(r,confirmed,brand){
+ const name=String(r.cliente||'').trim()||'cliente';
+ const business=String(brand||'').trim()||'Barbería';
+ const digits=String(r.telefono||'').replace(/\D/g,'');
+ if(digits.length<8||digits.length>15)return '';
+ const phone=digits.length===8?'505'+digits:digits;
+ const text=confirmed?'Estimado '+name+', es un gusto saludarte. Te confirmo tu cita para '+r.nombre+
+  ' el '+dateTitle(r.fecha)+' a las '+readableTime(r.inicio)+'. '+
+  (r.modalidad==='DOMICILIO'?'Te atenderemos a domicilio en el horario acordado.':'¡Te esperamos!')+
+  ' Gracias por preferirnos. '+business+'.':'Hola '+name+', ';
+ return 'https://wa.me/'+phone+'?text='+encodeURIComponent(text);
+}
+
 function priceSummary(c){
  const vals=[];if(c.PrecioLocal!=='')vals.push('Local '+money(c.PrecioLocal));
  if(c.PrecioDomicilio!=='')vals.push('Domicilio '+money(c.PrecioDomicilio));
@@ -221,44 +318,114 @@ function dateTitle(key){
  const d=new Date(key+'T12:00:00');
  return new Intl.DateTimeFormat('es-NI',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(d);
 }
-async function refreshMonth(){
- const counts=await api('obtenerCalendarioAdminV2',state.year,state.month);
- const title=firstDayOfMonth(state.year,state.month);
- $('monthTitle').textContent=new Intl.DateTimeFormat('es-NI',{month:'long',year:'numeric'}).format(title);
- const host=$('month');host.textContent='';
+function selectedForMonth(){
+ const prefix=dateKey(state.year,state.month,1).slice(0,7);
+ if(state.selectedDate.slice(0,7)===prefix)return state.selectedDate;
+ const now=new Date();
+ return dateKey(state.year,state.month,now.getFullYear()===state.year&&now.getMonth()+1===state.month?now.getDate():1);
+}
+function calendarLoading(active,message){
+ $('calendarLoading').hidden=!active;
+ $('calendarLoadingText').textContent=message||'Consultando reservaciones…';
+ $('dayBookings').setAttribute('aria-busy',String(active));
+ if(active)$('dayBookings').textContent='';
+}
+function calendarError(error){
+ const host=$('dayBookings');host.textContent='';
+ const p=document.createElement('p');p.className='danger small';
+ p.textContent='No se pudieron consultar las reservas. '+(error.message||error)+'. Pulsa Actualizar para intentar nuevamente.';
+ host.append(p);
+}
+function markSelectedDay(){
+ $('month').querySelectorAll('button.date').forEach(b=>{
+  const selected=b.dataset.date===state.selectedDate;
+  b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+ });
+}
+function renderMonth(counts,year,month){
+ const title=firstDayOfMonth(year,month),host=$('month');
+ host.textContent='';
  ['L','M','M','J','V','S','D'].forEach(name=>{const d=document.createElement('span');d.className='dow';d.textContent=name;host.append(d);});
- const offset=(title.getDay()+6)%7,last=new Date(state.year,state.month,0).getDate();
+ const offset=(title.getDay()+6)%7,last=new Date(year,month,0).getDate();
  for(let i=0;i<offset;i++){const blank=document.createElement('div');blank.className='date empty';host.append(blank);}
  for(let day=1;day<=last;day++){
-  const date=dateKey(state.year,state.month,day);
+  const date=dateKey(year,month,day),n=Number(counts[date]||0);
   const b=document.createElement('button');b.type='button';b.className='date';
-  b.textContent=String(day);b.dataset.date=date;b.classList.toggle('has',Boolean(counts[date]));
-  b.classList.toggle('active',state.selectedDate===date);
-  if(counts[date]){const marker=document.createElement('b');marker.textContent=counts[date];b.append(marker);}
+  b.textContent=String(day);b.dataset.date=date;b.classList.toggle('has',n>0);
+  b.setAttribute('aria-label',dateTitle(date)+' · '+n+' reservas');
+  if(n){const marker=document.createElement('b');marker.textContent=n;b.append(marker);}
   b.onclick=()=>openDay(date);host.append(b);
  }
- if(state.selectedDate.startsWith(dateKey(state.year,state.month,1).slice(0,7))){
-  await openDay(state.selectedDate);
- }else $('dayBookings').textContent='Selecciona un día para revisar las reservas.';
+ markSelectedDay();
 }
-async function openDay(date){
- state.selectedDate=date;
- $('month').querySelectorAll('.date').forEach(b=>b.classList.toggle('active',b.dataset.date===date));
- const records=await api('obtenerReservasDiaAdminV2',date);
+function renderDay(date,records){
  const host=$('dayBookings');host.textContent='';
- const title=document.createElement('strong');title.textContent=dateTitle(date);host.append(title);
- if(!records.length){const p=document.createElement('p');p.className='muted small';p.textContent='No hay reservas para este día.';host.append(p);return;}
+ const title=document.createElement('div');title.className='day-heading';
+ const day=document.createElement('strong');day.textContent=dateTitle(date);
+ const total=document.createElement('span');total.className='day-total';total.textContent=records.length+' '+(records.length===1?'reserva':'reservas');
+ title.append(day,total);host.append(title);
+ if(!records.length){const p=document.createElement('div');p.className='day-empty';p.textContent='No hay reservas para este día.';host.append(p);return;}
  records.forEach(r=>{
-  const card=document.createElement('div');card.className='booking';
-  const h=document.createElement('strong');h.textContent=r.inicio+'–'+r.fin+' · '+r.nombre;card.append(h);
+  const card=document.createElement('article');card.className='booking';
+  const top=document.createElement('div');top.className='booking-heading';
+  const h=document.createElement('strong');h.textContent=r.nombre||'Corte';
+  const status=document.createElement('span');status.className='booking-status';status.textContent=r.estado||'Registrada';
+  top.append(h,status);
+  const time=document.createElement('div');time.className='booking-time';time.textContent=readableTime(r.inicio)+' – '+readableTime(r.fin);
+  const fields=document.createElement('div');fields.className='booking-fields';
   [['Cliente',r.cliente],['Atención',r.modalidad==='DOMICILIO'?'A domicilio':r.modalidad==='LOCAL'?'En local':'Sin especificar'],
-   ['WhatsApp',r.telefono],['Precio',r.precio],['Estado',r.estado],['Dirección',r.direccion],['Comentario',r.comentario]].forEach(([label,value])=>{
-   if(!value)return;const p=document.createElement('p');p.textContent=label+': '+value;card.append(p);
+   ['WhatsApp',r.telefono],['Precio',r.precio!==''&&r.precio!=null?money(r.precio):''],['Dirección',r.direccion],['Comentario',r.comentario],['Código',r.id]].forEach(([label,value])=>{
+    if(value==null||value==='')return;
+    const block=document.createElement('div');block.className='booking-field';
+    const k=document.createElement('small');k.textContent=label;
+    const v=document.createElement('span');v.textContent=value;block.append(k,v);fields.append(block);
   });
-  const digits=String(r.telefono||'').replace(/\D/g,'');
-  if(digits.length>=8){const a=document.createElement('a');a.href='https://wa.me/'+(digits.length===8?'505'+digits:digits);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Contactar cliente';card.append(a);}
+  card.append(top,time,fields);
+  const actions=document.createElement('div');actions.className='booking-actions';
+  const brand=state.marca?.nombre||$('businessName').value||'Barbería';
+  const inactive=['CANCELADA','RECHAZADA'].includes(String(r.estado||'').toUpperCase());
+  [[true,'✓ Confirmar por WhatsApp','wa-confirm'],[false,'☎ Enviar mensaje','wa-message']].forEach(([isConfirm,label,style])=>{
+   if(isConfirm&&inactive)return;
+   const url=clientWhatsApp(r,isConfirm,brand);if(!url)return;
+   const link=document.createElement('a');link.className=style;link.href=url;link.target='_blank';
+   link.rel='noopener noreferrer';link.textContent=label;actions.append(link);
+  });
+  if(actions.children.length)card.append(actions);
   host.append(card);
  });
+}
+async function openDay(date){
+ const seq=++state.calendarSeq;state.selectedDate=date;markSelectedDay();
+ calendarLoading(true,'Consultando las citas del día…');
+ try{
+  const records=await api('obtenerReservasDiaAdminV2',date);
+  if(seq!==state.calendarSeq)return;
+  renderDay(date,records);
+ }catch(error){if(seq===state.calendarSeq)calendarError(error);}
+ finally{if(seq===state.calendarSeq)calendarLoading(false);}
+}
+async function refreshMonth(){
+ const seq=++state.calendarSeq,year=state.year,month=state.month,date=selectedForMonth();
+ state.selectedDate=date;
+ $('monthTitle').textContent=new Intl.DateTimeFormat('es-NI',{month:'long',year:'numeric'}).format(firstDayOfMonth(year,month));
+ calendarLoading(true,'Actualizando calendario y reservaciones…');
+ const controls=[$('refreshCalendar'),$('prevMonth'),$('nextMonth')];
+ controls.forEach(b=>b.disabled=true);
+ $('month').querySelectorAll('button').forEach(b=>b.disabled=true);
+ try{
+  const counts=await api('obtenerCalendarioAdminV2',year,month);
+  if(seq!==state.calendarSeq)return;
+  renderMonth(counts,year,month);
+  // Mantener el indicador visible hasta que también lleguen las citas del día.
+  const records=await api('obtenerReservasDiaAdminV2',date);
+  if(seq!==state.calendarSeq)return;
+  renderDay(date,records);
+ }catch(error){if(seq===state.calendarSeq){calendarError(error);if(!$('month').children.length||state.year===year&&state.month===month)renderMonth({},year,month);}}
+ finally{
+  controls.forEach(b=>b.disabled=false);
+  $('month').querySelectorAll('button').forEach(b=>b.disabled=false);
+  if(seq===state.calendarSeq)calendarLoading(false);
+ }
 }
 function renderHours(){
  const host=$('hours');host.textContent='';
@@ -266,13 +433,13 @@ function renderHours(){
   const div=document.createElement('div');div.className='hour-row';const n=Number(row.DiaSemana);
   const name=document.createElement('strong');name.textContent=dias[n];
   const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=bool(row.Abierto);
-  const from=document.createElement('input');from.type='time';from.value=row.Inicio||'08:00';
-  const to=document.createElement('input');to.type='time';to.value=row.Fin||'18:00';
+  const from=makeClock(row.Inicio||'08:00',dias[n]+' desde');const to=makeClock(row.Fin||'18:00',dias[n]+' hasta');
+  const wrap=(picker,title)=>{const el=document.createElement('div');el.className='hour-clock';const l=document.createElement('small');l.textContent=title;el.append(l,picker.element);return el;};
   const save=document.createElement('button');save.className='secondary';save.textContent='Guardar';save.onclick=async()=>{
    try{await run(()=>api('guardarHorarioAdmin',{dia:n,abierto:enabled.checked,inicio:from.value,fin:to.value}),'Guardando horario…');
     await refreshPanel();}catch(e){alert(e.message);}
   };
-  div.append(name,enabled,from,to,save);host.append(div);
+  div.append(name,enabled,wrap(from,'Desde'),wrap(to,'Hasta'),save);host.append(div);
  });
 }
 function renderBlocks(){
@@ -281,7 +448,7 @@ function renderBlocks(){
   const row=document.createElement('div');row.className='row';
   const label=document.createElement('span');label.className='small';
   label.textContent=b.Tipo+' · '+(b.Tipo==='SEMANAL'?dias[Number(b.DiaSemana)]:b.FechaInicio||'Todos los días')+
-   ' · '+b.Inicio+'–'+b.Fin+' · '+b.Motivo;row.append(label);
+   ' · '+readableTime(b.Inicio)+' – '+readableTime(b.Fin)+' · '+b.Motivo;row.append(label);
   const del=document.createElement('button');del.className='secondary';del.textContent='Desactivar';del.onclick=async()=>{
    if(!confirm('¿Desactivar este bloqueo?'))return;
    try{await run(()=>api('desactivarBloqueoAdmin',b.ID),'Desactivando bloqueo…');await refreshPanel();}
@@ -333,16 +500,20 @@ async function blockSave(e){
  if(type==='RANGO'&&!$('blockDateEnd').value){alert('Selecciona la fecha final.');return;}
  try{await run(()=>api('guardarBloqueoAdmin',{
   tipo:type,diaSemana:Number($('blockDay').value),fechaInicio:$('blockDate').value,
-  fechaFin:$('blockDateEnd').value,inicio:$('blockStart').value,fin:$('blockEnd').value,
+  fechaFin:$('blockDateEnd').value,inicio:blockStartControl.value,fin:blockEndControl.value,
   motivo:$('blockReason').value
  }),'Guardando bloqueo…');await refreshPanel();}catch(err){alert(err.message);}
 }
 $('homeButton').onclick=()=>togglePage(false);$('settingsButton').onclick=()=>togglePage(true);
 $('newCut').onclick=()=>editCut('');$('closeCut').onclick=()=>{$('cutDialog').close();};
 $('cancelCut').onclick=()=>{$('cutDialog').close();};$('cutForm').onsubmit=saveCut;
-$('refreshCalendar').onclick=()=>run(refreshMonth,'Actualizando reservas…').catch(e=>alert(e.message));
+$('refreshCalendar').onclick=refreshMonth;
 $('prevMonth').onclick=()=>{state.month--;if(state.month<1){state.month=12;state.year--;}state.selectedDate='';refreshMonth();};
 $('nextMonth').onclick=()=>{state.month++;if(state.month>12){state.month=1;state.year++;}state.selectedDate='';refreshMonth();};
+const blockStartControl=makeClock('12:00','Bloqueo desde'),blockEndControl=makeClock('12:30','Bloqueo hasta');
+$('blockStartPicker').append(blockStartControl.element);$('blockEndPicker').append(blockEndControl.element);
+$('themeLight').onclick=()=>chooseAdminTheme('light');$('themeDark').onclick=()=>chooseAdminTheme('dark');
+initAdminTheme();
 $('blockType').onchange=blockFields;$('blockForm').onsubmit=blockSave;
 dias.forEach((d,i)=>option($('blockDay'),String(i),d));$('blockDay').value='6';blockFields();
 $('saveIdentity').onclick=async()=>{
