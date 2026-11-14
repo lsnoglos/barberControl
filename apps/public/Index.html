@@ -244,6 +244,7 @@ async function openGallery(cut){
    state.gallery=photos.map(p=>({cutId:cut.id,type:p.tipo==='PRINCIPAL'?'CORTE':'FOTO_CORTE',photoId:p.tipo==='PRINCIPAL'?'':p.id}));
    state.galleryIndex=0;$('galleryModal').hidden=false;await showGalleryImage();
   },'Abriendo fotografías','Preparando las fotos del estilo…');
+  if(!$('galleryModal').hidden)$('galleryClose').focus({preventScroll:true});
  }catch(err){alert('No pudimos abrir las fotos: '+(err.message||err));}
 }
 async function showGalleryImage(){
@@ -285,7 +286,7 @@ function choose(cut){
  const today=dateKey(new Date());$('date').min=today;if(!$('date').value||$('date').value<today)$('date').value=today;
  if(available.length===1)modeHost.firstChild.click();
  else {state.mode=null;$('slots').textContent='Selecciona una modalidad.';}
- $('booking').scrollIntoView({behavior:'smooth',block:'start'});
+ navigateTo('navBooking');
 }
 async function slots(){
  if(!state.cut||!state.mode)return;
@@ -369,14 +370,13 @@ function setNav(id){
  });
 }
 function navigateTo(id){
+ $('catalogo').hidden=id!=='navCatalog';
  $('appearance').hidden=id!=='navSettings';
- $('bookingEmpty').hidden=true;
+ $('booking').hidden=id!=='navBooking'||!state.cut;
+ $('bookingEmpty').hidden=id!=='navBooking'||Boolean(state.cut);
  setNav(id);
- if(id==='navCatalog'){$('catalogo').hidden=false;$('catalogo').scrollIntoView({behavior:'smooth',block:'start'});}
- else if(id==='navBooking'){
-  const target=state.cut?$('booking'):$('bookingEmpty');
-  target.hidden=false;target.scrollIntoView({behavior:'smooth',block:'start'});
- }else $('appearance').scrollIntoView({behavior:'smooth',block:'start'});
+ const target=id==='navCatalog'?$('catalogo'):id==='navSettings'?$('appearance'):state.cut?$('booking'):$('bookingEmpty');
+ target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('navCatalog').onclick=()=>navigateTo('navCatalog');
 $('navBooking').onclick=()=>navigateTo('navBooking');
@@ -395,7 +395,12 @@ $('galleryClose').addEventListener('click',closeGallery);
 $('galleryPrev').addEventListener('click',()=>{if(state.galleryIndex>0){state.galleryIndex--;showGalleryImage();}});
 $('galleryNext').addEventListener('click',()=>{if(state.galleryIndex<state.gallery.length-1){state.galleryIndex++;showGalleryImage();}});
 $('galleryModal').addEventListener('click',e=>{if(e.target===$('galleryModal'))closeGallery();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('galleryModal').hidden)closeGallery();});
+document.addEventListener('keydown',e=>{
+ if($('galleryModal').hidden)return;
+ if(e.key==='Escape')closeGallery();
+ if(e.key==='ArrowLeft'&&state.galleryIndex>0)$('galleryPrev').click();
+ if(e.key==='ArrowRight'&&state.galleryIndex<state.gallery.length-1)$('galleryNext').click();
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkVersion();});
 $('date').min=dateKey(new Date());$('date').value=dateKey(new Date());
 loadCatalog();
