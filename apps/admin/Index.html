@@ -18,7 +18,7 @@ dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d6
 .day-empty{padding:22px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px}
 .booking{display:grid;gap:9px;padding:15px;border-left:3px solid #c79c5e}.booking-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:6px}.booking-heading strong{font-size:16px;margin:0}.booking-time{color:var(--gold);font-size:13px;font-weight:750}
 .booking-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(145px,100%),1fr));gap:10px 12px}.booking-field{display:grid;gap:3px;min-width:0}.booking-field small{color:var(--muted);font-size:11px}.booking-field span{font-size:13px;overflow-wrap:anywhere}
-.booking-status{font-size:10px;border-radius:15px;padding:5px 8px;background:#284738;color:#c5efcf;font-weight:750}
+.booking-status.inactive{background:#49454a;color:#e1d8db}.booking-status{font-size:10px;border-radius:15px;padding:5px 8px;background:#284738;color:#c5efcf;font-weight:750}
 .booking-actions{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding-top:11px}
 .booking-actions a{min-height:42px;display:inline-flex;justify-content:center;align-items:center;gap:6px;padding:10px 13px;border-radius:10px;text-decoration:none;font-weight:750;font-size:12px}
 .wa-confirm{background:#167e43;color:#fff;border:1px solid #249a56}.wa-message{background:transparent;border:1px solid #348a58;color:#a5e6bd}
@@ -41,7 +41,7 @@ dialog{width:min(96vw,680px);max-height:92vh;overflow:auto;border:1px solid #6d6
 :root[data-theme="light"] .month .dow{color:#645e55}:root[data-theme="light"] .date{background:#fbf9f4;border-color:#e2d9cb;color:#332a20}:root[data-theme="light"] .date.has{background:#f5e4c5;border-color:#c9a875}:root[data-theme="light"] .date.active{outline-color:#a7762b}:root[data-theme="light"] .date.empty{background:transparent;border-color:transparent}
 :root[data-theme="light"] .book-list,:root[data-theme="light"] .hour-row{border-color:#e4dcd0}
 :root[data-theme="light"] .booking-time,:root[data-theme="light"] .settings-head{color:#865b22}
-:root[data-theme="light"] .booking-status{background:#e0f2e5;color:#27633b}
+:root[data-theme="light"] .booking-status{background:#e0f2e5;color:#27633b}:root[data-theme="light"] .booking-status.inactive{background:#ece7e8;color:#66505a}
 :root[data-theme="light"] .wa-message{color:#166438;border-color:#91bca0;background:#f1faf3}
 :root[data-theme="light"] dialog{background:#fffdf8;color:#30291e;border-color:#d0baa0}
 :root[data-theme="light"] .busy .inner{background:#fffaf0;color:#31291c;border-color:#d4b780}:root[data-theme="light"] .busy p{color:#64553e}
@@ -321,8 +321,9 @@ function dateTitle(key){
 function selectedForMonth(){
  const prefix=dateKey(state.year,state.month,1).slice(0,7);
  if(state.selectedDate.slice(0,7)===prefix)return state.selectedDate;
- const now=new Date();
- return dateKey(state.year,state.month,now.getFullYear()===state.year&&now.getMonth()+1===state.month?now.getDate():1);
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Managua',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const part=type=>Number(today.find(p=>p.type===type).value);
+ return dateKey(state.year,state.month,part('year')===state.year&&part('month')===state.month?part('day'):1);
 }
 function calendarLoading(active,message){
  $('calendarLoading').hidden=!active;
@@ -382,8 +383,9 @@ function renderDay(date,records){
   });
   card.append(top,time,fields);
   const actions=document.createElement('div');actions.className='booking-actions';
-  const brand=state.marca?.nombre||$('businessName').value||'Barbería';
+  const brand=state.marca?.nombre||state.panel?.configuracion?.find(c=>c.Clave==='NOMBRE_NEGOCIO')?.Valor||$('businessName').value||'Barbería';
   const inactive=['CANCELADA','RECHAZADA'].includes(String(r.estado||'').toUpperCase());
+  status.classList.toggle('inactive',inactive);
   [[true,'✓ Confirmar por WhatsApp','wa-confirm'],[false,'☎ Enviar mensaje','wa-message']].forEach(([isConfirm,label,style])=>{
    if(isConfirm&&inactive)return;
    const url=clientWhatsApp(r,isConfirm,brand);if(!url)return;
@@ -409,18 +411,19 @@ async function refreshMonth(){
  state.selectedDate=date;
  $('monthTitle').textContent=new Intl.DateTimeFormat('es-NI',{month:'long',year:'numeric'}).format(firstDayOfMonth(year,month));
  calendarLoading(true,'Actualizando calendario y reservaciones…');
+ let countsLoaded=false;
  const controls=[$('refreshCalendar'),$('prevMonth'),$('nextMonth')];
  controls.forEach(b=>b.disabled=true);
  $('month').querySelectorAll('button').forEach(b=>b.disabled=true);
  try{
   const counts=await api('obtenerCalendarioAdminV2',year,month);
   if(seq!==state.calendarSeq)return;
-  renderMonth(counts,year,month);
+  renderMonth(counts,year,month);countsLoaded=true;
   // Mantener el indicador visible hasta que también lleguen las citas del día.
   const records=await api('obtenerReservasDiaAdminV2',date);
   if(seq!==state.calendarSeq)return;
   renderDay(date,records);
- }catch(error){if(seq===state.calendarSeq){calendarError(error);if(!$('month').children.length||state.year===year&&state.month===month)renderMonth({},year,month);}}
+ }catch(error){if(seq===state.calendarSeq){calendarError(error);if(!countsLoaded){$('month').textContent='';renderMonth({},year,month);}}}
  finally{
   controls.forEach(b=>b.disabled=false);
   $('month').querySelectorAll('button').forEach(b=>b.disabled=false);
